@@ -1,26 +1,58 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-primary: #84A357;
+  --color-primary-dark: #6B8445;
+  --color-primary-light: #A5C07A;
+  --color-secondary: #FFCA28;
+  --color-bg-light: #F4F6F0;
+  --color-card-bg: #FFFFFF;
+  --color-text-main: #333333;
+  --color-text-muted: #666666;
+
+  --font-display: var(--font-bebas-neue), sans-serif;
+  --font-sans: var(--font-poppins), sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  body {
+    background-color: var(--color-bg-light);
+    color: var(--color-text-main);
+    font-family: var(--font-sans);
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-display);
+    letter-spacing: 0.05em;
+    color: var(--color-text-main);
+  }
+
+  /* Ensure UI elements use proper font */
+  button,
+  input,
+  select,
+  textarea {
+    font-family: var(--font-sans);
+  }
+
+  /* Hide browser default password reveal button */
+  input[type="password"]::-ms-reveal,
+  input[type="password"]::-ms-clear {
+    display: none;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer components {
+  .btn-primary {
+    @apply bg-primary text-white font-bold py-2 px-6 rounded-full hover:bg-primary-dark transition-all duration-300 uppercase tracking-widest text-sm;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-gray-100 p-6;
+  }
 }
