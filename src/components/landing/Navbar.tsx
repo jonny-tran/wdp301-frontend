@@ -54,12 +54,16 @@ export default function Navbar() {
                 </ul>
             </div>
 
-            {/* Action Section - Right */}
+            {/* Action Section */}
             <div className="flex items-center space-x-6 flex-shrink-0">
                 <span className="hidden xl:inline-block text-xs font-bold text-text-muted uppercase tracking-[0.2em]">Support 24/7</span>
-                <button type="button" className="bg-primary text-white hover:bg-primary-dark font-bold rounded-full text-xs px-8 py-3 transition-all duration-300 uppercase tracking-widest shadow-sm shadow-primary/20">
-                    <Link href="/auth/login">Login</Link>
-                </button>
+                <Link
+                    href="/auth/login"
+                    className="relative inline-flex items-center justify-center bg-primary text-white font-bold rounded-full text-[10px] md:text-xs px-8 py-3 transition-all duration-300 uppercase tracking-widest shadow-lg shadow-primary/30 hover:bg-primary-dark hover:scale-105 active:scale-95 overflow-hidden group"
+                >
+                    <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] transition-transform"></span>
+                    <span className="relative z-10">Login</span>
+                </Link>
             </div>
         </nav>
     );
