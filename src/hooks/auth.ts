@@ -1,16 +1,13 @@
+'use client'
 import { authRequest } from "@/apiRequest/auth";
 import { EmailInput, LoginInput, ResetPasswordInput } from "@/schemas/auth";
-import { KEY } from "@/utils/contranst";
-import { useMutation, useQuery } from "@tanstack/react-query";
+
+import { useMutation } from "@tanstack/react-query";
 
 
 
 export const useAuth = () => {
-    const me = useQuery({
-        queryKey: KEY.me,
-        queryFn: () => authRequest.me(),
-        retry: false,
-    });
+
     const login = useMutation({
         mutationFn: async (data: LoginInput) => {
             const res = await authRequest.loginClient(data)
@@ -18,7 +15,6 @@ export const useAuth = () => {
         },
         onSuccess: async (data) => {
             await authRequest.loginServer(data)
-            await me.refetch();
 
         }
     })
@@ -43,5 +39,5 @@ export const useAuth = () => {
         }
     })
 
-    return { login, logout, forgotPassword, resetPassword, me }
+    return { login, logout, forgotPassword, resetPassword, }
 }
