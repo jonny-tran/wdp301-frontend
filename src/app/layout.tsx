@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Poppins } from "next/font/google";
 import "./globals.css";
+import QueryClientProviderWrapper from "@/components/QueryClientProviderWrapper";
+import { AuthProvider } from "@/context/authContext";
+import { cookies } from "next/headers";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 const bebasNeue = Bebas_Neue({
   weight: "400",
@@ -22,17 +27,35 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("accessToken");
+  const refreshToken = cookieStore.get("refreshToken");
+
   return (
     <html lang="en">
       <body
         className={`${bebasNeue.variable} ${poppins.variable} antialiased`}
       >
-        {children}
+        <AuthProvider initialAccessToken={accessToken?.value || null} initialRefreshToken={refreshToken?.value || null}>
+          <QueryClientProviderWrapper>
+            <ThemeProvider
+              attribute="class"
+              defaultTheme="system"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+              <Toaster richColors />
+            </ThemeProvider>
+          </QueryClientProviderWrapper>
+        </AuthProvider>
+
+
       </body>
     </html>
   );
