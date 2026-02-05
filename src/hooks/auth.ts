@@ -1,3 +1,4 @@
+'use client'
 import { authRequest } from "@/apiRequest/auth";
 import { EmailInput, LoginInput, ResetPasswordInput } from "@/schemas/auth";
 import { KEY } from "@/utils/contranst";
