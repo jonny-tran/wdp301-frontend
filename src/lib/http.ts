@@ -80,14 +80,20 @@ class TokenRefreshInterceptor {
             }
 
             const newAccessToken = result.data.accessToken;
+            const newRefreshToken = result.data.refreshToken;
 
             // Update Zustand store với token mới
-            useSessionStore.getState().setAccessToken(newAccessToken);
+            useSessionStore.getState().setSession({
+                accessToken: newAccessToken,
+                refreshToken: newRefreshToken
+            })
+
 
             // Đồng bộ cookie trên server thông qua API route
             try {
                 await authRequest.refreshTokenServer({
-                    accessToken: newAccessToken
+                    accessToken: newAccessToken,
+                    refreshToken: newRefreshToken
                 });
             } catch (syncError) {
                 console.error("Failed to sync token with server:", syncError);
@@ -186,7 +192,7 @@ async function httpRequest<T>(
     const payload: ResponseData<T> = await res.json();
 
     // Handle 401 - Token expired
-    if (res.status === HttpErrorCode.UNAUTHORIZED && payload.message === isExpired) {
+    if (res.status === HttpErrorCode.UNAUTHORIZED && payload.message === isExpired && !options?.skipAuth) {
         // Server: không thể refresh, throw error
         if (isServerRuntime()) {
             tokenInterceptor.handleAuthError();

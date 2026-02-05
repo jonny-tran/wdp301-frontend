@@ -1,62 +1,54 @@
-import { create } from "zustand"
-import { decodeJWT } from "@/utils/helper"
-import { User } from "@/types/user"
-
+import { create } from "zustand";
+import { decodeJWT } from "@/utils/helper";
+import { User } from "@/types/user";
 
 interface SessionState {
-    accessToken: string | null
-    user: User | null
-    refreshToken: string | null
+    accessToken: string | null;
+    refreshToken: string | null;
+    user: User | null;
 
-    setSession: (accessToken: string, refreshToken: string) => void
-    setAccessToken: (accessToken: string) => void
-    clearSession: () => void
+    setSession: (params: {
+        accessToken: string;
+        refreshToken: string;
+    }) => void;
+
+
+
+    clearSession: () => void;
 }
 
 export const useSessionStore = create<SessionState>((set) => ({
     accessToken: null,
-    user: null,
     refreshToken: null,
+    user: null,
 
-    setSession: (accessToken: string, refreshToken: string) => {
+    /* ===== INIT / LOGIN ===== */
+    setSession: ({ accessToken, refreshToken }) => {
         try {
-            const decodedUser = decodeJWT<User>(accessToken)
+            const user = decodeJWT<User>(accessToken);
             set({
                 accessToken,
                 refreshToken,
-                user: decodedUser,
-            })
+                user,
+            });
         } catch (error) {
-            console.error("Invalid access token", error)
+            console.error("Invalid access token", error);
             set({
                 accessToken: null,
                 refreshToken: null,
                 user: null,
-            })
+            });
         }
     },
 
-    setAccessToken: (accessToken: string) => {
-        try {
-            const decodedUser = decodeJWT<User>(accessToken)
-            set({
-                accessToken,
-                user: decodedUser,
-            })
-        } catch (error) {
-            console.error("Invalid access token", error)
-            set({
-                accessToken: null,
-                user: null,
-            })
-        }
-    },
 
+
+    /* ===== LOGOUT / EXPIRED ===== */
     clearSession: () => {
         set({
             accessToken: null,
             refreshToken: null,
             user: null,
-        })
+        });
     },
-}))
+}));

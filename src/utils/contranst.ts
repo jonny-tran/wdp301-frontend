@@ -26,3 +26,15 @@ export const Resource = {
     REPORT: 'report',
     STORE: 'store',
 } as const;
+
+
+// export const QUERY_KEY = {
+//     examType: (param?: ExamTypeQuery) => ['examType', param],
+//     examTypeById: (id: number) => ['examTypeById', id],
+
+
+
+// } as const
+export const KEY = {
+    me: ['profile']
+} as const;

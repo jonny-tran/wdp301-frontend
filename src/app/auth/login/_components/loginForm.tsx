@@ -5,15 +5,15 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authSchema, LoginInput } from "@/schemas/auth";
 import { useAuthContext } from "@/context/authContext";
-import { authRequest } from "@/apiRequest/auth";
+import { useAuth } from "@/hooks/auth";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { EyeSlashIcon, EyeIcon } from "@heroicons/react/24/outline";
 import { handleErrorApi } from "@/lib/errors";
 
 export default function LoginForm() {
+    const { login } = useAuth();
     const { setTokenFromContext } = useAuthContext();
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
@@ -30,19 +30,12 @@ export default function LoginForm() {
     });
 
     const onSubmit = async (data: LoginInput) => {
+        if (login.isPending) return;
         setIsLoading(true);
         setError(null);
         try {
-            // 1. Call Backend Login API
-            const res = await authRequest.login(data);
-            const { accessToken, refreshToken } = res.data;
-            // 2. Call Next.js API Route to set cookies
-            await authRequest.auth({ accessToken, refreshToken });
-
-            // 3. Update Client Context
-            setTokenFromContext(accessToken, refreshToken);
-
-            // 4. Redirect
+            const result = await login.mutateAsync(data);
+            setTokenFromContext(result.accessToken, result.refreshToken);
             router.push("/");
         } catch (err: any) {
             handleErrorApi({
