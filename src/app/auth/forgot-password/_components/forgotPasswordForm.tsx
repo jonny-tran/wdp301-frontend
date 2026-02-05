@@ -7,8 +7,11 @@ import { emailSchema, EmailInput } from "@/schemas/auth";
 import { useState } from "react";
 import Link from "next/link";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { useAuth } from "@/hooks/auth";
+import { handleErrorApi } from "@/lib/errors";
 
 export default function ForgotPasswordForm() {
+    const { forgotPassword } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -16,23 +19,24 @@ export default function ForgotPasswordForm() {
     const {
         register,
         handleSubmit,
+        setError: setErrorForm,
         formState: { errors },
     } = useForm<EmailInput>({
         resolver: zodResolver(emailSchema),
     });
 
     const onSubmit = async (data: EmailInput) => {
+        if (forgotPassword.isPending) return;
         setIsLoading(true);
         setError(null);
         try {
-            // Mock API Call
-            // await authRequest.forgotPassword(data);
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate delay
-
+            await forgotPassword.mutateAsync(data);
             setIsSubmitted(true);
         } catch (err: any) {
-            console.error(err);
-            setError("Có lỗi xảy ra, vui lòng thử lại sau.");
+            handleErrorApi({
+                error: err,
+                setError: setErrorForm
+            });
         } finally {
             setIsLoading(false);
         }

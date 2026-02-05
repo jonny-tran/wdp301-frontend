@@ -1,6 +1,6 @@
 export const ENDPOINT_SERVER = {
     LOGIN: '/api/login',
-    REFRESH: '/api/auth/refresh_token',
+    REFRESH: '/api/refresh_token',
     LOGOUT: '/api/logout',
 }
 export const ENDPOINT_CLIENT = {
@@ -9,4 +9,5 @@ export const ENDPOINT_CLIENT = {
     LOGOUT: '/auth/logout',
     FORGOT_PASSWORD: '/auth/forgot-password',
     RESET_PASSWORD: '/auth/reset-password',
+    PROFILE: '/auth/me',
 }
