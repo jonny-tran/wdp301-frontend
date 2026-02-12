@@ -16,7 +16,7 @@ export default function ManagerLayout({
       {/* Main content đẩy sang phải 64px (w-64) */}
       <main className="md:pl-64">
         <ManagerHeader />
-        <div className="p-8">{children}</div>
+        <div className="p-1">{children}</div>
       </main>
     </div>
   );

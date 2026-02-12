@@ -1,15 +1,14 @@
 import * as z from "zod";
 
-export const ProductSchema = z.object({
-  sku: z.string().min(1, "SKU là bắt buộc"),
-  name: z.string().min(1, "Tên là bắt buộc"),
-  baseUnit: z.string().min(1, "Đơn vị là bắt buộc"),
-  shelfLifeDays: z.number().min(1, "Hạn dùng phải > 0"),
-  imageUrl: z.string().optional().or(z.literal("")),
+export const CreateProductSchema = z.object({
+  name: z.string().min(1, "Tên sản phẩm là bắt buộc"),
+  baseUnitId: z.number().min(1, "Vui lòng chọn đơn vị tính"),
+  shelfLifeDays: z.number().min(1, "Hạn dùng phải lớn hơn 0"),
+  imageUrl: z.string().url("Link ảnh không hợp lệ").or(z.literal("")),
 });
 
-export type ProductFormValues = z.infer<typeof ProductSchema>;
+export type CreateProductType = z.infer<typeof CreateProductSchema>;
 
-export interface Product extends ProductFormValues {
+export interface Product extends CreateProductType {
   id: string;
 }
