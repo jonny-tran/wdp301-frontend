@@ -4,10 +4,9 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  useUpdateProductMutation,
-  useGetProductDetail,
+  useProduct,
 } from "@/hooks/useProduct";
-import { CreateProductSchema, CreateProductType } from "@/schemas/product";
+
 import { handleErrorApi } from "@/lib/errors";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,20 +20,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { useRouter, useParams } from "next/navigation";
 import { Loader2, ArrowLeft } from "lucide-react";
+import { CreateProductBody, CreateProductBodyType } from "@/schemas/product";
 
 export default function EditProduct() {
   const router = useRouter();
   const { id } = useParams();
-  const updateProductMutation = useUpdateProductMutation();
+  const { updateProduct, productDetail } = useProduct();
 
   // 1. Lấy dữ liệu - 'response' lúc này là kiểu ResponseData
-  const { data: response, isLoading } = useGetProductDetail(id as string);
+  const { data: response, isLoading } = productDetail(id as string);
 
   // Bóc tách product từ lớp vỏ response.data để tránh lỗi undefined
-  const product = response?.data;
+  const product = response;
 
-  const form = useForm<CreateProductType>({
-    resolver: zodResolver(CreateProductSchema),
+  const form = useForm<CreateProductBodyType>({
+    resolver: zodResolver(CreateProductBody),
     defaultValues: {
       name: "",
       baseUnitId: 0,
@@ -55,11 +55,11 @@ export default function EditProduct() {
     }
   }, [product, form]);
 
-  async function onSubmit(values: CreateProductType) {
+  async function onSubmit(values: CreateProductBodyType) {
     try {
-      await updateProductMutation.mutateAsync({
+      await updateProduct.mutateAsync({
         id: id as string,
-        body: values,
+        data: values,
       });
       router.push("/manager/products");
     } catch (error: unknown) {
@@ -173,8 +173,8 @@ export default function EditProduct() {
             >
               Hủy bỏ
             </Button>
-            <Button type="submit" disabled={updateProductMutation.isPending}>
-              {updateProductMutation.isPending && (
+            <Button type="submit" disabled={updateProduct.isPending}>
+              {updateProduct.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               Lưu thay đổi

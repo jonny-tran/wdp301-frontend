@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import {
   Table,
   TableBody,
@@ -11,23 +11,40 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useGetProducts } from "@/hooks/useProduct";
+import { useProduct } from "@/hooks/useProduct";
 import { ProductTableActions } from "./product-table-actions";
-import { ChevronLeft, ChevronRight, Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2 } from "lucide-react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
+import { BasePagination } from "@/components/layout/BasePagination";
 
-export default function ProductList() {
+interface ProductListProps {
+  searchParams: { [key: string]: string | string[] | undefined };
+}
+
+export default function ProductList({ searchParams }: ProductListProps) {
   const router = useRouter();
-  const [page, setPage] = useState(1);
-  const limit = 10;
+  const pathname = usePathname();
+  const searchParamsHook = useSearchParams();
+  const page = Number(searchParams.page) || 1;
+  const limit = Number(searchParams.limit) || 10;
+  const search = searchParams.search as string | undefined;
+  const isActive = searchParams.isActive === 'true' ? true : searchParams.isActive === 'false' ? false : undefined;
 
   // 1. Lấy data từ hook (React Query)
+  const { productList } = useProduct();
   const {
     data: response,
     isLoading,
-    isPlaceholderData,
-  } = useGetProducts(page, limit);
+    isError,
+  } = productList({
+    page,
+    limit,
+    sortOrder: (searchParams.sortOrder as 'ASC' | 'DESC') || 'DESC',
+    search,
+    isActive
+  });
 
   // 2. Chặn loading ở đây để đảm bảo response tồn tại ở dưới
   if (isLoading) {
@@ -39,18 +56,45 @@ export default function ProductList() {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="flex h-64 items-center justify-center">
+        <span className="ml-2">Đã có lỗi xảy ra khi tải dữ liệu sản phẩm.</span>
+      </div>
+    );
+  }
+
   // 3. Truy cập dữ liệu theo đúng cấu trúc JSON: response.data.items
   // Sử dụng nullish coalescing (??) để đảm bảo luôn có mảng rỗng nếu lỗi
   const products = response?.items ?? [];
   const meta = response?.meta;
 
   // 4. Logic chuyển trang
-  const handlePrev = () => setPage((p) => Math.max(1, p - 1));
-  const handleNext = () => {
-    if (meta && page < meta.totalPages) {
-      setPage((p) => p + 1);
-    }
+  const handlePageChange = (newPage: number) => {
+    const params = new URLSearchParams(searchParamsHook.toString());
+    params.set("page", newPage.toString());
+    router.push(`${pathname}?${params.toString()}`);
   };
+
+  // Cấu hình bộ lọc
+  const filterConfig: FilterConfig[] = [
+    {
+      key: 'search',
+      label: 'Tìm kiếm',
+      type: 'text',
+      placeholder: 'Tên sản phẩm hoặc SKU...',
+      className: 'md:col-span-2'
+    },
+    {
+      key: 'isActive',
+      label: 'Trạng thái',
+      type: 'select',
+      options: [
+        { label: 'Đang kinh doanh', value: 'true' },
+        { label: 'Ngừng kinh doanh', value: 'false' }
+      ]
+    }
+  ];
 
   return (
     <div className="space-y-4 p-6">
@@ -68,6 +112,9 @@ export default function ProductList() {
           <Plus className="mr-2 h-4 w-4" /> Thêm sản phẩm
         </Button>
       </div>
+
+      {/* Bộ lọc */}
+      <BaseFilter filters={filterConfig} />
 
       {/* Bảng dữ liệu */}
       <div className="rounded-md border bg-white shadow-sm">
@@ -112,7 +159,7 @@ export default function ProductList() {
 
                 <TableCell>
                   <Badge variant="secondary" className="font-normal">
-                    {product.baseUnitName}
+                    {product.baseUnit}
                   </Badge>
                 </TableCell>
 
@@ -139,36 +186,15 @@ export default function ProductList() {
       </div>
 
       {/* Điều khiển phân trang */}
-      <div className="flex items-center justify-between py-2">
-        <div className="text-sm text-muted-foreground">
-          Hiển thị <strong>{products.length}</strong> /{" "}
-          <strong>{meta?.totalItems ?? 0}</strong> sản phẩm
-        </div>
-
-        <div className="flex items-center space-x-4">
-          <span className="text-sm font-medium">
-            Trang {page} / {meta?.totalPages || 1}
-          </span>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrev}
-              disabled={page === 1 || isPlaceholderData}
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" /> Trước
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNext}
-              disabled={!meta || page >= meta.totalPages || isPlaceholderData}
-            >
-              Tiếp <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-        </div>
-      </div>
+      {meta && (
+        <BasePagination
+          currentPage={meta.currentPage}
+          totalPages={meta.totalPages}
+          onPageChange={handlePageChange}
+          totalItems={meta.totalItems}
+          itemsPerPage={meta.itemsPerPage}
+        />
+      )}
     </div>
   );
 }

@@ -24,6 +24,15 @@ const nextConfig = {
         hostname: 'cdn.com',
         pathname: '/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+        pathname: '/**',
+      },
+
+
+
+
     ],
   },
 };

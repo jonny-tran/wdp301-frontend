@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useGetProductDetail } from "@/hooks/useProduct";
+import { useProduct } from "@/hooks/useProduct";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,10 +21,11 @@ import { format } from "date-fns";
 export default function ProductDetail() {
   const { id } = useParams();
   const router = useRouter();
+  const { productDetail } = useProduct();
 
   // 1. Lấy dữ liệu chi tiết sản phẩm từ Hook
-  const { data: response, isLoading } = useGetProductDetail(id as string);
-  const product = response?.data;
+  const { data: response, isLoading } = productDetail(id as string);
+  const product = response;
 
   if (isLoading)
     return (
@@ -87,7 +88,7 @@ export default function ProductDetail() {
                 <span className="text-muted-foreground flex items-center gap-1">
                   <Package className="h-3 w-3" /> Đơn vị tính
                 </span>
-                <span className="font-medium">{product.baseUnitName}</span>
+                <span className="font-medium">{product.baseUnit}</span>
               </div>
               <div className="flex flex-col gap-1">
                 <span className="text-muted-foreground flex items-center gap-1">
@@ -102,7 +103,9 @@ export default function ProductDetail() {
                   <Info className="h-3 w-3" /> Ngày tạo
                 </span>
                 <span className="font-medium">
-                  {format(new Date(product.createdAt), "dd/MM/yyyy")}
+                  {product.createdAt
+                    ? format(new Date(product.createdAt), "dd/MM/yyyy")
+                    : "N/A"}
                 </span>
               </div>
             </div>

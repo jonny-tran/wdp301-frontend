@@ -5,6 +5,7 @@ export type Product = {
     sku: string;
     name: string;
     baseUnit: string;
+    baseUnitId: number;
     shelfLifeDays: number;
     imageUrl: string;
     isActive: boolean;

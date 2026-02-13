@@ -1,6 +1,6 @@
 'use client'
 
-import { BasePagination } from '@/components/layout/basePagination'
+import { BasePagination } from '@/components/layout/BasePagination'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useCallback } from 'react'
 

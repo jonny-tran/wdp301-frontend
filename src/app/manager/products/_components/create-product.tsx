@@ -2,8 +2,8 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCreateProductMutation } from "@/hooks/useProduct";
-import { CreateProductSchema, CreateProductType } from "@/schemas/product";
+import { useProduct } from "@/hooks/useProduct";
+
 import { handleErrorApi } from "@/lib/errors";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,13 +17,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { CreateProductBodyType, CreateProductBody } from "@/schemas/product";
 
 export default function CreateProduct() {
   const router = useRouter();
-  const createProductMutation = useCreateProductMutation();
+  const { createProduct } = useProduct();
 
-  const form = useForm<CreateProductType>({
-    resolver: zodResolver(CreateProductSchema),
+  const form = useForm<CreateProductBodyType>({
+    resolver: zodResolver(CreateProductBody),
     defaultValues: {
       name: "",
       baseUnitId: 0,
@@ -32,14 +33,13 @@ export default function CreateProduct() {
     },
   });
 
-  async function onSubmit(values: CreateProductType) {
-    if (createProductMutation.isPending) return;
+  async function onSubmit(values: CreateProductBodyType) {
+    if (createProduct.isPending) return;
 
     try {
-      await createProductMutation.mutateAsync(values);
+      await createProduct.mutateAsync(values);
       router.push("/manager/products"); // Quay lại trang danh sách sau khi tạo thành công
-    } catch (error: unknown) {
-      // Tự động map lỗi từ server (ví dụ trùng tên) vào form fields
+    } catch (error) {
       handleErrorApi({
         error,
         setError: form.setError,
@@ -119,8 +119,8 @@ export default function CreateProduct() {
             >
               Hủy
             </Button>
-            <Button type="submit" disabled={createProductMutation.isPending}>
-              {createProductMutation.isPending && (
+            <Button type="submit" disabled={createProduct.isPending}>
+              {createProduct.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
               Tạo sản phẩm
