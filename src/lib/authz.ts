@@ -1,6 +1,7 @@
 
 import { User } from "@/types/user";
-import { Action, Resource } from "@/utils/contranst";
+import { Action, Resource } from "@/utils/constant";
+
 import { Role } from "@/utils/enum";
 
 

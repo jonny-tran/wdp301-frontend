@@ -12,6 +12,10 @@ interface SessionState {
         refreshToken: string;
     }) => void;
 
+    updateSession: (params: {
+        accessToken: string;
+        refreshToken: string;
+    }) => void;
 
 
     clearSession: () => void;
@@ -40,9 +44,21 @@ export const useSessionStore = create<SessionState>((set) => ({
             });
         }
     },
-
-
-
+    updateSession: ({ accessToken, refreshToken }) => {
+        try {
+            set({
+                accessToken,
+                refreshToken
+            })
+        } catch (error) {
+            console.error("Invalid access token", error);
+            set({
+                accessToken: null,
+                refreshToken: null,
+                user: null,
+            });
+        }
+    },
     /* ===== LOGOUT / EXPIRED ===== */
     clearSession: () => {
         set({
