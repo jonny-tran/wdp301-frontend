@@ -1,36 +1,54 @@
+import { Role } from "@/utils/enum";
 import { z } from "zod";
 
-export const authSchema = z.object({
-    email: z.email("Email không hợp lệ"),
-    password: z
-        .string()
-        .min(6, "Password tối thiểu 6 ký tự")
-        .max(32, "Password tối đa 32 ký tự"),
+
+export const LoginBody = z.object({
+    email: z.email("Email không đúng định dạng").min(1, "Email không được để trống"),
+    password: z.string().min(1, "Mật khẩu không được để trống").min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
 });
 
-export const emailSchema = z.object({
-    email: z.email("Email không hợp lệ"),
+export type LoginBodyType = z.infer<typeof LoginBody>;
+
+export const RefreshTokenBody = z.object({
+    refreshToken: z.string().min(1, "Refresh token không được để trống"),
 });
 
-export const resetPasswordSchema = z
-    .object({
-        email: z.email("Email không hợp lệ"),
-        code: z
-            .string()
-            .length(6, "Code phải có đúng 6 ký tự số")
-            .regex(/^\d+$/, "Code chỉ được chứa chữ số"),
-        password: z
-            .string()
-            .min(6, "Password tối thiểu 6 ký tự")
-            .max(32, "Password tối đa 32 ký tự"),
-        confirmPassword: z.string().min(6, "Xác nhận mật khẩu là bắt buộc"),
-    })
-    .refine((data) => data.password === data.confirmPassword, {
-        message: "Mật khẩu xác nhận không khớp",
-        path: ["confirmPassword"],
-    });
+export type RefreshTokenBodyType = z.infer<typeof RefreshTokenBody>;
 
-// type dùng cho TS
-export type LoginInput = z.infer<typeof authSchema>;
-export type EmailInput = z.infer<typeof emailSchema>;
-export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export const LogoutBody = z.object({
+    refreshToken: z.string().min(1, "Refresh token không được để trống"),
+});
+
+export type LogoutBodyType = z.infer<typeof LogoutBody>;
+
+export const CreateUserBody = z.object({
+    username: z.string().min(1, "Tên hiển thị không được để trống"),
+    email: z.email("Email không đúng định dạng").min(1, "Email không được để trống"),
+    password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+    role: z.enum(Role),
+    storeId: z.uuid().optional(),
+}).refine((data) => {
+    if (data.role === Role.FRANCHISE_STORE_STAFF && !data.storeId) {
+        return false;
+    }
+    return true;
+}, {
+    message: "Store ID bắt buộc khi role là franchise_store_staff",
+    path: ["storeId"],
+});
+
+export type CreateUserBodyType = z.infer<typeof CreateUserBody>;
+
+export const ForgotPasswordBody = z.object({
+    email: z.email("Email không đúng định dạng").min(1, "Email không được để trống"),
+});
+
+export type ForgotPasswordBodyType = z.infer<typeof ForgotPasswordBody>;
+
+export const ResetPasswordBody = z.object({
+    email: z.email("Email không đúng định dạng").min(1, "Email không được để trống"),
+    code: z.string().min(1, "Mã xác thực không được để trống"),
+    password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+});
+
+export type ResetPasswordBodyType = z.infer<typeof ResetPasswordBody>;

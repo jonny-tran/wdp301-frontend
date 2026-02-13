@@ -3,14 +3,15 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { authSchema, LoginInput } from "@/schemas/auth";
+
 import { useAuthContext } from "@/context/authContext";
-import { useAuth } from "@/hooks/auth";
+import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { EyeSlashIcon, EyeIcon } from "@heroicons/react/24/outline";
 import { handleErrorApi } from "@/lib/errors";
+import { LoginBody, LoginBodyType, } from "@/schemas/auth";
 
 export default function LoginForm() {
     const { login } = useAuth();
@@ -25,11 +26,11 @@ export default function LoginForm() {
         handleSubmit,
         setError: setErrorForm,
         formState: { errors },
-    } = useForm<LoginInput>({
-        resolver: zodResolver(authSchema),
+    } = useForm<LoginBodyType>({
+        resolver: zodResolver(LoginBody),
     });
 
-    const onSubmit = async (data: LoginInput) => {
+    const onSubmit = async (data: LoginBodyType) => {
         if (login.isPending) return;
         setIsLoading(true);
         setError(null);
