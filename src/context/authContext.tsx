@@ -9,6 +9,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { useSessionStore } from "@/stores/sesionStore";
 
 import { authRequest } from "@/apiRequest/auth";
+import { handleErrorApi } from "@/lib/errors";
 interface AuthContextType {
     setTokenFromContext: (accessToken: string, refreshToken: string) => void;
 }
@@ -28,14 +29,14 @@ export const AuthProvider = ({
     const [isRefreshing, setIsRefreshing] = useState(false);
 
     const setTokenFromContext = (accessToken: string, refreshToken: string) => {
-        setSession(accessToken, refreshToken);
+        setSession({ accessToken, refreshToken });
     };
 
     useEffect(() => {
         const initializeAuth = async () => {
             // Case 1: Có cả access_token và refresh_token → OK, hydrate bình thường
             if (initialAccessToken && initialRefreshToken) {
-                setSession(initialAccessToken, initialRefreshToken);
+                setSession({ accessToken: initialAccessToken, refreshToken: initialRefreshToken });
                 setIsHydrated(true);
                 return;
             }
@@ -65,21 +66,22 @@ export const AuthProvider = ({
 
                     const newAccessToken = result.data.accessToken;
 
-                    console.log("New access token received, syncing...");
+
 
                     // Step 1: Set vào Zustand store
-                    setSession(newAccessToken, initialRefreshToken);
+                    setSession({ accessToken: newAccessToken, refreshToken: initialRefreshToken });
 
                     // Step 2: Đồng bộ access_token mới vào cookies thông qua API route
                     await authRequest.refreshTokenServer({
-                        accessToken: newAccessToken
+                        accessToken: newAccessToken,
+                        refreshToken: initialRefreshToken
                     });
 
-                    console.log("Access token restored successfully");
+
 
 
                 } catch (error) {
-                    console.error("Failed to refresh access token:", error);
+                    handleErrorApi({ error })
 
                     // Refresh thất bại → Clear hết và redirect
 

@@ -8,7 +8,7 @@ import { HttpErrorCode } from "@/utils/enum";
 
 interface CustomOptions extends RequestInit {
     baseURL?: string | undefined;
-    params?: Record<string, string | number | boolean | undefined>;
+    query?: Record<string, string | number | boolean | undefined>;
     skipAuth?: boolean;
 }
 
@@ -80,14 +80,20 @@ class TokenRefreshInterceptor {
             }
 
             const newAccessToken = result.data.accessToken;
+            const newRefreshToken = result.data.refreshToken;
 
             // Update Zustand store với token mới
-            useSessionStore.getState().setAccessToken(newAccessToken);
+            useSessionStore.getState().updateSession({
+                accessToken: newAccessToken,
+                refreshToken: newRefreshToken
+            })
+
 
             // Đồng bộ cookie trên server thông qua API route
             try {
                 await authRequest.refreshTokenServer({
-                    accessToken: newAccessToken
+                    accessToken: newAccessToken,
+                    refreshToken: newRefreshToken
                 });
             } catch (syncError) {
                 console.error("Failed to sync token with server:", syncError);
@@ -164,9 +170,9 @@ async function httpRequest<T>(
         : `${baseUrl}/${url}`;
 
     // Add query params if exists
-    const urlWithParams = options?.params
+    const urlWithParams = options?.query
         ? `${fullUrl}?${new URLSearchParams(
-            Object.entries(options.params)
+            Object.entries(options.query)
                 .filter(([_, v]) => v !== undefined)
                 .map(([k, v]) => [k, String(v)])
         ).toString()}`
@@ -186,7 +192,7 @@ async function httpRequest<T>(
     const payload: ResponseData<T> = await res.json();
 
     // Handle 401 - Token expired
-    if (res.status === HttpErrorCode.UNAUTHORIZED && payload.message === isExpired) {
+    if (res.status === HttpErrorCode.UNAUTHORIZED && payload.message === isExpired && !options?.skipAuth) {
         // Server: không thể refresh, throw error
         if (isServerRuntime()) {
             tokenInterceptor.handleAuthError();

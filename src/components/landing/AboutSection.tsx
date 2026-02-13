@@ -12,7 +12,7 @@ export default function AboutSection() {
                         <div className="absolute inset-x-[-20px] inset-y-[-20px] rounded-full border border-primary/20 scale-105"></div>
                         <div className="absolute inset-0 rounded-full overflow-hidden border-8 border-white shadow-xl">
                             <Image
-                                src="https://images.unsplash.com/photo-1556740758-90de374c12ad?q=80&w=600&auto=format&fit=crop"
+                                src="/about.png"
                                 alt="Workspace"
                                 fill
                                 className="object-cover"
