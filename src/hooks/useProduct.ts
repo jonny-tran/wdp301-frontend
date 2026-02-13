@@ -1,91 +1,98 @@
-// src/hooks/useProduct.ts
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { productApiRequest, CreateProductBody } from "@/apiRequest/product";
-import { toast } from "sonner";
-import { handleErrorApi } from "@/lib/errors";
+'use client'
+import { productRequest } from "@/apiRequest/product";
+import { CreateProductBodyType, UpdateBatchBodyType, UpdateProductBodyType } from "@/schemas/product";
+import { QueryBatch, QueryProduct } from "@/types/product";
+import { QUERY_KEY } from "@/utils/constant";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
-/**
- * Hook lấy danh sách sản phẩm (có phân trang)
- */
-export const useGetProducts = (page: number, limit: number) => {
-  return useQuery({
-    queryKey: ["products", page, limit],
-    queryFn: () => productApiRequest.getList(page, limit),
-    // Ép kiểu dữ liệu trả về để Component nhận diện được cấu trúc
-    select: (response) => response.data,  
-  });
-};
+export const useProduct = () => {
+  const createProduct = useMutation({
+    mutationFn: async (data: CreateProductBodyType) => {
+      const res = await productRequest.createProduct(data)
+      return res.data
+    }
+  })
 
-/**
- * Hook lấy chi tiết sản phẩm và các lô hàng (batches) đi kèm
- */
-export const useGetProductDetail = (id: number | string) => {
-  return useQuery({
-    queryKey: ["product-detail", id],
-    queryFn: () => productApiRequest.getDetail(id),
-    enabled: !!id, // Chỉ chạy khi có ID
-  });
-};
+  const updateProduct = useMutation({
+    mutationFn: async ({ id, data }: { id: number | string, data: UpdateProductBodyType }) => {
+      const res = await productRequest.updateProduct(id, data)
+      return res.data
+    }
+  })
 
-/**
- * Hook tạo mới sản phẩm
- */
-export const useCreateProductMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: productApiRequest.create,
-    onSuccess: () => {
-      toast.success("Tạo sản phẩm thành công!");
-      // Làm mới danh sách sản phẩm để UI cập nhật dòng mới
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-    },
-    onError: (error) => handleErrorApi({ error }),
-  });
-};
+  const deleteProduct = useMutation({
+    mutationFn: async (id: number | string) => {
+      const res = await productRequest.deleteProduct(id)
+      return res.data
+    }
+  })
 
-/**
- * Hook cập nhật sản phẩm
- */
-export const useUpdateProductMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, body }: { id: number | string; body: Partial<CreateProductBody> }) => 
-      productApiRequest.update(id, body),
-    onSuccess: (_, variables) => {
-      toast.success("Cập nhật thông tin thành công");
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["product-detail", variables.id] });
-    },
-    onError: (error) => handleErrorApi({ error }),
-  });
-};
+  const restoreProduct = useMutation({
+    mutationFn: async (id: number | string) => {
+      const res = await productRequest.restoreProduct(id)
+      return res.data
+    }
+  })
 
-/**
- * Hook xóa sản phẩm (Soft Delete)
- */
-export const useDeleteProductMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: productApiRequest.delete,
-    onSuccess: () => {
-      toast.success("Sản phẩm đã được chuyển vào kho lưu trữ");
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-    },
-    onError: (error) => handleErrorApi({ error }),
-  });
-};
+  const updateBatch = useMutation({
+    mutationFn: async ({ id, data }: { id: number | string, data: UpdateBatchBodyType }) => {
+      const res = await productRequest.updateBatch(id, data)
+      return res.data
+    }
+  })
 
-/**
- * Hook khôi phục sản phẩm
- */
-export const useRestoreProductMutation = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: productApiRequest.restore,
-    onSuccess: () => {
-      toast.success("Khôi phục sản phẩm thành công");
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-    },
-    onError: (error) => handleErrorApi({ error }),
-  });
-};
+  const productList = (query: QueryProduct) => {
+    return useQuery({
+      queryKey: QUERY_KEY.productList(query),
+      queryFn: async () => {
+        const res = await productRequest.getProducts(query)
+        return res.data
+      }
+    })
+  }
+
+  const productDetail = (id: number | string) => {
+    return useQuery({
+      queryKey: QUERY_KEY.productDetail(id),
+      queryFn: async () => {
+        const res = await productRequest.getProductDetail(id)
+        return res.data
+      },
+      enabled: !!id
+    })
+  }
+
+  const batchList = (query: QueryBatch) => {
+    return useQuery({
+      queryKey: QUERY_KEY.batchList(query),
+      queryFn: async () => {
+        const res = await productRequest.getBatches(query)
+        return res.data
+      }
+    })
+  }
+
+  const batchDetail = (id: number | string) => {
+    return useQuery({
+      queryKey: QUERY_KEY.batchDetail(id),
+      queryFn: async () => {
+        const res = await productRequest.getBatchDetail(id)
+        return res.data
+      },
+      enabled: !!id
+    })
+  }
+
+  return {
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    restoreProduct,
+    updateBatch,
+    productList,
+    productDetail,
+    batchList,
+    batchDetail
+  }
+}
+

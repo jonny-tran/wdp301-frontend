@@ -9,18 +9,18 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { MoreHorizontal, Pencil, Trash, Eye } from "lucide-react";
-import { useDeleteProductMutation } from "@/hooks/useProduct";
+import { useProduct } from "@/hooks/useProduct";
 import { Product } from "@/types/product";
 import { useRouter } from "next/navigation"; // Import useRouter
 
 export function ProductTableActions({ product }: { product: Product }) {
   const router = useRouter(); // Khởi tạo router
-  const deleteMutation = useDeleteProductMutation();
+  const { deleteProduct } = useProduct();
 
   const handleDelete = async () => {
     // Thay confirm bằng AlertDialog nếu bạn muốn UI đẹp hơn
     if (confirm(`Bạn có chắc muốn xóa sản phẩm ${product.name}?`)) {
-      await deleteMutation.mutateAsync(product.id);
+      await deleteProduct.mutateAsync(product.id);
     }
   };
 

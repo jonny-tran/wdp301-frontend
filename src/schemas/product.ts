@@ -1,14 +1,22 @@
-import * as z from "zod";
+import { z } from "zod";
 
-export const CreateProductSchema = z.object({
-  name: z.string().min(1, "Tên sản phẩm là bắt buộc"),
-  baseUnitId: z.number().min(1, "Vui lòng chọn đơn vị tính"),
-  shelfLifeDays: z.number().min(1, "Hạn dùng phải lớn hơn 0"),
-  imageUrl: z.string().url("Link ảnh không hợp lệ").or(z.literal("")),
+export const CreateProductBody = z.object({
+  name: z.string().min(3, "Tên sản phẩm phải có ít nhất 3 ký tự"),
+  baseUnitId: z.coerce.number().int().positive('ID đơn vị tính không hợp lệ'),
+  shelfLifeDays: z.coerce.number().int().positive('Hạn sử dụng không hợp lệ'),
+  imageUrl: z.url("Đường dẫn ảnh không hợp lệ")
 });
 
-export type CreateProductType = z.infer<typeof CreateProductSchema>;
+export type CreateProductBodyType = z.infer<typeof CreateProductBody>;
 
-export interface Product extends CreateProductType {
-  id: string;
-}
+
+export const UpdateProductBody = CreateProductBody.partial();
+
+export type UpdateProductBodyType = z.infer<typeof UpdateProductBody>;
+
+export const UpdateBatchBody = z.object({
+  initialQuantity: z.coerce.number().int().positive('Số lượng ban đầu không hợp lệ').optional(),
+  imageUrl: z.url("Đường dẫn ảnh không hợp lệ").optional()
+});
+
+export type UpdateBatchBodyType = z.infer<typeof UpdateBatchBody>;

@@ -8,7 +8,7 @@ import { HttpErrorCode } from "@/utils/enum";
 
 interface CustomOptions extends RequestInit {
     baseURL?: string | undefined;
-    params?: Record<string, string | number | boolean | undefined>;
+    query?: Record<string, string | number | boolean | undefined>;
     skipAuth?: boolean;
 }
 
@@ -83,7 +83,7 @@ class TokenRefreshInterceptor {
             const newRefreshToken = result.data.refreshToken;
 
             // Update Zustand store với token mới
-            useSessionStore.getState().setSession({
+            useSessionStore.getState().updateSession({
                 accessToken: newAccessToken,
                 refreshToken: newRefreshToken
             })
@@ -170,9 +170,9 @@ async function httpRequest<T>(
         : `${baseUrl}/${url}`;
 
     // Add query params if exists
-    const urlWithParams = options?.params
+    const urlWithParams = options?.query
         ? `${fullUrl}?${new URLSearchParams(
-            Object.entries(options.params)
+            Object.entries(options.query)
                 .filter(([_, v]) => v !== undefined)
                 .map(([k, v]) => [k, String(v)])
         ).toString()}`

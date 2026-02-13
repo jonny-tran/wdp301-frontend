@@ -1,4 +1,5 @@
 
+
 export type ResponseData<T> = {
     statusCode: number;
     message: string;
@@ -19,4 +20,21 @@ export type ResponseError = {
 export type ValidationErrorItem = {
     field: string;
     message: string;
+}
+
+
+export type BaseResponePagination<T> = {
+    items: T
+    meta: {
+        totalItems: number;
+        itemCount: number;
+        itemsPerPage: number;
+        totalPages: number;
+        currentPage: number;
+    }
+}
+export type BaseRequestPagination = {
+    page: number;
+    limit: number;
+    sortOrder: 'ASC' | 'DESC'
 }
