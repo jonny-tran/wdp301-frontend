@@ -1,5 +1,6 @@
 'use client'
 import { claimRequest } from "@/apiRequest/claim";
+import { handleErrorApi } from "@/lib/errors";
 import { CreateClaimBodyType, ResolveClaimBodyType } from "@/schemas/claim";
 import { QueryClaim } from "@/types/claim";
 import { QUERY_KEY } from "@/utils/constant";
@@ -21,6 +22,9 @@ export const useClaim = () => {
         mutationFn: async (data: CreateClaimBodyType) => {
             const res = await claimRequest.createClaim(data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -28,6 +32,9 @@ export const useClaim = () => {
         mutationFn: async ({ id, data }: { id: string, data: ResolveClaimBodyType }) => {
             const res = await claimRequest.resolveClaim(id, data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -60,23 +67,3 @@ export const useClaim = () => {
     }
 }
 
-// export const useGetClaimDetail = (id: string) => {
-//     return useQuery({
-//         queryKey: ['claim', id],
-//         queryFn: async () => {
-//             const res = await claimRequest.getClaimDetail(id)
-//             return res.data
-//         },
-//         enabled: !!id
-//     })
-// }
-
-// export const useGetMyStoreClaims = (status?: string) => {
-//     return useQuery({
-//         queryKey: ['my-claims', status],
-//         queryFn: async () => {
-//             const res = await claimRequest.getMyStoreClaims(status)
-//             return res.data
-//         }
-//     })
-// }

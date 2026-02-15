@@ -1,5 +1,6 @@
 'use client'
 import { productRequest } from "@/apiRequest/product";
+import { handleErrorApi } from "@/lib/errors";
 import { CreateProductBodyType, UpdateBatchBodyType, UpdateProductBodyType } from "@/schemas/product";
 import { QueryBatch, QueryProduct } from "@/types/product";
 import { QUERY_KEY } from "@/utils/constant";
@@ -10,6 +11,9 @@ export const useProduct = () => {
     mutationFn: async (data: CreateProductBodyType) => {
       const res = await productRequest.createProduct(data)
       return res.data
+    },
+    onError: (error) => {
+      handleErrorApi({ error })
     }
   })
 
@@ -17,6 +21,9 @@ export const useProduct = () => {
     mutationFn: async ({ id, data }: { id: number | string, data: UpdateProductBodyType }) => {
       const res = await productRequest.updateProduct(id, data)
       return res.data
+    },
+    onError: (error) => {
+      handleErrorApi({ error })
     }
   })
 
@@ -24,6 +31,9 @@ export const useProduct = () => {
     mutationFn: async (id: number | string) => {
       const res = await productRequest.deleteProduct(id)
       return res.data
+    },
+    onError: (error) => {
+      handleErrorApi({ error })
     }
   })
 
@@ -31,6 +41,9 @@ export const useProduct = () => {
     mutationFn: async (id: number | string) => {
       const res = await productRequest.restoreProduct(id)
       return res.data
+    },
+    onError: (error) => {
+      handleErrorApi({ error })
     }
   })
 
@@ -38,6 +51,9 @@ export const useProduct = () => {
     mutationFn: async ({ id, data }: { id: number | string, data: UpdateBatchBodyType }) => {
       const res = await productRequest.updateBatch(id, data)
       return res.data
+    },
+    onError: (error) => {
+      handleErrorApi({ error })
     }
   })
 

@@ -4,19 +4,32 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Image from "next/image";
 import {
-    HomeIcon,
-    CubeIcon,
-    CalendarDaysIcon,
-    ArchiveBoxIcon,
     ChevronLeftIcon,
     ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { useAuth } from "@/hooks/useAuth";
+import { useSessionStore } from "@/stores/sesionStore";
+import { toast } from "sonner";
+import { LogOut } from "lucide-react";
 export interface NavItem {
     name: string;
     href: string;
     icon: (props: React.ComponentProps<"svg">) => React.ReactNode;
+    onClick?: () => void;
 }
+
+
 
 interface NavSidebarProps {
     items: NavItem[];
@@ -34,7 +47,16 @@ export default function NavSidebar({
     onToggle
 }: NavSidebarProps) {
     const pathname = usePathname();
-
+    const { logout } = useAuth();
+    const handleLogout = () => {
+        // check reffreshtoken
+        const refreshToken = useSessionStore.getState().refreshToken;
+        if (!refreshToken) {
+            toast.error("You are not logged in");
+            return;
+        }
+        logout.mutateAsync({ refreshToken });
+    }
     return (
         <aside
             className={`relative flex flex-col z-50 transition-all duration-300 bg-[#1A1A1A] rounded-[40px] shadow-2xl overflow-hidden py-8 shrink-0 ${isCollapsed ? "w-20" : "w-64"
@@ -87,14 +109,6 @@ export default function NavSidebar({
                                     {item.name}
                                 </span>
                             )}
-
-                            {/* Active indicator dot */}
-                            {isActive && (
-                                <div className={`absolute bg-primary rounded-full shadow-[0_0_8px_rgba(132,163,87,0.8)] ${isCollapsed
-                                        ? "-right-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5"
-                                        : "right-2 top-1/2 -translate-y-1/2 w-1.5 h-1.5"
-                                    }`} />
-                            )}
                         </Link>
                     );
                 })}
@@ -103,17 +117,60 @@ export default function NavSidebar({
             {/* Bottom Actions and Toggle */}
             <div className="mt-auto px-4 flex flex-col gap-4">
                 {bottomItems.map((item) => (
-                    <Link
-                        key={item.href}
-                        href={item.href}
-                        className={`flex items-center text-white/40 hover:text-white transition-colors ${isCollapsed ? "justify-center h-10 w-10 mx-auto" : "px-4 gap-4 h-10 w-full"
-                            }`}
-                        title={isCollapsed ? item.name : ""}
-                    >
-                        <item.icon className="w-5 h-5 shrink-0" />
-                        {!isCollapsed && <span className="text-sm font-medium">{item.name}</span>}
-                    </Link>
+                    item.onClick ? (
+                        <button
+                            key={item.name}
+                            onClick={item.onClick}
+                            className={`flex items-center text-white/40 hover:text-white transition-colors ${isCollapsed ? "justify-center h-10 w-10 mx-auto" : "px-4 gap-4 h-10 w-full"
+                                }`}
+                            title={isCollapsed ? item.name : ""}
+                        >
+                            <item.icon className="w-5 h-5 shrink-0" />
+                            {!isCollapsed && <span className="text-sm font-medium">{item.name}</span>}
+                        </button>
+                    ) : (
+                        <Link
+                            key={item.name}
+                            href={item.href}
+                            className={`flex items-center text-white/40 hover:text-white transition-colors ${isCollapsed ? "justify-center h-10 w-10 mx-auto" : "px-4 gap-4 h-10 w-full"
+                                }`}
+                            title={isCollapsed ? item.name : ""}
+                        >
+                            <item.icon className="w-5 h-5 shrink-0" />
+                            {!isCollapsed && <span className="text-sm font-medium">{item.name}</span>}
+                        </Link>
+                    )
                 ))}
+
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <button
+                            className={`flex items-center transition-colors ${isCollapsed ? "justify-center h-10 w-10 mx-auto" : "px-4 gap-4 h-10 w-full"
+                                } text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg mt-[5px]`}
+                            title={isCollapsed ? "Logout" : ""}
+                        >
+                            <LogOut className="w-5 h-5 shrink-0 text-red-500" />
+                            {!isCollapsed && <span className="text-sm font-medium text-red-500">Logout</span>}
+                        </button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-[#1A1A1A] border-gray-800 text-white">
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+                            <AlertDialogDescription className="text-gray-400">
+                                Are you sure you want to log out of your session?
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel className="bg-transparent border-gray-700 text-white hover:bg-gray-800 hover:text-white">Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={handleLogout}
+                                className="bg-red-600 hover:bg-red-700 text-white border-none"
+                            >
+                                Logout
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
 
                 {/* Collapse/Expand Toggle Button */}
                 <button
@@ -130,20 +187,6 @@ export default function NavSidebar({
                         </>
                     )}
                 </button>
-
-                <div className={`flex items-center gap-3 transition-opacity duration-300 ${isCollapsed ? "justify-center" : "px-4"}`}>
-                    <div className="w-10 h-10 rounded-full border-2 border-white/20 p-0.5 overflow-hidden shrink-0">
-                        <div className="w-full h-full bg-primary rounded-full flex items-center justify-center text-xs font-bold text-white">
-                            M
-                        </div>
-                    </div>
-                    {!isCollapsed && (
-                        <div className="flex flex-col overflow-hidden">
-                            <span className="text-sm font-bold text-white whitespace-nowrap">Admin User</span>
-                            <span className="text-[10px] text-white/40 whitespace-nowrap">Manager</span>
-                        </div>
-                    )}
-                </div>
             </div>
         </aside>
     );

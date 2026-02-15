@@ -1,18 +1,26 @@
 "use client";
 
 import DashboardLayout from "@/components/layout/DashboardLayout";
+import { checkPermission } from "@/lib/authz";
+import { useSessionStore } from "@/stores/sesionStore";
+import { Resource, Action } from "@/utils/constant";
 import {
     CubeIcon,
     CalendarDaysIcon,
     ArchiveBoxIcon,
-    HomeIcon
+    HomeIcon,
 } from "@heroicons/react/24/outline";
-
+import { permission } from "@/utils/helper";
 export default function KitchenLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+
+
+
+
+
     const navItems = [
         { name: "Dashboard", href: "/kitchen/dashboard", icon: HomeIcon },
         { name: "Inventory", href: "/kitchen/inventory", icon: CubeIcon },
@@ -21,14 +29,11 @@ export default function KitchenLayout({
         { name: "Warehouse", href: "/kitchen/warehouse", icon: ArchiveBoxIcon },
     ];
 
-    const bottomItems: any[] = [
-        // Add bottom items if needed
-    ];
+
 
     return (
         <DashboardLayout
             navItems={navItems}
-            bottomItems={bottomItems}
             title="Kitchen Management"
         >
             {children}

@@ -1,12 +1,34 @@
 
+"use client";
+import { useSessionStore } from "@/stores/sesionStore";
+import { Role } from "@/utils/enum";
 import Image from "next/image";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function AuthLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+
+    const router = useRouter();
+    const user = useSessionStore((state) => state.user);
+
+    const roleRedirects: Record<string, string> = {
+        [Role.ADMIN]: "/admin",
+        [Role.MANAGER]: "/manager/products",
+        [Role.SUPPLY_COORDINATOR]: "/supply",
+        [Role.CENTRAL_KITCHEN_STAFF]: "/kitchen/dashboard",
+    };
+    useEffect(() => {
+        if (user) {
+            router.push(roleRedirects[user.role as Role]);
+        }
+    }, [user]);
+
+    // Nếu đang có user → không render login form
+    if (user) return null;
     return (
         <div className="min-h-screen w-full flex items-center justify-center bg-gray-50 p-4 font-sans">
             {/* Card wrapper */}

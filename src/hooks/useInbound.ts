@@ -85,24 +85,3 @@ export const useInbound = () => {
     }
 }
 
-// export const useGetReceiptDetail = (id: string) => {
-//     return useQuery({
-//         queryKey: ['receipt', id],
-//         queryFn: async () => {
-//             const res = await inboundRequest.getReceiptDetail(id)
-//             return res.data
-//         },
-//         enabled: !!id
-//     })
-// }
-
-// export const useGetBatchLabel = (id: number | string) => {
-//     return useQuery({
-//         queryKey: ['batch-label', id],
-//         queryFn: async () => {
-//             const res = await inboundRequest.getBatchLabel(id)
-//             return res.data
-//         },
-//         enabled: !!id
-//     })
-// }

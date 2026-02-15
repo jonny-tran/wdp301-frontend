@@ -1,5 +1,6 @@
 'use client'
 import { storeRequest } from "@/apiRequest/store";
+import { handleErrorApi } from "@/lib/errors";
 import { CreateStoreBodyType, UpdateStoreBodyType } from "@/schemas/store";
 import { QueryStore } from "@/types/store";
 import { QUERY_KEY } from "@/utils/constant";
@@ -10,6 +11,9 @@ export const useStore = () => {
         mutationFn: async (data: CreateStoreBodyType) => {
             const res = await storeRequest.createStore(data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -17,6 +21,9 @@ export const useStore = () => {
         mutationFn: async ({ id, data }: { id: string, data: UpdateStoreBodyType }) => {
             const res = await storeRequest.updateStore(id, data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 

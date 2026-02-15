@@ -1,5 +1,6 @@
 'use client'
 import { supplierRequest } from "@/apiRequest/supplier";
+import { handleErrorApi } from "@/lib/errors";
 import { CreateSupplierBodyType, UpdateSupplierBodyType } from "@/schemas/supplier";
 import { QuerySupplier } from "@/types/supplier";
 import { QUERY_KEY } from "@/utils/constant";
@@ -10,6 +11,9 @@ export const useSupplier = () => {
         mutationFn: async (data: CreateSupplierBodyType) => {
             const res = await supplierRequest.createSupplier(data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -17,6 +21,9 @@ export const useSupplier = () => {
         mutationFn: async ({ id, data }: { id: number | string, data: UpdateSupplierBodyType }) => {
             const res = await supplierRequest.updateSupplier(id, data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -24,6 +31,9 @@ export const useSupplier = () => {
         mutationFn: async (id: number | string) => {
             const res = await supplierRequest.deleteSupplier(id)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
