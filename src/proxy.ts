@@ -60,8 +60,6 @@ export function proxy(request: NextRequest) {
             const matchedPath = Object.keys(rolePermissions).find(path => pathname.startsWith(path));
             if (matchedPath) {
                 const allowedRoles = rolePermissions[matchedPath];
-                // Ideally we should map the string role from token to Role enum safely
-                // For now assuming 1:1 match or string equality
                 const userRole = user.role as Role;
 
                 if (!allowedRoles.includes(userRole)) {
