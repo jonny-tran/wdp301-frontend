@@ -1,5 +1,6 @@
 'use client'
 import { orderRequest } from "@/apiRequest/order";
+import { handleErrorApi } from "@/lib/errors";
 import { ApproveOrderBodyType, CreateOrderBodyType, RejectOrderBodyType } from "@/schemas/order";
 import { QueryOrder } from "@/types/order";
 import { QUERY_KEY } from "@/utils/constant";
@@ -56,6 +57,9 @@ export const useOrder = () => {
         mutationFn: async (data: CreateOrderBodyType) => {
             const res = await orderRequest.createOrder(data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -63,6 +67,9 @@ export const useOrder = () => {
         mutationFn: async ({ id, data }: { id: string, data: ApproveOrderBodyType }) => {
             const res = await orderRequest.approveOrder(id, data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -70,6 +77,9 @@ export const useOrder = () => {
         mutationFn: async ({ id, data }: { id: string, data: RejectOrderBodyType }) => {
             const res = await orderRequest.rejectOrder(id, data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -77,6 +87,9 @@ export const useOrder = () => {
         mutationFn: async (id: string) => {
             const res = await orderRequest.cancelOrder(id)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -92,35 +105,3 @@ export const useOrder = () => {
         reviewOrder
     }
 }
-
-// export const useGetOrderCatalog = (isActive?: boolean) => {
-//     return useQuery({
-//         queryKey: ['order-catalog', isActive],
-//         queryFn: async () => {
-//             const res = await orderRequest.getCatalog(isActive)
-//             return res.data
-//         }
-//     })
-// }
-
-// export const useReviewOrder = (id: string) => {
-//     return useQuery({
-//         queryKey: ['review-order', id],
-//         queryFn: async () => {
-//             const res = await orderRequest.reviewOrder(id)
-//             return res.data
-//         },
-//         enabled: !!id
-//     })
-// }
-
-// export const useGetOrderDetail = (id: string) => {
-//     return useQuery({
-//         queryKey: ['order-detail', id],
-//         queryFn: async () => {
-//             const res = await orderRequest.getOrderDetail(id)
-//             return res.data
-//         },
-//         enabled: !!id
-//     })
-// }

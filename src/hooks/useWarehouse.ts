@@ -1,5 +1,6 @@
 'use client'
 import { warehouseRequest } from "@/apiRequest/warehouse";
+import { handleErrorApi } from "@/lib/errors";
 import { FinalizeBulkShipmentBodyType, ReportIssueBodyType } from "@/schemas/warehouse";
 import { QueryPickingTask } from "@/types/warehouse";
 import { QUERY_KEY } from "@/utils/constant";
@@ -27,6 +28,9 @@ export const useWarehouse = () => {
         mutationFn: async (orderId: string) => {
             const res = await warehouseRequest.resetPickingTask(orderId)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -34,6 +38,9 @@ export const useWarehouse = () => {
         mutationFn: async (data: FinalizeBulkShipmentBodyType) => {
             const res = await warehouseRequest.finalizeBulkShipment(data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -41,6 +48,9 @@ export const useWarehouse = () => {
         mutationFn: async (data: ReportIssueBodyType) => {
             const res = await warehouseRequest.reportIssue(data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 

@@ -1,5 +1,6 @@
 'use client'
 import { inventoryRequest } from "@/apiRequest/inventory";
+import { handleErrorApi } from "@/lib/errors";
 import { InventoryAdjustBodyType } from "@/schemas/inventory";
 import { QueryInventory, QueryInventorySummary, QueryInventoryTransaction, QueryKitchen } from "@/types/inventory";
 import { QUERY_KEY } from "@/utils/constant";
@@ -10,6 +11,9 @@ export const useInventory = () => {
         mutationFn: async (data: InventoryAdjustBodyType) => {
             const res = await inventoryRequest.adjustInventory(data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 

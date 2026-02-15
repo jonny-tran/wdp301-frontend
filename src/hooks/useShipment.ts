@@ -1,5 +1,6 @@
 'use client'
 import { shipmentRequest } from "@/apiRequest/shipment";
+import { handleErrorApi } from "@/lib/errors";
 import { ReceiveShipmentBodyType } from "@/schemas/shipment";
 import { QueryShipment } from "@/types/shipment";
 import { QUERY_KEY } from "@/utils/constant";
@@ -10,6 +11,9 @@ export const useShipment = () => {
         mutationFn: async (id: string) => {
             const res = await shipmentRequest.receiveAllShipment(id)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -17,6 +21,9 @@ export const useShipment = () => {
         mutationFn: async ({ id, data }: { id: string, data: ReceiveShipmentBodyType }) => {
             const res = await shipmentRequest.receiveShipment(id, data)
             return res.data
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 

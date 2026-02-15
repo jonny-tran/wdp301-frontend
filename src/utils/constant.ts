@@ -24,6 +24,12 @@ export const Action = {
     CONFIGURE: 'configure',
 } as const;
 
+export const Scope = {
+    INCOMING: 'incoming',
+    OUTGOING: 'outgoing',
+    ALL: 'all',
+} as const;
+
 // Define Resources
 export const Resource = {
     ORDER: 'order',

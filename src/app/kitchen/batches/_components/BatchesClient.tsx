@@ -1,6 +1,7 @@
 'use client'
 import { BatchModal } from "@/components/kitchen/batch/BatchModal";
-import { Batch, CreateBatchDto } from "@/types/batch";
+import { Batch } from "@/types/product";
+
 import {
     PlusIcon,
     FunnelIcon,
