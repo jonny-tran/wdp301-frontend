@@ -12,6 +12,7 @@ import Link from "next/link";
 import { EyeSlashIcon, EyeIcon } from "@heroicons/react/24/outline";
 import { handleErrorApi } from "@/lib/errors";
 import { LoginBody, LoginBodyType, } from "@/schemas/auth";
+import { Role } from "@/utils/enum";
 
 export default function LoginForm() {
     const { login } = useAuth();
@@ -20,6 +21,13 @@ export default function LoginForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const roleRedirects: Record<string, string> = {
+        [Role.ADMIN]: '/admin',
+        [Role.MANAGER]: '/manager/products',
+        [Role.SUPPLY_COORDINATOR]: '/supply/dashboard',
+        [Role.CENTRAL_KITCHEN_STAFF]: '/kitchen/dashboard'
+    };
 
     const {
         register,
@@ -37,7 +45,9 @@ export default function LoginForm() {
         try {
             const result = await login.mutateAsync(data);
             setTokenFromContext(result.accessToken, result.refreshToken);
-            router.push("/");
+
+            const redirectPath = roleRedirects[result.role as Role] || '/';
+            router.push(redirectPath);
         } catch (err: any) {
             handleErrorApi({
                 error: err,

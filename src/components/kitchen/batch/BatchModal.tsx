@@ -2,7 +2,7 @@
 import React, { Fragment, useState, useEffect } from "react";
 // import { Dialog, Transition } from "@headlessui/react"; 
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { Batch, CreateBatchDto } from "@/types/batch";
+import { Batch, CreateBatchDto } from "@/types/";
 
 // Since I'm not sure if headlessui is installed, I'll build a custom modal using standard Tailwind
 // If headlessui is preferred I can switch, but standard is safer without checking package.json again

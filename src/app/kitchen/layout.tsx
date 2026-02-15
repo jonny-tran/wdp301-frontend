@@ -1,22 +1,37 @@
-import Sidebar from "@/components/dashboard/ui/Sidebar";
-import Header from "@/components/dashboard/ui/Header";
+"use client";
+
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import {
+    CubeIcon,
+    CalendarDaysIcon,
+    ArchiveBoxIcon,
+    HomeIcon
+} from "@heroicons/react/24/outline";
 
 export default function KitchenLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+    const navItems = [
+        { name: "Dashboard", href: "/kitchen/dashboard", icon: HomeIcon },
+        { name: "Inventory", href: "/kitchen/inventory", icon: CubeIcon },
+        { name: "Production Plan", href: "/kitchen/production-plan", icon: CalendarDaysIcon },
+        { name: "Batches", href: "/kitchen/batches", icon: CubeIcon },
+        { name: "Warehouse", href: "/kitchen/warehouse", icon: ArchiveBoxIcon },
+    ];
+
+    const bottomItems: any[] = [
+        // Add bottom items if needed
+    ];
+
     return (
-        <div className="flex min-h-screen bg-bg-light font-sans text-text-main">
-            {/* Sidebar */}
-            <Sidebar />
-            {/* Main Content Area */}
-            <div className="flex-1 ml-64 flex flex-col relative">
-                <Header />
-                <main className="flex-1 p-8 overflow-y-auto">
-                    {children}
-                </main>
-            </div>
-        </div>
+        <DashboardLayout
+            navItems={navItems}
+            bottomItems={bottomItems}
+            title="Kitchen Management"
+        >
+            {children}
+        </DashboardLayout>
     );
 }
