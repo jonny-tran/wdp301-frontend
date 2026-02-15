@@ -33,13 +33,13 @@ export default function OrderList({ searchParams }: OrderListProps) {
         return <OrderSkeleton />
     }
 
-    if (isError) {
-        return (
-            <div className="p-4 text-red-500 bg-red-50 border border-red-200 rounded">
-                Error fetching orders: {(error as any)?.message || 'Unknown error'}
-            </div>
-        )
-    }
+    // if (isError) {
+    //     return (
+    //         <div className="p-4 text-red-500 bg-red-50 border border-red-200 rounded">
+    //             Error fetching orders: {(error as any)?.message || 'Unknown error'}
+    //         </div>
+    //     )
+    // }
 
     const data = responseData || { items: [], meta: { totalItems: 0, totalPages: 0, currentPage: 1, itemsPerPage: 10 } }
     // IMPORTANT: Map API response structure to what the UI expects if mismatch occurs, 
