@@ -17,3 +17,19 @@ export type QueryStore = BaseRequestPagination & {
     search?: string;
     isActive?: boolean;
 };
+
+export type StoreReliabilityAnalytics = {
+    storeId: string;
+    storeName: string;
+    totalOrders: number;
+    cancelledOrders: number;
+    cancellationRate: number;
+    reliabilityScore: number;
+    riskLevel: "low" | "medium" | "high";
+}[];
+
+export type StoreDemandPatternAnalytics = {
+    dayOfWeek: string;
+    totalOrders: number;
+    avgQuantity: number;
+}[];

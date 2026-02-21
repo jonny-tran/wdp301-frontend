@@ -1,7 +1,8 @@
 import http from "@/lib/http";
+import { StoreDemandPatternQueryType } from "@/schemas/analytics";
 import { CreateStoreBodyType, UpdateStoreBodyType } from "@/schemas/store";
 import { BaseResponePagination } from "@/types/base";
-import { QueryStore, Store } from "@/types/store";
+import { QueryStore, Store, StoreDemandPatternAnalytics, StoreReliabilityAnalytics } from "@/types/store";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
 export const storeRequest = {
@@ -18,5 +19,13 @@ export const storeRequest = {
     updateStore: (id: string, data: UpdateStoreBodyType) => http.patch<Store>(ENDPOINT_CLIENT.UPDATE_STORE(id), data),
 
     // DELETE /stores/:id
-    deleteStore: (id: string) => http.delete(ENDPOINT_CLIENT.DELETE_STORE(id))
+    deleteStore: (id: string) => http.delete(ENDPOINT_CLIENT.DELETE_STORE(id)),
+
+    // Analytics
+    getStoreReliabilityAnalytics: () =>
+        http.get<StoreReliabilityAnalytics>(ENDPOINT_CLIENT.STORE_RELIABILITY),
+
+    getStoreDemandPatternAnalytics: (params: StoreDemandPatternQueryType) =>
+        http.get<StoreDemandPatternAnalytics>(ENDPOINT_CLIENT.STORE_DEMAND_PATTERN, { query: params }),
 };
+

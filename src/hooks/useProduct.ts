@@ -5,6 +5,7 @@ import { CreateProductBodyType, UpdateBatchBodyType, UpdateProductBodyType } fro
 import { QueryBatch, QueryProduct } from "@/types/product";
 import { QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const useProduct = () => {
   const createProduct = useMutation({
@@ -12,25 +13,28 @@ export const useProduct = () => {
       const res = await productRequest.createProduct(data)
       return res.data
     },
-    onError: (error) => {
-      handleErrorApi({ error })
-    }
+    onSuccess: () => {
+      toast.success('Product created successfully')
+    },
   })
 
   const updateProduct = useMutation({
-    mutationFn: async ({ id, data }: { id: number | string, data: UpdateProductBodyType }) => {
+    mutationFn: async ({ id, data }: { id: number, data: UpdateProductBodyType }) => {
       const res = await productRequest.updateProduct(id, data)
       return res.data
     },
-    onError: (error) => {
-      handleErrorApi({ error })
-    }
+    onSuccess: () => {
+      toast.success('Product updated successfully')
+    },
   })
 
   const deleteProduct = useMutation({
-    mutationFn: async (id: number | string) => {
+    mutationFn: async (id: number) => {
       const res = await productRequest.deleteProduct(id)
       return res.data
+    },
+    onSuccess: () => {
+      toast.success('Product deleted successfully')
     },
     onError: (error) => {
       handleErrorApi({ error })
@@ -38,9 +42,12 @@ export const useProduct = () => {
   })
 
   const restoreProduct = useMutation({
-    mutationFn: async (id: number | string) => {
+    mutationFn: async (id: number) => {
       const res = await productRequest.restoreProduct(id)
       return res.data
+    },
+    onSuccess: () => {
+      toast.success('Product restored successfully')
     },
     onError: (error) => {
       handleErrorApi({ error })
@@ -48,13 +55,14 @@ export const useProduct = () => {
   })
 
   const updateBatch = useMutation({
-    mutationFn: async ({ id, data }: { id: number | string, data: UpdateBatchBodyType }) => {
+    mutationFn: async ({ id, data }: { id: number, data: UpdateBatchBodyType }) => {
       const res = await productRequest.updateBatch(id, data)
       return res.data
     },
-    onError: (error) => {
-      handleErrorApi({ error })
-    }
+    onSuccess: () => {
+      toast.success('Batch updated successfully')
+    },
+
   })
 
   const productList = (query: QueryProduct) => {
@@ -67,7 +75,7 @@ export const useProduct = () => {
     })
   }
 
-  const productDetail = (id: number | string) => {
+  const productDetail = (id: number) => {
     return useQuery({
       queryKey: QUERY_KEY.productDetail(id),
       queryFn: async () => {
@@ -88,7 +96,7 @@ export const useProduct = () => {
     })
   }
 
-  const batchDetail = (id: number | string) => {
+  const batchDetail = (id: number) => {
     return useQuery({
       queryKey: QUERY_KEY.batchDetail(id),
       queryFn: async () => {

@@ -10,6 +10,43 @@ export type LowStockItem = {
     unit: string;
 };
 
+export type InventoryStoreItem = {
+    inventoryId: number;
+    batchId: number;
+    productId: number;
+    productName: string;
+    sku: string;
+    batchCode: string;
+    quantity: number;
+    expiryDate: string;
+    unit: string;
+    imageUrl: string | null;
+};
+
+export type StoreInventoryTransaction = {
+    transactionId: number;
+    type: string;
+    productName: string;
+    batchCode: string;
+    quantity: number;
+    date: string;
+    note: string | null;
+};
+
+export type InventorySummaryItem = {
+    productId: number;
+    productName: string;
+    sku: string;
+    totalQuantity: number;
+    unit: string;
+    warehouses: {
+        warehouseId: number;
+        warehouseName: string;
+        quantity: number;
+    }[];
+};
+
+
 export type InventoryTransaction = {
     transactionId: number;
     warehouseId: number;
@@ -66,3 +103,45 @@ export type QueryInventorySummary = BaseRequestPagination & {
     warehouseId?: number;
     searchTerm?: string;
 }
+
+export type InventoryAnalyticsSummary = {
+    totalProducts: number;
+    totalBatches: number;
+    totalValue: number;
+    lowStockItems: number;
+    expiringItems: number;
+};
+
+export type InventoryAgingReport = {
+    batchId: number;
+    batchCode: string;
+    productName: string;
+    currentQuantity: number;
+    expiryDate: string;
+    daysUntilExpiry: number;
+    status: "good" | "warning" | "expired";
+}[];
+
+export type InventoryWasteReport = {
+    totalWasteVolume: number;
+    wasteByProduct: {
+        productId: number;
+        productName: string;
+        wasteQuantity: number;
+        wasteValue: number;
+        reason: string;
+    }[];
+    wasteRate: number;
+};
+
+export type FinancialLossImpact = {
+    totalLoss: number;
+    expiredLoss: number;
+    damagedLoss: number;
+    missingLoss: number;
+    period: {
+        from: string;
+        to: string;
+    };
+};
+

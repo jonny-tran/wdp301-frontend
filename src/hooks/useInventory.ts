@@ -1,10 +1,12 @@
 'use client'
 import { inventoryRequest } from "@/apiRequest/inventory";
 import { handleErrorApi } from "@/lib/errors";
+import { FinancialLossQueryType, InventoryAgingQueryType, InventoryWasteQueryType } from "@/schemas/analytics";
 import { InventoryAdjustBodyType } from "@/schemas/inventory";
 import { QueryInventory, QueryInventorySummary, QueryInventoryTransaction, QueryKitchen } from "@/types/inventory";
-import { QUERY_KEY } from "@/utils/constant";
+import { KEY, QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const useInventory = () => {
     const adjustInventory = useMutation({
@@ -12,9 +14,9 @@ export const useInventory = () => {
             const res = await inventoryRequest.adjustInventory(data)
             return res.data
         },
-        onError: (error) => {
-            handleErrorApi({ error })
-        }
+        onSuccess: () => {
+            toast.success('Inventory adjusted successfully')
+        },
     })
 
     const inventoryStore = (query: QueryInventory) => {
@@ -30,7 +32,7 @@ export const useInventory = () => {
         return useQuery({
             queryKey: QUERY_KEY.inventoryTransaction(query),
             queryFn: async () => {
-                const res = await inventoryRequest.getInventoryStoreTransaction(query)
+                const res = await inventoryRequest.getInventoryStoreTransactions(query)
                 return res.data
             }
         })
@@ -73,6 +75,46 @@ export const useInventory = () => {
         })
     }
 
+    const inventoryAnalyticsSummary = () => {
+        return useQuery({
+            queryKey: KEY.inventoryAnalyticsSummary,
+            queryFn: async () => {
+                const res = await inventoryRequest.getInventoryAnalyticsSummary()
+                return res.data
+            }
+        })
+    }
+
+    const inventoryAgingReport = (query: InventoryAgingQueryType) => {
+        return useQuery({
+            queryKey: QUERY_KEY.inventoryAgingReport(query),
+            queryFn: async () => {
+                const res = await inventoryRequest.getInventoryAgingReport(query)
+                return res.data
+            }
+        })
+    }
+
+    const inventoryWasteReport = (query: InventoryWasteQueryType) => {
+        return useQuery({
+            queryKey: QUERY_KEY.inventoryWasteReport(query),
+            queryFn: async () => {
+                const res = await inventoryRequest.getInventoryWasteReport(query)
+                return res.data
+            }
+        })
+    }
+
+    const financialLossImpact = (params: FinancialLossQueryType) => {
+        return useQuery({
+            queryKey: QUERY_KEY.financialLossImpact(params),
+            queryFn: async () => {
+                const res = await inventoryRequest.getFinancialLossImpact(params)
+                return res.data
+            }
+        })
+    }
+
     return {
         adjustInventory,
         inventoryStore,
@@ -80,6 +122,10 @@ export const useInventory = () => {
         inventorySummary,
         lowStock,
         kitchenSummary,
-        kitchenDetails
+        kitchenDetails,
+        inventoryAnalyticsSummary,
+        inventoryAgingReport,
+        inventoryWasteReport,
+        financialLossImpact
     }
 }

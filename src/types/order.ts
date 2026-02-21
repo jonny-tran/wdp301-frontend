@@ -28,6 +28,16 @@ export type OrderReviewItem = {
 }
 
 
+export type CatalogItem = {
+    productId: number;
+    sku: string;
+    name: string;
+    unit: string;
+    imageUrl: string;
+    isAvailable: boolean;
+};
+
+
 export type Category = {
     id: number
     sku: string
@@ -104,3 +114,24 @@ export type QueryCatelog = BaseRequestPagination & {
     search?: string  // name
 }
 
+export type FillRateAnalytics = {
+    totalOrdered: number;
+    totalApproved: number;
+    fillRate: number;
+    shortageItems: {
+        productId: number;
+        productName: string;
+        requested: number;
+        approved: number;
+        shortage: number;
+        reason: string;
+    }[];
+};
+
+export type SLAPerformanceLeadTime = {
+    avgReviewTime: number;
+    avgPickingTime: number;
+    avgDeliveryTime: number;
+    totalLeadTime: number;
+    unit: string;
+};

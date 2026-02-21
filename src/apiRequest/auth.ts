@@ -1,12 +1,12 @@
 import http from "@/lib/http";
 import { CreateUserBodyType, ForgotPasswordBodyType, LoginBodyType, LogoutBodyType, RefreshTokenBodyType, ResetPasswordBodyType } from "@/schemas/auth";
-import { AuthTokens, LoginResponse, User } from "@/types/user";
+import { AuthTokens, User } from "@/types/user";
 import { ENDPOINT_CLIENT, ENDPOINT_SERVER } from "@/utils/endponit";
 
 
 export const authRequest = {
   loginClient: (data: LoginBodyType) =>
-    http.post<LoginResponse>(
+    http.post<AuthTokens>(
       ENDPOINT_CLIENT.LOGIN,
       data,
     ),
@@ -34,8 +34,9 @@ export const authRequest = {
     }),
   forgotPassword: (data: ForgotPasswordBodyType) =>
     http.post<{ message: string }>(ENDPOINT_CLIENT.FORGOT_PASSWORD, data),
-  resetPassword: (data: ResetPasswordBodyType) =>
+  resetPassword: (data: Omit<ResetPasswordBodyType, "confirmPassword">) =>
     http.post<{ message: string }>(ENDPOINT_CLIENT.RESET_PASSWORD, data),
   me: () => http.get<User>(ENDPOINT_CLIENT.PROFILE),
   createUser: (data: CreateUserBodyType) => http.post<User>(ENDPOINT_CLIENT.CREATE_USER, data),
+  getRoles: () => http.get<{ value: string; label: string }[]>(ENDPOINT_CLIENT.ROLES),
 };

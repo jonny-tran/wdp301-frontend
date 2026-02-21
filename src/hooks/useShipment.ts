@@ -5,12 +5,16 @@ import { ReceiveShipmentBodyType } from "@/schemas/shipment";
 import { QueryShipment } from "@/types/shipment";
 import { QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const useShipment = () => {
     const receiveAllShipment = useMutation({
         mutationFn: async (id: string) => {
             const res = await shipmentRequest.receiveAllShipment(id)
             return res.data
+        },
+        onSuccess: () => {
+            toast.success('Shipment received successfully')
         },
         onError: (error) => {
             handleErrorApi({ error })
@@ -22,9 +26,9 @@ export const useShipment = () => {
             const res = await shipmentRequest.receiveShipment(id, data)
             return res.data
         },
-        onError: (error) => {
-            handleErrorApi({ error })
-        }
+        onSuccess: () => {
+            toast.success('Shipment received successfully')
+        },
     })
 
     const shipmentList = (query: QueryShipment) => {

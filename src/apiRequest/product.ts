@@ -9,22 +9,22 @@ export const productRequest = {
   createProduct: (data: CreateProductBodyType) => http.post<Product>(ENDPOINT_CLIENT.PRODUCTS, data),
 
   // GET /products/:id
-  getProductDetail: (id: number | string) => http.get<Product>(ENDPOINT_CLIENT.PRODUCT_DETAIL(id)),
+  getProductDetail: (id: number) => http.get<Product>(ENDPOINT_CLIENT.PRODUCT_DETAIL(id)),
 
   // PATCH /products/:id
-  updateProduct: (id: number | string, data: UpdateProductBodyType) => http.patch<Product>(ENDPOINT_CLIENT.PRODUCT_DETAIL(id), data),
+  updateProduct: (id: number, data: UpdateProductBodyType) => http.patch<Product>(ENDPOINT_CLIENT.PRODUCT_DETAIL(id), data),
 
   // DELETE /products/:id
-  deleteProduct: (id: number | string) => http.delete(ENDPOINT_CLIENT.PRODUCT_DETAIL(id)),
+  deleteProduct: (id: number) => http.delete(ENDPOINT_CLIENT.PRODUCT_DETAIL(id)),
 
   // PATCH /products/:id/restore
-  restoreProduct: (id: number | string) => http.patch<Product>(ENDPOINT_CLIENT.RESTORE_PRODUCT(id), {}),
+  restoreProduct: (id: number) => http.patch<Product>(ENDPOINT_CLIENT.RESTORE_PRODUCT(id), {}),
 
   // GET /products/batches/:id
-  getBatchDetail: (id: number | string) => http.get<Batch>(ENDPOINT_CLIENT.BATCH_DETAIL(id)),
+  getBatchDetail: (id: number) => http.get<Batch>(ENDPOINT_CLIENT.BATCH_DETAIL(id)),
 
   // PATCH /products/batches/:id
-  updateBatch: (id: number | string, data: UpdateBatchBodyType) => http.patch<Batch>(ENDPOINT_CLIENT.UPDATE_BATCH(id), data),
+  updateBatch: (id: number, data: UpdateBatchBodyType) => http.patch<Batch>(ENDPOINT_CLIENT.UPDATE_BATCH(id), data),
 
   // GET /products
   getProducts: (query: QueryProduct) => http.get<BaseResponePagination<Product[]>>(ENDPOINT_CLIENT.PRODUCTS, { query }),
