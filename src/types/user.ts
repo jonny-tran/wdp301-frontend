@@ -14,7 +14,3 @@ export type User = {
     createdAt: string;
 };
 
-export type LoginResponse = {
-    accessToken: string;
-    refreshToken: string;
-};

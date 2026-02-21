@@ -12,16 +12,17 @@ export const CreateOrderBody = z.object({
     })).min(1, "Đơn hàng phải có ít nhất 1 sản phẩm")
 });
 
-export type CreateOrderBodyType = z.infer<typeof CreateOrderBody>;
+
 
 export const ApproveOrderBody = z.object({
     force_approve: z.boolean().optional()
 });
 
-export type ApproveOrderBodyType = z.infer<typeof ApproveOrderBody>;
 
 export const RejectOrderBody = z.object({
     reason: z.string().min(1, "Lý do từ chối không được để trống")
 });
 
+export type CreateOrderBodyType = z.infer<typeof CreateOrderBody>;
+export type ApproveOrderBodyType = z.infer<typeof ApproveOrderBody>;
 export type RejectOrderBodyType = z.infer<typeof RejectOrderBody>;

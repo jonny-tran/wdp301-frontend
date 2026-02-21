@@ -5,6 +5,7 @@ import { FinalizeBulkShipmentBodyType, ReportIssueBodyType } from "@/schemas/war
 import { QueryPickingTask } from "@/types/warehouse";
 import { QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const useWarehouse = () => {
     const getPickingTaskList = (query: QueryPickingTask) => useQuery({
@@ -29,6 +30,9 @@ export const useWarehouse = () => {
             const res = await warehouseRequest.resetPickingTask(orderId)
             return res.data
         },
+        onSuccess: () => {
+            toast.success('Picking task reset successfully')
+        },
         onError: (error) => {
             handleErrorApi({ error })
         }
@@ -39,9 +43,9 @@ export const useWarehouse = () => {
             const res = await warehouseRequest.finalizeBulkShipment(data)
             return res.data
         },
-        onError: (error) => {
-            handleErrorApi({ error })
-        }
+        onSuccess: () => {
+            toast.success('Bulk shipment finalized successfully')
+        },
     })
 
     const reportIssue = useMutation({
@@ -49,9 +53,9 @@ export const useWarehouse = () => {
             const res = await warehouseRequest.reportIssue(data)
             return res.data
         },
-        onError: (error) => {
-            handleErrorApi({ error })
-        }
+        onSuccess: () => {
+            toast.success('Issue reported successfully')
+        },
     })
 
     const pickingTaskDetail = (id: string) => {

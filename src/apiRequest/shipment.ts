@@ -10,7 +10,8 @@ export const shipmentRequest = {
     getShipments: (query: QueryShipment) => http.get<BaseResponePagination<Shipment[]>>(ENDPOINT_CLIENT.SHIPMENTS, { query }),
 
     // GET /shipments/store/my
-    getMyStoreShipments: (query: QueryShipment) => http.get<BaseResponePagination<Shipment[]>>(ENDPOINT_CLIENT.SHIPMENTS_MY_STORE, { query }),
+    getMyStoreShipments: (query: QueryShipment) => http.get<Shipment[]>(ENDPOINT_CLIENT.SHIPMENTS_MY_STORE, { query }),
+
 
     // GET /shipments/:id
     getShipmentDetail: (id: string) => http.get<Shipment>(ENDPOINT_CLIENT.SHIPMENT_DETAIL(id)),

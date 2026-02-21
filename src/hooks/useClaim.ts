@@ -1,43 +1,14 @@
 'use client'
 import { claimRequest } from "@/apiRequest/claim";
 import { handleErrorApi } from "@/lib/errors";
+import { ClaimAnalyticsQueryType } from "@/schemas/analytics";
 import { CreateClaimBodyType, ResolveClaimBodyType } from "@/schemas/claim";
 import { QueryClaim } from "@/types/claim";
 import { QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const useClaim = () => {
-
-    const claimDetail = (id: string) => {
-        return useQuery({
-            queryKey: QUERY_KEY.claimDetail(id),
-            queryFn: async () => {
-                const res = await claimRequest.getClaimDetail(id)
-                return res.data
-            },
-            enabled: !!id
-        })
-    }
-    const createClaim = useMutation({
-        mutationFn: async (data: CreateClaimBodyType) => {
-            const res = await claimRequest.createClaim(data)
-            return res.data
-        },
-        onError: (error) => {
-            handleErrorApi({ error })
-        }
-    })
-
-    const resolveClaim = useMutation({
-        mutationFn: async ({ id, data }: { id: string, data: ResolveClaimBodyType }) => {
-            const res = await claimRequest.resolveClaim(id, data)
-            return res.data
-        },
-        onError: (error) => {
-            handleErrorApi({ error })
-        }
-    })
-
     const claimList = (query: QueryClaim) => {
         return useQuery({
             queryKey: QUERY_KEY.claimList(query),
@@ -58,12 +29,55 @@ export const useClaim = () => {
         })
     }
 
+    const claimDetail = (id: string) => {
+        return useQuery({
+            queryKey: QUERY_KEY.claimDetail(id),
+            queryFn: async () => {
+                const res = await claimRequest.getClaimDetail(id)
+                return res.data
+            },
+            enabled: !!id
+        })
+    }
+
+    const createClaim = useMutation({
+        mutationFn: async (data: CreateClaimBodyType) => {
+            const res = await claimRequest.createClaim(data)
+            return res.data
+        },
+        onSuccess: () => {
+            toast.success('Claim created successfully')
+        },
+    })
+
+    const resolveClaim = useMutation({
+        mutationFn: async ({ id, data }: { id: string, data: ResolveClaimBodyType }) => {
+            const res = await claimRequest.resolveClaim(id, data)
+            return res.data
+        },
+        onSuccess: () => {
+            toast.success('Claim resolved successfully')
+        },
+    })
+
+
+    const claimAnalyticsSummary = (query: ClaimAnalyticsQueryType) => {
+        return useQuery({
+            queryKey: QUERY_KEY.claimAnalyticsSummary(query),
+            queryFn: async () => {
+                const res = await claimRequest.getClaimAnalyticsSummary(query)
+                return res.data
+            }
+        })
+    }
+
     return {
         createClaim,
         resolveClaim,
         claimDetail,
         claimList,
-        myStoreClaimList
+        myStoreClaimList,
+        claimAnalyticsSummary
     }
 }
 

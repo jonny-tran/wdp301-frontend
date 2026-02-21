@@ -8,10 +8,12 @@
 - [Franchise Store Management APIs](#franchise-store-management-apis)
 - [Inventory Management APIs](#inventory-management-apis)
 - [Product & Batch Management APIs](#product--batch-management-apis)
+- [Base Unit Management APIs](#base-unit-management-apis)
 - [Shipment Management APIs](#shipment-management-apis)
 - [Warehouse Operations APIs](#warehouse-operations-apis)
 - [Inbound Logistics APIs](#inbound-logistics-apis)
 - [Supplier Management APIs](#supplier-management-apis)
+- [Upload APIs](#upload-apis)
 - [Common Response Format](#common-response-format)
 - [Error Handling](#error-handling)
 - [Notes & References](#notes--references)
@@ -101,17 +103,29 @@ GET /orders?page=1&limit=20&status=pending&storeId=uuid-123&sortBy=createdAt&sor
 }
 ```
 
+
 #### Success with Pagination
 ```json
 {
   "statusCode": 200,
   "message": "Success message (optional)",
   "data": {
-    "items": [ /* array of items */ ],
-    "total": 100,
-    "page": 1,
-    "limit": 20
-  }
+    "items": [
+      {
+        "id": 1,
+        "name": "Example item"
+      }
+    ],
+    "meta": {
+      "totalItems": 100,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 5,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/shipments"
 }
 ```
 
@@ -120,22 +134,22 @@ GET /orders?page=1&limit=20&status=pending&storeId=uuid-123&sortBy=createdAt&sor
 {
   "statusCode": 422,
   "message": "Validation failed",
-  "error": "Unprocessable Entity",
-  "details": [
+  "errors": [
     {
       "field": "email",
-      "constraints": {
-        "isEmail": "Email không đúng định dạng",
-        "isNotEmpty": "Email không được để trống"
-      }
+      "message": "Email không đúng định dạng"
+    },
+    {
+      "field": "email",
+      "message": "Email không được để trống"
     },
     {
       "field": "password",
-      "constraints": {
-        "minLength": "Mật khẩu phải có ít nhất 6 ký tự"
-      }
+      "message": "Mật khẩu phải có ít nhất 6 ký tự"
     }
-  ]
+  ],
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/auth/login"
 }
 ```
 
@@ -610,22 +624,33 @@ enum UserStatus {
 **Authentication**: Bearer Token  
 **Query Parameters**:
 - `status` (optional): pending, approved, rejected, cancelled
-- `page` (optional): Số trang
-- `limit` (optional): Số lượng items per page
+- `page` (optional): Số trang (Default 1)
+- `limit` (optional): Số lượng items per page (Default 20)
 
 **Response**:
 ```json
 {
   "statusCode": 200,
-  "data": [
-    {
-      "orderId": "uuid-string",
-      "deliveryDate": "2023-12-25",
-      "status": "pending",
-      "totalItems": 15,
-      "createdAt": "2024-01-01T00:00:00.000Z"
+  "data": {
+    "items": [
+      {
+        "orderId": "uuid-string",
+        "deliveryDate": "2023-12-25",
+        "status": "pending",
+        "totalItems": 15,
+        "createdAt": "2024-01-01T00:00:00.000Z"
+      }
+    ],
+    "meta": {
+      "totalItems": 30,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 2,
+      "currentPage": 1
     }
-  ]
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/orders/my-store"
 }
 ```
 
@@ -656,10 +681,16 @@ enum UserStatus {
         "createdAt": "2024-01-01T00:00:00.000Z"
       }
     ],
-    "total": 100,
-    "page": 1,
-    "limit": 20
-  }
+    "meta": {
+      "totalItems": 100,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 5,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/orders"
 }
 ```
 
@@ -797,6 +828,65 @@ enum UserStatus {
 
 ---
 
+### 10. GET `/orders/analytics/fulfillment-rate?storeId=uuid&from=2024-01-01&to=2024-01-31`
+**Mô tả**: Tỷ lệ đáp ứng đơn hàng - Fill Rate  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token  
+**Query Parameters**:
+- `storeId` (optional): Lọc theo cửa hàng
+- `from` (optional): Từ ngày (YYYY-MM-DD)
+- `to` (optional): Đến ngày (YYYY-MM-DD)
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Lấy tỷ lệ đáp ứng thành công",
+  "data": {
+    "totalOrdered": 1000,
+    "totalApproved": 850,
+    "fillRate": 85.0,
+    "shortageItems": [
+      {
+        "productId": 1,
+        "productName": "Gà rán KFC Original",
+        "requested": 100,
+        "approved": 80,
+        "shortage": 20,
+        "reason": "Out of stock"
+      }
+    ]
+  }
+}
+```
+
+---
+
+### 11. GET `/orders/analytics/performance/lead-time?from=2024-01-01&to=2024-01-31`
+**Mô tả**: Theo dõi thời gian vận hành - SLA  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token  
+**Query Parameters**:
+- `from` (optional): Từ ngày (YYYY-MM-DD)
+- `to` (optional): Đến ngày (YYYY-MM-DD)
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Lấy thống kê SLA thành công",
+  "data": {
+    "avgReviewTime": 2.5,
+    "avgPickingTime": 3.2,
+    "avgDeliveryTime": 4.8,
+    "totalLeadTime": 10.5,
+    "unit": "hours"
+  }
+}
+```
+
+---
+
 ## 🚨 Claim Management APIs
 
 ### 1. GET `/claims?status=pending&page=1&limit=20`
@@ -824,10 +914,16 @@ enum UserStatus {
         "createdAt": "2024-01-01T00:00:00.000Z"
       }
     ],
-    "total": 50,
-    "page": 1,
-    "limit": 20
-  }
+    "meta": {
+      "totalItems": 50,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 3,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/claims"
 }
 ```
 
@@ -972,6 +1068,38 @@ enum UserStatus {
     "status": "approved",
     "resolutionNote": "Đã xác nhận và sẽ hoàn trả",
     "resolvedAt": "2024-01-02T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 6. GET `/claims/analytics/summary?productId=1`
+**Mô tả**: Tỷ lệ sai lệch & hư hỏng giao hàng  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token  
+**Query Parameters**:
+- `productId` (optional): Lọc theo sản phẩm
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Lấy báo cáo khiếu nại thành công",
+  "data": {
+    "totalShipments": 100,
+    "totalClaims": 15,
+    "damageRate": 8.0,
+    "missingRate": 7.0,
+    "bottleneckProducts": [
+      {
+        "productId": 1,
+        "productName": "Gà rán KFC Original",
+        "damageCount": 5,
+        "missingCount": 3,
+        "totalIssues": 8
+      }
+    ]
   }
 }
 ```
@@ -1123,6 +1251,61 @@ enum UserStatus {
 
 ---
 
+### 6. GET `/stores/analytics/reliability`
+**Mô tả**: Đánh giá độ tin cậy của Cửa hàng & Phát hiện gian lận  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Lấy báo cáo độ tin cậy thành công",
+  "data": [
+    {
+      "storeId": "uuid-store-1",
+      "storeName": "KFC Nguyen Thai Hoc",
+      "totalOrders": 50,
+      "cancelledOrders": 5,
+      "cancellationRate": 10.0,
+      "reliabilityScore": 90.0,
+      "riskLevel": "low"
+    }
+  ]
+}
+```
+
+---
+
+### 7. GET `/stores/analytics/demand-pattern?productId=1`
+**Mô tả**: Phân tích xu hướng đặt hàng theo Thứ trong tuần  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token  
+**Query Parameters**:
+- `productId` (optional): Lọc theo sản phẩm
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Lấy phân tích xu hướng thành công",
+  "data": [
+    {
+      "dayOfWeek": "Monday",
+      "totalOrders": 25,
+      "avgQuantity": 150.5
+    },
+    {
+      "dayOfWeek": "Tuesday",
+      "totalOrders": 20,
+      "avgQuantity": 120.3
+    }
+  ]
+}
+```
+
+---
+
 ## 📊 Inventory Management APIs
 
 ### 1. GET `/inventory/store?search=&page=1&limit=20`
@@ -1138,40 +1321,51 @@ enum UserStatus {
 ```json
 {
   "statusCode": 200,
-  "data": [
-    {
-      "inventoryId": 1,
-      "batchId": 1,
-      "productId": 1,
-      "productName": "Gà rán KFC Original",
-      "sku": "PROD-001",
-      "batchCode": "GA-2024-001",
-      "quantity": 50,
-      "expiryDate": "2024-01-10T00:00:00.000Z",
-      "unit": "Kg",
-      "imageUrl": "https://cdn.com/image.jpg"
+  "data": {
+    "items": [
+      {
+        "inventoryId": 1,
+        "batchId": 1,
+        "productId": 1,
+        "productName": "Gà rán KFC Original",
+        "sku": "PROD-001",
+        "batchCode": "GA-2024-001",
+        "quantity": 50,
+        "expiryDate": "2024-01-10T00:00:00.000Z",
+        "unit": "Kg",
+        "imageUrl": "https://cdn.com/image.jpg"
+      }
+    ],
+    "meta": {
+      "totalItems": 50,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 3,
+      "currentPage": 1
     }
-  ]
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/inventory/store"
 }
 ```
 
 ---
 
-### 2. GET `/inventory/store/transactions?type=import&limit=20&offset=0`
+### 2. GET `/inventory/store/transactions?type=import&page=1&limit=20`
 **Mô tả**: Xem lịch sử giao dịch kho của cửa hàng  
 **Quyền truy cập**: FRANCHISE_STORE_STAFF, ADMIN  
 **Authentication**: Bearer Token  
 **Query Parameters**:
 - `type` (optional): import, export, waste, adjustment
+- `page` (optional): Default 1
 - `limit` (optional): Default 20
-- `offset` (optional): Default 0
 
 **Response**:
 ```json
 {
   "statusCode": 200,
   "data": {
-    "transactions": [
+    "items": [
       {
         "transactionId": 1,
         "type": "import",
@@ -1182,10 +1376,16 @@ enum UserStatus {
         "note": "Nhập hàng từ shipment #123"
       }
     ],
-    "total": 50,
-    "limit": 20,
-    "offset": 0
-  }
+    "meta": {
+      "totalItems": 50,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 3,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/inventory/store/transactions"
 }
 ```
 
@@ -1222,10 +1422,16 @@ enum UserStatus {
         ]
       }
     ],
-    "total": 100,
-    "page": 1,
-    "limit": 20
-  }
+    "meta": {
+      "totalItems": 100,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 5,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/inventory/summary"
 }
 ```
 
@@ -1335,10 +1541,16 @@ enum UserStatus {
         "unit": "Kg"
       }
     ],
-    "total": 50,
-    "page": 1,
-    "limit": 20
-  }
+    "meta": {
+      "totalItems": 50,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 3,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/inventory/kitchen/summary"
 }
 ```
 
@@ -1368,6 +1580,115 @@ enum UserStatus {
         "expiryDate": "2024-01-10T00:00:00.000Z"
       }
     ]
+  }
+}
+```
+
+---
+
+### 8. GET `/inventory/analytics/summary`
+**Mô tả**: Tổng quan sức khỏe kho Bếp  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Lấy tổng quan kho thành công",
+  "data": {
+    "totalProducts": 50,
+    "totalBatches": 120,
+    "totalValue": 1500000,
+    "lowStockItems": 5,
+    "expiringItems": 3
+  }
+}
+```
+
+---
+
+### 9. GET `/inventory/analytics/aging?daysThreshold=30`
+**Mô tả**: Báo cáo tuổi hàng - Aging Report  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token  
+**Query Parameters**:
+- `daysThreshold` (optional): Ngưỡng ngày cảnh báo (Default: không giới hạn)
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Lấy báo cáo tuổi hàng thành công",
+  "data": [
+    {
+      "batchId": 1,
+      "batchCode": "GA-2024-001",
+      "productName": "Gà rán KFC Original",
+      "currentQuantity": 50,
+      "expiryDate": "2024-02-15T00:00:00.000Z",
+      "daysUntilExpiry": 15,
+      "status": "warning"
+    }
+  ]
+}
+```
+
+---
+
+### 10. GET `/inventory/analytics/waste?fromDate=2024-01-01&toDate=2024-01-31`
+**Mô tả**: Thống kê hao hụt & hủy hàng - Waste Report  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token  
+**Query Parameters**:
+- `fromDate` (optional): Từ ngày (YYYY-MM-DD)
+- `toDate` (optional): Đến ngày (YYYY-MM-DD)
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Lấy báo cáo hao hụt thành công",
+  "data": {
+    "totalWasteVolume": 150,
+    "wasteByProduct": [
+      {
+        "productId": 1,
+        "productName": "Gà rán KFC Original",
+        "wasteQuantity": 50,
+        "wasteValue": 500000,
+        "reason": "expired"
+      }
+    ],
+    "wasteRate": 5.2
+  }
+}
+```
+
+---
+
+### 11. GET `/inventory/analytics/financial/loss-impact?from=2024-01-01&to=2024-01-31`
+**Mô tả**: Ước tính giá trị thiệt hại tài chính  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token  
+**Query Parameters**:
+- `from` (optional): Từ ngày (YYYY-MM-DD)
+- `to` (optional): Đến ngày (YYYY-MM-DD)
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Lấy báo cáo thiệt hại tài chính thành công",
+  "data": {
+    "totalLoss": 2500000,
+    "expiredLoss": 1500000,
+    "damagedLoss": 800000,
+    "missingLoss": 200000,
+    "period": {
+      "from": "2024-01-01",
+      "to": "2024-01-31"
+    }
   }
 }
 ```
@@ -1451,10 +1772,16 @@ enum UserStatus {
         "isActive": true
       }
     ],
-    "total": 50,
-    "page": 1,
-    "limit": 10
-  }
+    "meta": {
+      "totalItems": 50,
+      "itemCount": 10,
+      "itemsPerPage": 10,
+      "totalPages": 5,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/products"
 }
 ```
 
@@ -1489,10 +1816,16 @@ enum UserStatus {
         "createdAt": "2024-01-01T00:00:00.000Z"
       }
     ],
-    "total": 20,
-    "page": 1,
-    "limit": 10
-  }
+    "meta": {
+      "totalItems": 20,
+      "itemCount": 10,
+      "itemsPerPage": 10,
+      "totalPages": 2,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/products/batches"
 }
 ```
 
@@ -1643,7 +1976,146 @@ enum UserStatus {
 
 ---
 
-## 🚚 Shipment Management APIs
+## � Base Unit Management APIs
+
+### 1. POST `/base-units`
+**Mô tả**: Tạo đơn vị tính mới  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token
+
+**Request Body Schema**:
+| Field | Type | Required | Validation | Description |
+|-------|------|----------|------------|-------------|
+| name | string | ✅ | @IsString, @IsNotEmpty | Tên đơn vị tính (VD: Kg, Lít, Hộp) |
+| description | string | ⚪ | @IsString, @IsOptional | Mô tả chi tiết đơn vị tính |
+
+**Request Body Example**:
+```json
+{
+  "name": "Kg",
+  "description": "Kilogram"
+}
+```
+
+**Validation Errors**:
+- `Tên đơn vị tính không được để trống`
+- `Tên đơn vị tính phải là chuỗi`
+
+**Response**:
+```json
+{
+  "statusCode": 201,
+  "message": "Tạo đơn vị tính thành công",
+  "data": {
+    "id": 1,
+    "name": "Kg",
+    "description": "Kilogram",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 2. GET `/base-units`
+**Mô tả**: Lấy danh sách tất cả đơn vị tính  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Lấy danh sách đơn vị tính thành công",
+  "data": [
+    {
+      "id": 1,
+      "name": "Kg",
+      "description": "Kilogram"
+    },
+    {
+      "id": 2,
+      "name": "Lít",
+      "description": "Liter"
+    },
+    {
+      "id": 3,
+      "name": "Hộp",
+      "description": "Box"
+    }
+  ]
+}
+```
+
+---
+
+### 3. GET `/base-units/:id`
+**Mô tả**: Lấy chi tiết đơn vị tính  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Lấy chi tiết đơn vị tính thành công",
+  "data": {
+    "id": 1,
+    "name": "Kg",
+    "description": "Kilogram",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-02T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 4. PATCH `/base-units/:id`
+**Mô tả**: Cập nhật đơn vị tính  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token
+
+**Request Body Example**:
+```json
+{
+  "name": "Kilogram",
+  "description": "Đơn vị đo khối lượng"
+}
+```
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Cập nhật đơn vị tính thành công",
+  "data": {
+    "id": 1,
+    "name": "Kilogram",
+    "description": "Đơn vị đo khối lượng",
+    "updatedAt": "2024-01-02T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### 5. DELETE `/base-units/:id`
+**Mô tả**: Xóa đơn vị tính  
+**Quyền truy cập**: MANAGER, ADMIN  
+**Authentication**: Bearer Token
+
+**Response**:
+```json
+{
+  "statusCode": 200,
+  "message": "Xóa đơn vị tính thành công"
+}
+```
+
+---
+
+## �🚚 Shipment Management APIs
 
 ### 1. GET `/shipments?status=in_transit&storeId=uuid&page=1&limit=20`
 **Mô tả**: Lấy danh sách lô hàng (Phân trang & Lọc)  
@@ -1671,10 +2143,16 @@ enum UserStatus {
         "createdAt": "2024-01-01T00:00:00.000Z"
       }
     ],
-    "total": 50,
-    "page": 1,
-    "limit": 20
-  }
+    "meta": {
+      "totalItems": 50,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 3,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/shipments"
 }
 ```
 
@@ -1893,10 +2371,16 @@ enum UserStatus {
         "createdAt": "2024-01-01T00:00:00.000Z"
       }
     ],
-    "total": 20,
-    "page": 1,
-    "limit": 20
-  }
+    "meta": {
+      "totalItems": 20,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 1,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/warehouse/picking-tasks"
 }
 ```
 
@@ -2192,10 +2676,16 @@ enum UserStatus {
         "createdAt": "2024-01-01T00:00:00.000Z"
       }
     ],
-    "total": 30,
-    "page": 1,
-    "limit": 20
-  }
+    "meta": {
+      "totalItems": 30,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 2,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/inbound/receipts"
 }
 ```
 
@@ -2435,10 +2925,16 @@ enum UserStatus {
         "isActive": true
       }
     ],
-    "total": 10,
-    "page": 1,
-    "limit": 20
-  }
+    "meta": {
+      "totalItems": 10,
+      "itemCount": 10,
+      "itemsPerPage": 20,
+      "totalPages": 1,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/suppliers"
 }
 ```
 
@@ -2513,7 +3009,45 @@ enum UserStatus {
 
 ---
 
-## 📝 Common Response Format
+## � Upload APIs
+
+### 1. POST `/upload/image`
+**Mô tả**: Upload hình ảnh (cho sản phẩm, batch, claim evidence, etc.)  
+**Quyền truy cập**: Public (không yêu cầu authentication)  
+**Content-Type**: multipart/form-data
+
+**Request Body**:
+- Field name: `file`
+- Max size: 5MB
+- Allowed types: png, jpeg, jpg, webp
+
+**Request Example** (multipart/form-data):
+```
+Content-Type: multipart/form-data
+
+file: [binary image data]
+```
+
+**Validation Errors**:
+- `File size too large` - Nếu file > 5MB
+- `Invalid file type` - Nếu file không phải png/jpeg/jpg/webp
+
+**Response**:
+```json
+{
+  "url": "https://res.cloudinary.com/xxx/image/upload/v1234567890/products/abc123.jpg",
+  "public_id": "products/abc123"
+}
+```
+
+**Usage Notes**:
+- URL trả về có thể dùng để lưu vào field `imageUrl` của Product, Batch, hoặc Claim
+- Public_id có thể dùng để xóa ảnh sau này (nếu cần)
+- Không cần Bearer Token cho endpoint này
+
+---
+
+## �📝 Common Response Format
 
 ### Success Response
 Tất cả API trả về response theo format:
@@ -2524,6 +3058,39 @@ Tất cả API trả về response theo format:
   "data": {}
 }
 ```
+
+### Success Response with Pagination
+Tất cả GET endpoints có pagination trả về response theo format:
+```json
+{
+  "statusCode": 200,
+  "message": "Success message (optional)",
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "name": "Example item"
+      }
+    ],
+    "meta": {
+      "totalItems": 100,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 5,
+      "currentPage": 1
+    }
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/endpoint"
+}
+```
+
+**Meta Object Fields**:
+- `totalItems`: Tổng số items trong database
+- `itemCount`: Số lượng items trả về trong response hiện tại
+- `itemsPerPage`: Số lượng items tối đa mỗi trang (limit)
+- `totalPages`: Tổng số trang
+- `currentPage`: Trang hiện tại
 
 ### Error Response
 ```json
@@ -2663,10 +3230,25 @@ Tất cả dates sử dụng ISO 8601 format:
 
 ---
 
-**Generated on**: February 12, 2026  
+**Generated on**: February 21, 2026  
 **API Version**: 1.0.0  
+**Total Endpoints**: 84  
 **Base URL**: Configure based on your environment (Dev/Staging/Production)  
 **Documentation**: This document covers all available API endpoints in WDP301 Warehouse & Distribution Management System
+
+**Endpoint Summary**:
+- Authentication: 8 endpoints
+- Order Management: 11 endpoints (9 CRUD + 2 Analytics)
+- Claim Management: 6 endpoints (5 CRUD + 1 Analytics)
+- Franchise Store: 7 endpoints (5 CRUD + 2 Analytics)
+- Inventory: 11 endpoints (7 CRUD + 4 Analytics)
+- Product & Batch: 9 endpoints
+- Base Unit: 5 endpoints
+- Shipment: 6 endpoints
+- Warehouse Operations: 7 endpoints
+- Inbound Logistics: 8 endpoints
+- Supplier Management: 5 endpoints
+- Upload: 1 endpoint
 
 ---
 

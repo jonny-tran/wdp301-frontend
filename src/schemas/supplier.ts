@@ -8,8 +8,8 @@ export const CreateSupplierBody = z.object({
     address: z.string().optional()
 });
 
-export type CreateSupplierBodyType = z.infer<typeof CreateSupplierBody>;
+
 
 export const UpdateSupplierBody = CreateSupplierBody.partial();
-
+export type CreateSupplierBodyType = z.infer<typeof CreateSupplierBody>;
 export type UpdateSupplierBodyType = z.infer<typeof UpdateSupplierBody>;

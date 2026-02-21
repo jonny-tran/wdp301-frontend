@@ -24,6 +24,8 @@ export const ENDPOINT_CLIENT = {
     REJECT_ORDER: (id: string) => `/orders/coordinator/${id}/reject`,
     CANCEL_ORDER: (id: string) => `/orders/franchise/${id}/cancel`,
     ORDER_DETAIL: (id: string) => `/orders/${id}`,
+    ORDER_FILL_RATE: '/orders/analytics/fulfillment-rate',
+    ORDER_SLA_LEAD_TIME: '/orders/analytics/performance/lead-time',
 
     // Claims
     CLAIMS: '/claims',
@@ -31,6 +33,7 @@ export const ENDPOINT_CLIENT = {
     CREATE_CLAIM: '/claims',
     CLAIM_MY_STORE: '/claims/my-store',
     RESOLVE_CLAIM: (id: string) => `/claims/${id}/resolve`,
+    CLAIM_REPORT: '/claims/analytics/summary',
 
     // Stores
     STORES: '/stores',
@@ -38,15 +41,21 @@ export const ENDPOINT_CLIENT = {
     STORE_DETAIL: (id: string) => `/stores/${id}`,
     UPDATE_STORE: (id: string) => `/stores/${id}`,
     DELETE_STORE: (id: string) => `/stores/${id}`,
+    STORE_RELIABILITY: '/stores/analytics/reliability',
+    STORE_DEMAND_PATTERN: '/stores/analytics/demand-pattern',
 
     // Inventory
     INVENTORY_STORE: '/inventory/store',
-    INVENTORY_STORE_TRANSACTION: '/inventory/store/transaction',
+    INVENTORY_STORE_TRANSACTIONS: '/inventory/store/transactions',
     INVENTORY_SUMMARY: '/inventory/summary',
     INVENTORY_LOW_STOCK: '/inventory/low-stock',
     INVENTORY_ADJUST: '/inventory/adjust',
     INVENTORY_KITCHEN_SUMMARY: '/inventory/kitchen/summary',
     INVENTORY_KITCHEN_DETAILS: '/inventory/kitchen/details',
+    INVENTORY_ANALYTICS_SUMMARY: '/inventory/analytics/summary',
+    INVENTORY_AGING: '/inventory/analytics/aging',
+    INVENTORY_WASTE: '/inventory/analytics/waste',
+    FINANCIAL_LOSS: '/inventory/analytics/financial/loss-impact',
 
     // Products
     PRODUCTS: '/products', // Used for CREATE
@@ -55,6 +64,10 @@ export const ENDPOINT_CLIENT = {
     BATCHES: '/products/batches',
     BATCH_DETAIL: (id: string | number) => `/products/batches/${id}`,
     UPDATE_BATCH: (id: string | number) => `/products/batches/${id}`,
+
+    // Base Units
+    BASE_UNITS: '/base-units',
+    BASE_UNIT_DETAIL: (id: string | number) => `/base-units/${id}`,
 
     // Shipments
     SHIPMENTS: '/shipments',
@@ -85,4 +98,7 @@ export const ENDPOINT_CLIENT = {
     // Suppliers
     SUPPLIERS: '/suppliers',
     SUPPLIER_DETAIL: (id: string | number) => `/suppliers/${id}`,
+
+    // Upload
+    UPLOAD_IMAGE: '/upload/image',
 }

@@ -7,6 +7,7 @@ import { QueryStore } from "@/types/store";
 import { QuerySupplier } from "@/types/supplier";
 import { QueryCatelog, QueryOrder } from "@/types/order";
 import { QueryPickingTask } from "@/types/warehouse";
+import { ClaimAnalyticsQueryType, FinancialLossQueryType, InventoryAgingQueryType, InventoryWasteQueryType, OrderFillRateQueryType, OrderSLAQueryType, StoreDemandPatternQueryType } from "@/schemas/analytics";
 
 // Define Actions
 export const Action = {
@@ -60,7 +61,7 @@ export const QUERY_KEY = {
     // Inbound
     receiptList: (query: QueryIbound) => ['receipt-list', query],
     receiptDetail: (id: string) => ['receipt-detail', id],
-    batchLabel: (id: number | string) => ['batch-label', id],
+    batchLabel: (id: string) => ['batch-label', id],
 
     // Inventory
     inventoryStore: (query: QueryInventory) => ['inventory-store', query],
@@ -72,9 +73,9 @@ export const QUERY_KEY = {
 
     // Product
     productList: (query: QueryProduct) => ['product-list', query],
-    productDetail: (id: number | string) => ['product-detail', id],
+    productDetail: (id: number) => ['product-detail', id],
     batchList: (query: QueryBatch) => ['batch-list', query],
-    batchDetail: (id: number | string) => ['batch-detail', id],
+    batchDetail: (id: number) => ['batch-detail', id],
 
     // Store
     storeList: (query: QueryStore) => ['store-list', query],
@@ -82,7 +83,7 @@ export const QUERY_KEY = {
 
     // Supplier
     supplierList: (query: QuerySupplier) => ['supplier-list', query],
-    supplierDetail: (id: number | string) => ['supplier-detail', id],
+    supplierDetail: (id: string) => ['supplier-detail', id],
 
     // Shipment
     shipmentList: (query: QueryShipment) => ['shipment-list', query],
@@ -96,7 +97,23 @@ export const QUERY_KEY = {
     shipmentLabel: (id: string) => ['shipment-label', id],
     scanCheckBatch: (batchCode: string) => ['scan-check-batch', batchCode],
 
+    // Analytics
+    orderFillRateAnalytics: (params: OrderFillRateQueryType) => ['order-fill-rate-analytics', params],
+    orderSlaPerformanceLeadTime: (params: OrderSLAQueryType) => ['order-sla-performance-lead-time', params],
+    storeDemandPatternAnalytics: (params: StoreDemandPatternQueryType) => ['store-demand-pattern-analytics', params],
+    inventoryAgingReport: (params: InventoryAgingQueryType) => ['inventory-aging-report', params],
+    inventoryWasteReport: (params: InventoryWasteQueryType) => ['inventory-waste-report', params],
+    financialLossImpact: (params: FinancialLossQueryType) => ['financial-loss-impact', params],
+    claimAnalyticsSummary: (params: ClaimAnalyticsQueryType) => ['claim-analytics-summary', params],
+
+    // Base Unit
+    baseUnitDetail: (id: number) => ['base-unit-detail', id],
+
 } as const
+
 export const KEY = {
-    me: ['profile']
+    me: ['profile'],
+    inventoryAnalyticsSummary: ['inventory-analytics-summary'],
+    storeReliabilityAnalytics: ['store-reliability-analytics'],
+    baseUnitList: ['base-unit-list'],
 } as const;

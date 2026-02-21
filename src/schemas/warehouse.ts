@@ -9,7 +9,7 @@ export const CreateWarehouseBody = z.object({
 });
 
 
-export type CreateWarehouseBodyType = z.infer<typeof CreateWarehouseBody>;
+
 
 export const FinalizeBulkShipmentBody = z.object({
     orders: z.array(
@@ -25,14 +25,14 @@ export const FinalizeBulkShipmentBody = z.object({
     )
 });
 
-export type FinalizeBulkShipmentBodyType = z.infer<typeof FinalizeBulkShipmentBody>;
 
 export const ReportIssueBody = z.object({
     batchId: z.number(),
     reason: z.string().min(1, "Lý do không được để trống"),
 });
 
-
+export type FinalizeBulkShipmentBodyType = z.infer<typeof FinalizeBulkShipmentBody>;
+export type CreateWarehouseBodyType = z.infer<typeof CreateWarehouseBody>;
 export type ReportIssueBodyType = z.infer<typeof ReportIssueBody>;
 
 

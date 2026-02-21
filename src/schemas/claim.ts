@@ -13,11 +13,12 @@ export const CreateClaimBody = z.object({
     }))
 });
 
-export type CreateClaimBodyType = z.infer<typeof CreateClaimBody>;
+
 
 export const ResolveClaimBody = z.object({
     status: z.enum(['approved', 'rejected']),
     resolutionNote: z.string().optional()
 });
 
+export type CreateClaimBodyType = z.infer<typeof CreateClaimBody>;
 export type ResolveClaimBodyType = z.infer<typeof ResolveClaimBody>;

@@ -1,10 +1,12 @@
 'use client'
 import { orderRequest } from "@/apiRequest/order";
 import { handleErrorApi } from "@/lib/errors";
+import { OrderFillRateQueryType, OrderSLAQueryType } from "@/schemas/analytics";
 import { ApproveOrderBodyType, CreateOrderBodyType, RejectOrderBodyType } from "@/schemas/order";
 import { QueryOrder } from "@/types/order";
 import { QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const useOrder = () => {
     const orderList = (query: QueryOrder) => {
@@ -58,9 +60,9 @@ export const useOrder = () => {
             const res = await orderRequest.createOrder(data)
             return res.data
         },
-        onError: (error) => {
-            handleErrorApi({ error })
-        }
+        onSuccess: () => {
+            toast.success('Order created successfully')
+        },
     })
 
     const approveOrder = useMutation({
@@ -68,9 +70,9 @@ export const useOrder = () => {
             const res = await orderRequest.approveOrder(id, data)
             return res.data
         },
-        onError: (error) => {
-            handleErrorApi({ error })
-        }
+        onSuccess: () => {
+            toast.success('Order approved successfully')
+        },
     })
 
     const rejectOrder = useMutation({
@@ -78,9 +80,9 @@ export const useOrder = () => {
             const res = await orderRequest.rejectOrder(id, data)
             return res.data
         },
-        onError: (error) => {
-            handleErrorApi({ error })
-        }
+        onSuccess: () => {
+            toast.success('Order rejected successfully')
+        },
     })
 
     const cancelOrder = useMutation({
@@ -88,10 +90,33 @@ export const useOrder = () => {
             const res = await orderRequest.cancelOrder(id)
             return res.data
         },
+        onSuccess: () => {
+            toast.success('Order cancelled successfully')
+        },
         onError: (error) => {
             handleErrorApi({ error })
         }
     })
+
+    const fillRateAnalytics = (query: OrderFillRateQueryType) => {
+        return useQuery({
+            queryKey: QUERY_KEY.orderFillRateAnalytics(query),
+            queryFn: async () => {
+                const res = await orderRequest.getFillRateAnalytics(query)
+                return res.data
+            }
+        })
+    }
+
+    const slaPerformanceLeadTime = (query: OrderSLAQueryType) => {
+        return useQuery({
+            queryKey: QUERY_KEY.orderSlaPerformanceLeadTime(query),
+            queryFn: async () => {
+                const res = await orderRequest.getSLAPerformanceLeadTime(query)
+                return res.data
+            }
+        })
+    }
 
     return {
         createOrder,
@@ -102,6 +127,8 @@ export const useOrder = () => {
         catalogList,
         myStoreOrderList,
         orderDetail,
-        reviewOrder
+        reviewOrder,
+        fillRateAnalytics,
+        slaPerformanceLeadTime
     }
 }

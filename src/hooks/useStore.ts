@@ -1,10 +1,12 @@
 'use client'
 import { storeRequest } from "@/apiRequest/store";
 import { handleErrorApi } from "@/lib/errors";
+import { StoreDemandPatternQueryType } from "@/schemas/analytics";
 import { CreateStoreBodyType, UpdateStoreBodyType } from "@/schemas/store";
 import { QueryStore } from "@/types/store";
-import { QUERY_KEY } from "@/utils/constant";
+import { KEY, QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const useStore = () => {
     const createStore = useMutation({
@@ -12,9 +14,9 @@ export const useStore = () => {
             const res = await storeRequest.createStore(data)
             return res.data
         },
-        onError: (error) => {
-            handleErrorApi({ error })
-        }
+        onSuccess: () => {
+            toast.success('Store created successfully')
+        },
     })
 
     const updateStore = useMutation({
@@ -22,15 +24,21 @@ export const useStore = () => {
             const res = await storeRequest.updateStore(id, data)
             return res.data
         },
-        onError: (error) => {
-            handleErrorApi({ error })
-        }
+        onSuccess: () => {
+            toast.success('Store updated successfully')
+        },
     })
 
     const deleteStore = useMutation({
         mutationFn: async (id: string) => {
             const res = await storeRequest.deleteStore(id)
             return res.data
+        },
+        onSuccess: () => {
+            toast.success('Store deleted successfully')
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -55,12 +63,34 @@ export const useStore = () => {
         })
     }
 
+    const storeReliabilityAnalytics = () => {
+        return useQuery({
+            queryKey: KEY.storeReliabilityAnalytics,
+            queryFn: async () => {
+                const res = await storeRequest.getStoreReliabilityAnalytics()
+                return res.data
+            }
+        })
+    }
+
+    const storeDemandPatternAnalytics = (params: StoreDemandPatternQueryType) => {
+        return useQuery({
+            queryKey: QUERY_KEY.storeDemandPatternAnalytics(params),
+            queryFn: async () => {
+                const res = await storeRequest.getStoreDemandPatternAnalytics(params)
+                return res.data
+            }
+        })
+    }
+
     return {
         createStore,
         updateStore,
         deleteStore,
         storeList,
-        storeDetail
+        storeDetail,
+        storeReliabilityAnalytics,
+        storeDemandPatternAnalytics
     }
 }
 
