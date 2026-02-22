@@ -45,75 +45,138 @@ export const Resource = {
 } as const;
 
 
-export const QUERY_KEY = {
-    // Order
-    orderList: (query: QueryOrder) => ['order-list', query],
-    catalogList: (query: QueryCatelog) => ['catalog-list', query],
-    myStoreOrderList: (query: QueryOrder) => ['my-store-order-list', query],
-    orderDetail: (id: string) => ['order-detail', id],
-    reviewOrder: (id: string) => ['review-order', id],
-
-    // Claim
-    claimList: (query: QueryClaim) => ['claim-list', query],
-    myStoreClaimList: (query: QueryClaim) => ['my-store-claim-list', query],
-    claimDetail: (id: string) => ['claim-detail', id],
-
-    // Inbound
-    receiptList: (query: QueryIbound) => ['receipt-list', query],
-    receiptDetail: (id: string) => ['receipt-detail', id],
-    batchLabel: (id: string) => ['batch-label', id],
-
-    // Inventory
-    inventoryStore: (query: QueryInventory) => ['inventory-store', query],
-    inventoryTransaction: (query: QueryInventory) => ['inventory-transaction', query],
-    inventorySummary: (query: QueryInventorySummary) => ['inventory-summary', query],
-    lowStock: (warehouseId?: number) => ['low-stock', warehouseId],
-    kitchenSummary: (query: QueryKitchen) => ['kitchen-summary', query],
-    kitchenDetails: (productId: number) => ['kitchen-details', productId],
-
-    // Product
-    productList: (query: QueryProduct) => ['product-list', query],
-    productDetail: (id: number) => ['product-detail', id],
-    batchList: (query: QueryBatch) => ['batch-list', query],
-    batchDetail: (id: number) => ['batch-detail', id],
-
-    // Store
-    storeList: (query: QueryStore) => ['store-list', query],
-    storeDetail: (id: string) => ['store-detail', id],
-
-    // Supplier
-    supplierList: (query: QuerySupplier) => ['supplier-list', query],
-    supplierDetail: (id: string) => ['supplier-detail', id],
-
-    // Shipment
-    shipmentList: (query: QueryShipment) => ['shipment-list', query],
-    myStoreShipmentList: (query: QueryShipment) => ['my-store-shipment-list', query],
-    shipmentDetail: (id: string) => ['shipment-detail', id],
-    shipmentPickingList: (id: string) => ['shipment-picking-list', id],
-
-    // Warehouse
-    pickingTaskList: (query: QueryPickingTask) => ['picking-task-list', query],
-    pickingTaskDetail: (id: string) => ['picking-task-detail', id],
-    shipmentLabel: (id: string) => ['shipment-label', id],
-    scanCheckBatch: (batchCode: string) => ['scan-check-batch', batchCode],
-
-    // Analytics
-    orderFillRateAnalytics: (params: OrderFillRateQueryType) => ['order-fill-rate-analytics', params],
-    orderSlaPerformanceLeadTime: (params: OrderSLAQueryType) => ['order-sla-performance-lead-time', params],
-    storeDemandPatternAnalytics: (params: StoreDemandPatternQueryType) => ['store-demand-pattern-analytics', params],
-    inventoryAgingReport: (params: InventoryAgingQueryType) => ['inventory-aging-report', params],
-    inventoryWasteReport: (params: InventoryWasteQueryType) => ['inventory-waste-report', params],
-    financialLossImpact: (params: FinancialLossQueryType) => ['financial-loss-impact', params],
-    claimAnalyticsSummary: (params: ClaimAnalyticsQueryType) => ['claim-analytics-summary', params],
-
-    // Base Unit
-    baseUnitDetail: (id: number) => ['base-unit-detail', id],
-
-} as const
-
 export const KEY = {
     me: ['profile'],
     inventoryAnalyticsSummary: ['inventory-analytics-summary'],
     storeReliabilityAnalytics: ['store-reliability-analytics'],
-    baseUnitList: ['base-unit-list'],
+
+    // Core Entities
+    orders: ['orders'],
+    claims: ['claims'],
+    receipts: ['receipts'],
+    inventory: ['inventory'],
+    products: ['products'],
+    stores: ['stores'],
+    suppliers: ['suppliers'],
+    shipments: ['shipments'],
+    warehouse: ['warehouse'],
+    analytics: ['analytics'],
+    baseUnits: ['base-units'],
 } as const;
+
+export const QUERY_KEY = {
+    // ======================
+    // ORDERS
+    // ======================
+    orders: {
+        list: (query: QueryOrder) => [...KEY.orders, 'list', query] as const,
+        catalog: (query: QueryCatelog) => [...KEY.orders, 'catalog', query] as const,
+        myStore: (query: QueryOrder) => [...KEY.orders, 'my-store', query] as const,
+        detail: (id: string) => [...KEY.orders, 'detail', id] as const,
+        review: (id: string) => [...KEY.orders, 'review', id] as const,
+    },
+
+    // ======================
+    // CLAIMS
+    // ======================
+    claims: {
+        list: (query: QueryClaim) => [...KEY.claims, 'list', query] as const,
+        myStore: (query: QueryClaim) => [...KEY.claims, 'my-store', query] as const,
+        detail: (id: string) => [...KEY.claims, 'detail', id] as const,
+    },
+
+    // ======================
+    // RECEIPTS / INBOUND
+    // ======================
+    receipts: {
+        list: (query: QueryIbound) => [...KEY.receipts, 'list', query] as const,
+        detail: (id: string) => [...KEY.receipts, 'detail', id] as const,
+        batchLabel: (id: string) => [...KEY.receipts, 'batch-label', id] as const,
+    },
+
+    // ======================
+    // INVENTORY
+    // ======================
+    inventory: {
+        store: (query: QueryInventory) => [...KEY.inventory, 'store', query] as const,
+        transaction: (query: QueryInventory) => [...KEY.inventory, 'transaction', query] as const,
+        summary: (query: QueryInventorySummary) => [...KEY.inventory, 'summary', query] as const,
+        lowStock: (warehouseId?: number) => [...KEY.inventory, 'low-stock', warehouseId] as const,
+        kitchenSummary: (query: QueryKitchen) => [...KEY.inventory, 'kitchen-summary', query] as const,
+        kitchenDetails: (productId: number) => [...KEY.inventory, 'kitchen-details', productId] as const,
+    },
+
+    // ======================
+    // PRODUCTS
+    // ======================
+    products: {
+        list: (query: QueryProduct) => [...KEY.products, 'list', query] as const,
+        detail: (id: number) => [...KEY.products, 'detail', id] as const,
+        batchList: (query: QueryBatch) => [...KEY.products, 'batch-list', query] as const,
+        batchDetail: (id: number) => [...KEY.products, 'batch-detail', id] as const,
+    },
+
+    // ======================
+    // STORES
+    // ======================
+    stores: {
+        list: (query: QueryStore) => [...KEY.stores, 'list', query] as const,
+        detail: (id: string) => [...KEY.stores, 'detail', id] as const,
+    },
+
+    // ======================
+    // SUPPLIERS
+    // ======================
+    suppliers: {
+        list: (query: QuerySupplier) => [...KEY.suppliers, 'list', query] as const,
+        detail: (id: string) => [...KEY.suppliers, 'detail', id] as const,
+    },
+
+    // ======================
+    // SHIPMENTS
+    // ======================
+    shipments: {
+        list: (query: QueryShipment) => [...KEY.shipments, 'list', query] as const,
+        myStore: (query: QueryShipment) => [...KEY.shipments, 'my-store', query] as const,
+        detail: (id: string) => [...KEY.shipments, 'detail', id] as const,
+        pickingList: (id: string) => [...KEY.shipments, 'picking-list', id] as const,
+    },
+
+    // ======================
+    // WAREHOUSE
+    // ======================
+    warehouse: {
+        pickingTaskList: (query: QueryPickingTask) => [...KEY.warehouse, 'picking-task-list', query] as const,
+        pickingTaskDetail: (id: string) => [...KEY.warehouse, 'picking-task-detail', id] as const,
+        shipmentLabel: (id: string) => [...KEY.warehouse, 'shipment-label', id] as const,
+        scanCheckBatch: (batchCode: string) => [...KEY.warehouse, 'scan-check-batch', batchCode] as const,
+    },
+
+    // ======================
+    // ANALYTICS
+    // ======================
+    analytics: {
+        orderFillRate: (params: OrderFillRateQueryType) => [...KEY.analytics, 'order-fill-rate', params] as const,
+        orderSlaLeadTime: (params: OrderSLAQueryType) => [...KEY.analytics, 'order-sla-lead-time', params] as const,
+        storeDemandPattern: (params: StoreDemandPatternQueryType) => [...KEY.analytics, 'store-demand-pattern', params] as const,
+        inventoryAging: (params: InventoryAgingQueryType) => [...KEY.analytics, 'inventory-aging', params] as const,
+        inventoryWaste: (params: InventoryWasteQueryType) => [...KEY.analytics, 'inventory-waste', params] as const,
+        financialLoss: (params: FinancialLossQueryType) => [...KEY.analytics, 'financial-loss', params] as const,
+        claimSummary: (params: ClaimAnalyticsQueryType) => [...KEY.analytics, 'claim-summary', params] as const,
+    },
+
+    // ======================
+    // BASE UNIT
+    // ======================
+    baseUnits: {
+        list: () => [...KEY.baseUnits, 'list'] as const,
+        detail: (id: number) => [...KEY.baseUnits, 'detail', id] as const,
+    }
+
+} as const
+
+export const PAGINATION_DEFAULT = {
+    page: 1,
+    limit: 20,
+    sortOrder: 'DESC' as 'DESC' | 'ASC'
+}

@@ -9,13 +9,13 @@ export const supplierRequest = {
     createSupplier: (data: CreateSupplierBodyType) => http.post<Supplier>(ENDPOINT_CLIENT.SUPPLIERS, data),
 
     // GET /suppliers/:id
-    getSupplierDetail: (id: number | string) => http.get<Supplier>(ENDPOINT_CLIENT.SUPPLIER_DETAIL(id)),
+    getSupplierDetail: (id: string) => http.get<Supplier>(ENDPOINT_CLIENT.SUPPLIER_DETAIL(id)),
 
     // PATCH /suppliers/:id
-    updateSupplier: (id: number | string, data: UpdateSupplierBodyType) => http.patch<Supplier>(ENDPOINT_CLIENT.SUPPLIER_DETAIL(id), data),
+    updateSupplier: (id: string, data: UpdateSupplierBodyType) => http.patch<Supplier>(ENDPOINT_CLIENT.SUPPLIER_DETAIL(id), data),
 
     // DELETE /suppliers/:id
-    deleteSupplier: (id: number | string) => http.delete(ENDPOINT_CLIENT.SUPPLIER_DETAIL(id)),
+    deleteSupplier: (id: string) => http.delete(ENDPOINT_CLIENT.SUPPLIER_DETAIL(id)),
 
     // GET /suppliers
     getSuppliers: (query: QuerySupplier) => http.get<BaseResponePagination<Supplier[]>>(ENDPOINT_CLIENT.SUPPLIERS, { query }),

@@ -940,16 +940,27 @@ enum UserStatus {
 ```json
 {
   "statusCode": 200,
-  "data": [
-    {
-      "claimId": "uuid-string",
-      "shipmentId": "uuid-string",
-      "status": "pending",
-      "totalDamaged": 5,
-      "totalMissing": 2,
-      "createdAt": "2024-01-01T00:00:00.000Z"
+  "data": {
+    "items": [
+      {
+        "claimId": "uuid-string",
+        "shipmentId": "uuid-string",
+        "status": "pending",
+        "totalDamaged": 5,
+        "totalMissing": 2,
+        "createdAt": "2024-01-01T00:00:00.000Z"
+      }
+    ],
+    "meta": {
+      "totalItems": 50,
+      "itemCount": 20,
+      "itemsPerPage": 20,
+      "totalPages": 3,
+      "currentPage": 1
     }
-  ]
+  },
+  "timestamp": "2026-02-21T10:00:00.000Z",
+  "path": "/api/claims/my-store"
 }
 ```
 
@@ -1035,10 +1046,14 @@ enum UserStatus {
   "statusCode": 201,
   "message": "Tạo khiếu nại thành công. Tồn kho đã được điều chỉnh.",
   "data": {
-    "claimId": "uuid-string",
-    "shipmentId": "uuid-string",
-    "status": "pending",
-    "createdAt": "2024-01-01T00:00:00.000Z"
+        "productId": 1,
+        "productName": "Gà rán KFC Original",
+        "batchId": 1,
+        "batchCode": "GA-2024-001",
+        "quantityMissing": 2,
+        "quantityDamaged": 3,
+        "reason": "Packaging damaged during transit",
+        "imageProofUrl": "https://cdn.com/proof.jpg"
   }
 }
 ```

@@ -3,11 +3,12 @@ import { productRequest } from "@/apiRequest/product";
 import { handleErrorApi } from "@/lib/errors";
 import { CreateProductBodyType, UpdateBatchBodyType, UpdateProductBodyType } from "@/schemas/product";
 import { QueryBatch, QueryProduct } from "@/types/product";
-import { QUERY_KEY } from "@/utils/constant";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { KEY, QUERY_KEY } from "@/utils/constant";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export const useProduct = () => {
+  const queryClient = useQueryClient();
   const createProduct = useMutation({
     mutationFn: async (data: CreateProductBodyType) => {
       const res = await productRequest.createProduct(data)
@@ -15,6 +16,7 @@ export const useProduct = () => {
     },
     onSuccess: () => {
       toast.success('Product created successfully')
+      queryClient.invalidateQueries({ queryKey: KEY.products })
     },
   })
 
@@ -25,6 +27,7 @@ export const useProduct = () => {
     },
     onSuccess: () => {
       toast.success('Product updated successfully')
+      queryClient.invalidateQueries({ queryKey: KEY.products })
     },
   })
 
@@ -35,6 +38,7 @@ export const useProduct = () => {
     },
     onSuccess: () => {
       toast.success('Product deleted successfully')
+      queryClient.invalidateQueries({ queryKey: KEY.products })
     },
     onError: (error) => {
       handleErrorApi({ error })
@@ -48,6 +52,7 @@ export const useProduct = () => {
     },
     onSuccess: () => {
       toast.success('Product restored successfully')
+      queryClient.invalidateQueries({ queryKey: KEY.products })
     },
     onError: (error) => {
       handleErrorApi({ error })
@@ -61,13 +66,14 @@ export const useProduct = () => {
     },
     onSuccess: () => {
       toast.success('Batch updated successfully')
+      queryClient.invalidateQueries({ queryKey: KEY.products })
     },
 
   })
 
   const productList = (query: QueryProduct) => {
     return useQuery({
-      queryKey: QUERY_KEY.productList(query),
+      queryKey: QUERY_KEY.products.list(query),
       queryFn: async () => {
         const res = await productRequest.getProducts(query)
         return res.data
@@ -77,7 +83,7 @@ export const useProduct = () => {
 
   const productDetail = (id: number) => {
     return useQuery({
-      queryKey: QUERY_KEY.productDetail(id),
+      queryKey: QUERY_KEY.products.detail(id),
       queryFn: async () => {
         const res = await productRequest.getProductDetail(id)
         return res.data
@@ -88,7 +94,7 @@ export const useProduct = () => {
 
   const batchList = (query: QueryBatch) => {
     return useQuery({
-      queryKey: QUERY_KEY.batchList(query),
+      queryKey: QUERY_KEY.products.batchList(query),
       queryFn: async () => {
         const res = await productRequest.getBatches(query)
         return res.data
@@ -98,7 +104,7 @@ export const useProduct = () => {
 
   const batchDetail = (id: number) => {
     return useQuery({
-      queryKey: QUERY_KEY.batchDetail(id),
+      queryKey: QUERY_KEY.products.batchDetail(id),
       queryFn: async () => {
         const res = await productRequest.getBatchDetail(id)
         return res.data

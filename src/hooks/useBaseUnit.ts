@@ -2,7 +2,6 @@
 import { baseUnitRequest } from "@/apiRequest/base-unit";
 import { handleErrorApi } from "@/lib/errors";
 import { CreateBaseUnitBodyType, UpdateBaseUnitBodyType } from "@/schemas/base-unit";
-import { BaseUnit } from "@/types/base-unit";
 import { KEY, QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -13,7 +12,7 @@ export const useBaseUnit = () => {
 
     const baseUnitList = () => {
         return useQuery({
-            queryKey: KEY.baseUnitList,
+            queryKey: QUERY_KEY.baseUnits.list(),
             queryFn: async () => {
                 const res = await baseUnitRequest.getBaseUnits()
                 return res.data
@@ -23,7 +22,7 @@ export const useBaseUnit = () => {
 
     const baseUnitDetail = (id: number) => {
         return useQuery({
-            queryKey: QUERY_KEY.baseUnitDetail(id),
+            queryKey: QUERY_KEY.baseUnits.detail(id),
             queryFn: async () => {
                 const res = await baseUnitRequest.getBaseUnitDetail(id)
                 return res.data
@@ -39,6 +38,7 @@ export const useBaseUnit = () => {
         },
         onSuccess: () => {
             toast.success('Base unit created successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.baseUnits })
         },
     })
 
@@ -49,6 +49,7 @@ export const useBaseUnit = () => {
         },
         onSuccess: () => {
             toast.success('Base unit updated successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.baseUnits })
         },
     })
 
@@ -57,8 +58,9 @@ export const useBaseUnit = () => {
             const res = await baseUnitRequest.deleteBaseUnit(id)
             return res.message
         },
-        onSuccess: (data) => {
-            toast.success(data)
+        onSuccess: () => {
+            toast.success('Base unit deleted successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.baseUnits })
         },
         onError: (error) => {
             handleErrorApi({ error })

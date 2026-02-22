@@ -15,7 +15,7 @@ export const claimRequest = {
     getClaimDetail: (id: string) => http.get<Claim>(ENDPOINT_CLIENT.CLAIM_DETAIL(id)),
 
     // GET /claims/my-store
-    getMyStoreClaims: (query: QueryClaim) => http.get<Claim[]>(ENDPOINT_CLIENT.CLAIM_MY_STORE, { query }),
+    getMyStoreClaims: (query: QueryClaim) => http.get<BaseResponePagination<Claim[]>>(ENDPOINT_CLIENT.CLAIM_MY_STORE, { query }),
 
 
     // POST /claims

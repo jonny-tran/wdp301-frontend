@@ -5,10 +5,11 @@ import { StoreDemandPatternQueryType } from "@/schemas/analytics";
 import { CreateStoreBodyType, UpdateStoreBodyType } from "@/schemas/store";
 import { QueryStore } from "@/types/store";
 import { KEY, QUERY_KEY } from "@/utils/constant";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export const useStore = () => {
+    const queryClient = useQueryClient();
     const createStore = useMutation({
         mutationFn: async (data: CreateStoreBodyType) => {
             const res = await storeRequest.createStore(data)
@@ -16,6 +17,7 @@ export const useStore = () => {
         },
         onSuccess: () => {
             toast.success('Store created successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.stores })
         },
     })
 
@@ -26,6 +28,7 @@ export const useStore = () => {
         },
         onSuccess: () => {
             toast.success('Store updated successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.stores })
         },
     })
 
@@ -36,6 +39,7 @@ export const useStore = () => {
         },
         onSuccess: () => {
             toast.success('Store deleted successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.stores })
         },
         onError: (error) => {
             handleErrorApi({ error })
@@ -44,7 +48,7 @@ export const useStore = () => {
 
     const storeList = (query: QueryStore) => {
         return useQuery({
-            queryKey: QUERY_KEY.storeList(query),
+            queryKey: QUERY_KEY.stores.list(query),
             queryFn: async () => {
                 const res = await storeRequest.getStores(query)
                 return res.data
@@ -54,7 +58,7 @@ export const useStore = () => {
 
     const storeDetail = (id: string) => {
         return useQuery({
-            queryKey: QUERY_KEY.storeDetail(id),
+            queryKey: QUERY_KEY.stores.detail(id),
             queryFn: async () => {
                 const res = await storeRequest.getStoreDetail(id)
                 return res.data
@@ -75,7 +79,7 @@ export const useStore = () => {
 
     const storeDemandPatternAnalytics = (params: StoreDemandPatternQueryType) => {
         return useQuery({
-            queryKey: QUERY_KEY.storeDemandPatternAnalytics(params),
+            queryKey: QUERY_KEY.analytics.storeDemandPattern(params),
             queryFn: async () => {
                 const res = await storeRequest.getStoreDemandPatternAnalytics(params)
                 return res.data

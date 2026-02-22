@@ -1,17 +1,17 @@
 'use client'
 import { claimRequest } from "@/apiRequest/claim";
-import { handleErrorApi } from "@/lib/errors";
 import { ClaimAnalyticsQueryType } from "@/schemas/analytics";
 import { CreateClaimBodyType, ResolveClaimBodyType } from "@/schemas/claim";
 import { QueryClaim } from "@/types/claim";
-import { QUERY_KEY } from "@/utils/constant";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { KEY, QUERY_KEY } from "@/utils/constant";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export const useClaim = () => {
+    const queryClient = useQueryClient();
     const claimList = (query: QueryClaim) => {
         return useQuery({
-            queryKey: QUERY_KEY.claimList(query),
+            queryKey: QUERY_KEY.claims.list(query),
             queryFn: async () => {
                 const res = await claimRequest.getClaims(query)
                 return res.data
@@ -21,7 +21,7 @@ export const useClaim = () => {
 
     const myStoreClaimList = (query: QueryClaim) => {
         return useQuery({
-            queryKey: QUERY_KEY.myStoreClaimList(query),
+            queryKey: QUERY_KEY.claims.myStore(query),
             queryFn: async () => {
                 const res = await claimRequest.getMyStoreClaims(query)
                 return res.data
@@ -31,7 +31,7 @@ export const useClaim = () => {
 
     const claimDetail = (id: string) => {
         return useQuery({
-            queryKey: QUERY_KEY.claimDetail(id),
+            queryKey: QUERY_KEY.claims.detail(id),
             queryFn: async () => {
                 const res = await claimRequest.getClaimDetail(id)
                 return res.data
@@ -47,7 +47,8 @@ export const useClaim = () => {
         },
         onSuccess: () => {
             toast.success('Claim created successfully')
-        },
+            queryClient.invalidateQueries({ queryKey: KEY.claims })
+        }
     })
 
     const resolveClaim = useMutation({
@@ -57,13 +58,14 @@ export const useClaim = () => {
         },
         onSuccess: () => {
             toast.success('Claim resolved successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.claims })
         },
     })
 
 
     const claimAnalyticsSummary = (query: ClaimAnalyticsQueryType) => {
         return useQuery({
-            queryKey: QUERY_KEY.claimAnalyticsSummary(query),
+            queryKey: QUERY_KEY.analytics.claimSummary(query),
             queryFn: async () => {
                 const res = await claimRequest.getClaimAnalyticsSummary(query)
                 return res.data
