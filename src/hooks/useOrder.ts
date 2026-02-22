@@ -4,14 +4,15 @@ import { handleErrorApi } from "@/lib/errors";
 import { OrderFillRateQueryType, OrderSLAQueryType } from "@/schemas/analytics";
 import { ApproveOrderBodyType, CreateOrderBodyType, RejectOrderBodyType } from "@/schemas/order";
 import { QueryOrder } from "@/types/order";
-import { QUERY_KEY } from "@/utils/constant";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { KEY, QUERY_KEY } from "@/utils/constant";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export const useOrder = () => {
+    const queryClient = useQueryClient();
     const orderList = (query: QueryOrder) => {
         return useQuery({
-            queryKey: QUERY_KEY.orderList(query),
+            queryKey: QUERY_KEY.orders.list(query),
             queryFn: async () => {
                 const res = await orderRequest.getOrderList(query)
                 return res.data
@@ -20,7 +21,7 @@ export const useOrder = () => {
     }
     const catalogList = (query: QueryOrder) => {
         return useQuery({
-            queryKey: QUERY_KEY.catalogList(query),
+            queryKey: QUERY_KEY.orders.catalog(query),
             queryFn: async () => {
                 const res = await orderRequest.getCatalog(query)
                 return res.data
@@ -29,7 +30,7 @@ export const useOrder = () => {
     }
     const myStoreOrderList = (query: QueryOrder) => {
         return useQuery({
-            queryKey: QUERY_KEY.myStoreOrderList(query),
+            queryKey: QUERY_KEY.orders.myStore(query),
             queryFn: async () => {
                 const res = await orderRequest.getMyStoreOrder(query)
                 return res.data
@@ -38,7 +39,7 @@ export const useOrder = () => {
     }
     const orderDetail = (id: string) => {
         return useQuery({
-            queryKey: QUERY_KEY.orderDetail(id),
+            queryKey: QUERY_KEY.orders.detail(id),
             queryFn: async () => {
                 const res = await orderRequest.getOrderDetail(id)
                 return res.data
@@ -47,7 +48,7 @@ export const useOrder = () => {
     }
     const reviewOrder = (id: string) => {
         return useQuery({
-            queryKey: QUERY_KEY.reviewOrder(id),
+            queryKey: QUERY_KEY.orders.review(id),
             queryFn: async () => {
                 const res = await orderRequest.reviewOrder(id)
                 return res.data
@@ -62,6 +63,7 @@ export const useOrder = () => {
         },
         onSuccess: () => {
             toast.success('Order created successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.orders })
         },
     })
 
@@ -72,6 +74,7 @@ export const useOrder = () => {
         },
         onSuccess: () => {
             toast.success('Order approved successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.orders })
         },
     })
 
@@ -82,6 +85,7 @@ export const useOrder = () => {
         },
         onSuccess: () => {
             toast.success('Order rejected successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.orders })
         },
     })
 
@@ -92,6 +96,7 @@ export const useOrder = () => {
         },
         onSuccess: () => {
             toast.success('Order cancelled successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.orders })
         },
         onError: (error) => {
             handleErrorApi({ error })
@@ -100,7 +105,7 @@ export const useOrder = () => {
 
     const fillRateAnalytics = (query: OrderFillRateQueryType) => {
         return useQuery({
-            queryKey: QUERY_KEY.orderFillRateAnalytics(query),
+            queryKey: QUERY_KEY.analytics.orderFillRate(query),
             queryFn: async () => {
                 const res = await orderRequest.getFillRateAnalytics(query)
                 return res.data
@@ -110,7 +115,7 @@ export const useOrder = () => {
 
     const slaPerformanceLeadTime = (query: OrderSLAQueryType) => {
         return useQuery({
-            queryKey: QUERY_KEY.orderSlaPerformanceLeadTime(query),
+            queryKey: QUERY_KEY.analytics.orderSlaLeadTime(query),
             queryFn: async () => {
                 const res = await orderRequest.getSLAPerformanceLeadTime(query)
                 return res.data
