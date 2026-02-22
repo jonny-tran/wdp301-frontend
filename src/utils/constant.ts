@@ -1,6 +1,6 @@
 import { QueryClaim } from "@/types/claim";
 import { QueryIbound } from "@/types/inbound";
-import { QueryInventory, QueryInventorySummary, QueryKitchen } from "@/types/inventory";
+import { QueryInventory, QueryInventorySummary, QueryInventoryTransaction, QueryKitchen } from "@/types/inventory";
 import { QueryBatch, QueryProduct } from "@/types/product";
 import { QueryShipment } from "@/types/shipment";
 import { QueryStore } from "@/types/store";
@@ -58,7 +58,7 @@ export const QUERY_KEY = {
 
     // Inventory
     inventoryStore: (query: QueryInventory) => ['inventory-store', query],
-    inventoryTransaction: (query: QueryInventory) => ['inventory-transaction', query],
+    inventoryTransaction: (query: QueryInventoryTransaction) => ['inventory-transaction', query],
     inventorySummary: (query: QueryInventorySummary) => ['inventory-summary', query],
     lowStock: (warehouseId?: number) => ['low-stock', warehouseId],
     kitchenSummary: (query: QueryKitchen) => ['kitchen-summary', query],

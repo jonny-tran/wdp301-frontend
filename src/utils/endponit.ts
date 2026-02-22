@@ -41,7 +41,7 @@ export const ENDPOINT_CLIENT = {
 
     // Inventory
     INVENTORY_STORE: '/inventory/store',
-    INVENTORY_STORE_TRANSACTION: '/inventory/store/transaction',
+    INVENTORY_STORE_TRANSACTION: '/inventory/store/transactions',
     INVENTORY_SUMMARY: '/inventory/summary',
     INVENTORY_LOW_STOCK: '/inventory/low-stock',
     INVENTORY_ADJUST: '/inventory/adjust',

@@ -1,7 +1,7 @@
 'use client'
 import { orderRequest } from "@/apiRequest/order";
 import { ApproveOrderBodyType, CreateOrderBodyType, RejectOrderBodyType } from "@/schemas/order";
-import { QueryOrder } from "@/types/order";
+import { QueryCatelog, QueryOrder } from "@/types/order";
 import { QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery } from "@tanstack/react-query";
 
@@ -15,7 +15,7 @@ export const useOrder = () => {
             }
         })
     }
-    const catalogList = (query: QueryOrder) => {
+    const catalogList = (query: QueryCatelog) => {
         return useQuery({
             queryKey: QUERY_KEY.catalogList(query),
             queryFn: async () => {
@@ -39,7 +39,8 @@ export const useOrder = () => {
             queryFn: async () => {
                 const res = await orderRequest.getOrderDetail(id)
                 return res.data
-            }
+            },
+            enabled: !!id
         })
     }
     const reviewOrder = (id: string) => {
@@ -48,7 +49,8 @@ export const useOrder = () => {
             queryFn: async () => {
                 const res = await orderRequest.reviewOrder(id)
                 return res.data
-            }
+            },
+            enabled: !!id
         })
     }
 

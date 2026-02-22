@@ -8,7 +8,7 @@ export const inventoryRequest = {
     // GET /inventory/store
     getInventoryStore: (query: QueryInventory) => http.get(ENDPOINT_CLIENT.INVENTORY_STORE, { query }),
 
-    // GET /inventory/store/transaction
+    // GET /inventory/store/transactions
     getInventoryStoreTransaction: (query: QueryInventoryTransaction) => http.get(ENDPOINT_CLIENT.INVENTORY_STORE_TRANSACTION, { query }),
 
     // GET /inventory/summary

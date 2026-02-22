@@ -25,7 +25,7 @@ export default function LoginForm() {
     const roleRedirects: Record<string, string> = {
         [Role.ADMIN]: '/admin',
         [Role.MANAGER]: '/manager/products',
-        [Role.SUPPLY_COORDINATOR]: '/supply/dashboard',
+        [Role.SUPPLY_COORDINATOR]: '/supply',
         [Role.CENTRAL_KITCHEN_STAFF]: '/kitchen/dashboard'
     };
 

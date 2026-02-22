@@ -1,6 +1,6 @@
 import http from "@/lib/http";
 import { FinalizeBulkShipmentBodyType, ReportIssueBodyType } from "@/schemas/warehouse";
-import { IssueReport, PickingTask, QueryPickingTask, ScanCheckResult, ShipmentLabel } from "@/types/warehouse";
+import { IssueReport, PickingTaskDetail, QueryPickingTask, ScanCheckResult, ShipmentLabel } from "@/types/warehouse";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
 export const warehouseRequest = {
@@ -9,7 +9,7 @@ export const warehouseRequest = {
     getWarehouses: (query: QueryPickingTask) => http.get(ENDPOINT_CLIENT.WAREHOUSE_PICKING_TASKS, { query }),
 
     // GET /warehouse/picking-tasks/:id
-    getPickingTaskDetail: (id: string) => http.get<PickingTask>(ENDPOINT_CLIENT.WAREHOUSE_PICKING_TASK_DETAIL(id)),
+    getPickingTaskDetail: (id: string) => http.get<PickingTaskDetail>(ENDPOINT_CLIENT.WAREHOUSE_PICKING_TASK_DETAIL(id)),
 
     // PATCH /warehouse/picking-tasks/:orderId/reset
     resetPickingTask: (orderId: string) => http.patch<{ orderId: string, status: string }>(ENDPOINT_CLIENT.WAREHOUSE_PICKING_TASK_RESET(orderId), {}),
