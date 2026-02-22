@@ -224,13 +224,12 @@ async function httpRequest<T>(
 
     // Handle other errors
     if (!res.ok) {
-        if (res.status === HttpErrorCode.UNPROCESSABLE_ENTITY) {
-            throw new EntityError(
-                payload as unknown as ResponseError
-            );
-        } else {
-            throw new HttpError(payload as unknown as ResponseError);
+        const errorPayload = payload as unknown as ResponseError;
+        const hasValidationErrors = Array.isArray(errorPayload?.errors) && errorPayload.errors.length > 0;
+        if (res.status === HttpErrorCode.UNPROCESSABLE_ENTITY || (res.status === HttpErrorCode.BAD_REQUEST && hasValidationErrors)) {
+            throw new EntityError(errorPayload);
         }
+        throw new HttpError(errorPayload);
     }
 
     return payload;

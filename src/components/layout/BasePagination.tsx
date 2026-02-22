@@ -61,7 +61,7 @@ export function BasePagination({
             {/* Info text - Left side */}
             {totalItems !== undefined && itemsPerPage !== undefined && (
                 <p className="text-sm text-muted-foreground">
-                    Hiển thị {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)} - {Math.min(currentPage * itemsPerPage, totalItems)} trong tổng số {totalItems}
+                    Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)} - {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems}
                 </p>
             )}
 

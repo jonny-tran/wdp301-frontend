@@ -1,199 +1,136 @@
-'use client'
+"use client";
+
+import { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
+import { BasePagination } from "@/components/layout/BasePagination";
 import { BatchModal } from "@/components/kitchen/batch/BatchModal";
+import { useProduct } from "@/hooks/useProduct";
+import { handleErrorApi } from "@/lib/errors";
 import { Batch } from "@/types/product";
+import { createPaginationSearchParams, normalizeMeta, parseKitchenListQuery, RawSearchParams } from "@/app/kitchen/_components/query";
+import { extractBatches } from "./batches.mapper";
+import BatchesTable from "./BatchesTable";
 
-import {
-    PlusIcon,
-    FunnelIcon,
-    MagnifyingGlassIcon,
-    PencilSquareIcon,
-    TrashIcon
-} from "@heroicons/react/24/outline";
+interface BatchesClientProps {
+    searchParams: RawSearchParams;
+}
 
-import { useState } from "react";
+export default function BatchesClient({ searchParams }: BatchesClientProps) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParamsHook = useSearchParams();
+    const queryClient = useQueryClient();
 
-// Mock Data
-const MOCK_BATCHES: Batch[] = [
-    {
-        id: 1,
-        batchCode: "BATCH-20231025-001",
-        product: { id: 101, name: "Spicy Chicken Wings", sku: "PROD-001", baseUnit: "kg", shelfLifeDays: 2 },
-        quantity: 50,
-        initialQuantity: 50,
-        manufactureDate: "2023-10-25T08:00:00",
-        expiryDate: "2023-10-27T08:00:00",
-        status: "active"
-    },
-    {
-        id: 2,
-        batchCode: "BATCH-20231025-002",
-        product: { id: 102, name: "Original Recipe Thighs", sku: "PROD-002", baseUnit: "kg", shelfLifeDays: 3 },
-        quantity: 30,
-        initialQuantity: 40,
-        manufactureDate: "2023-10-25T09:30:00",
-        expiryDate: "2023-10-28T09:30:00",
-        status: "active"
-    },
-    {
-        id: 3,
-        batchCode: "BATCH-20231024-005",
-        product: { id: 103, name: "Coleslaw Mix", sku: "PROD-005", baseUnit: "L", shelfLifeDays: 5 },
-        quantity: 0,
-        initialQuantity: 20,
-        manufactureDate: "2023-10-24T07:00:00",
-        expiryDate: "2023-10-29T07:00:00",
-        status: "depleted"
-    }
-];
+    const parsedQuery = useMemo(
+        () => parseKitchenListQuery(searchParams, { page: 1, limit: 10, sortOrder: "DESC" }),
+        [searchParams],
+    );
 
-export default function BatchesClient() {
-    const [batches, setBatches] = useState<Batch[]>(MOCK_BATCHES);
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
+    const { batchList, batchDetail, updateBatch } = useProduct();
 
-    const getStatusColor = (status: Batch['status']) => {
-        switch (status) {
-            case 'active': return 'bg-green-100 text-green-700 border-green-200';
-            case 'expired': return 'bg-red-100 text-red-700 border-red-200';
-            case 'depleted': return 'bg-gray-100 text-gray-500 border-gray-200';
-            default: return 'bg-gray-100 text-gray-700';
+    const listQuery = batchList({
+        page: parsedQuery.page,
+        limit: parsedQuery.limit,
+        search: parsedQuery.search,
+        sortOrder: parsedQuery.sortOrder,
+    });
+
+    const batches = useMemo(() => extractBatches(listQuery.data), [listQuery.data]);
+    const meta = useMemo(
+        () => normalizeMeta((listQuery.data as { meta?: unknown } | undefined)?.meta, parsedQuery.page, parsedQuery.limit, batches.length),
+        [batches.length, listQuery.data, parsedQuery.limit, parsedQuery.page],
+    );
+    const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
+
+    const [editingBatchId, setEditingBatchId] = useState<number | null>(null);
+    const detailQuery = batchDetail(editingBatchId ?? 0);
+
+    const filterConfig: FilterConfig[] = [
+        {
+            key: "search",
+            label: "Search",
+            type: "text",
+            placeholder: "Batch code or product...",
+            className: "md:col-span-2",
+        },
+        {
+            key: "limit",
+            label: "Rows",
+            type: "select",
+            defaultValue: String(parsedQuery.limit),
+            options: [
+                { label: "10", value: "10" },
+                { label: "20", value: "20" },
+                { label: "50", value: "50" },
+            ],
+        },
+    ];
+
+    const handlePageChange = (nextPage: number) => {
+        const query = createPaginationSearchParams(searchParamsHook, nextPage);
+        router.push(`${pathname}?${query}`);
+    };
+
+    const handleSubmitUpdate = async (payload: { initialQuantity?: number; imageUrl?: string }) => {
+        if (!editingBatchId) return;
+
+        if (payload.initialQuantity === undefined && !payload.imageUrl) {
+            setEditingBatchId(null);
+            return;
         }
-    };
 
-    const handleCreate = () => {
-        setSelectedBatch(null);
-        setIsModalOpen(true);
-    };
-
-    const handleEdit = (batch: Batch) => {
-        setSelectedBatch(batch);
-        setIsModalOpen(true);
-    };
-
-    const handleSubmit = (data: CreateBatchDto) => {
-        // Mock submission logic
-        console.log("Submitting batch:", data);
-        if (selectedBatch) {
-            // Update
-            setBatches(batches.map(b => b.id === selectedBatch.id ? { ...b, initialQuantity: data.initialQuantity, imageUrl: data.imageUrl } : b));
-        } else {
-            // Create
-            const newBatch: Batch = {
-                id: Math.random(),
-                batchCode: `BATCH-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(Math.random() * 1000)}`,
-                product: { id: data.productId, name: "New Product", sku: "PROD-New", baseUnit: "kg", shelfLifeDays: 3 }, // Mock product link
-                quantity: data.initialQuantity,
-                initialQuantity: data.initialQuantity,
-                manufactureDate: new Date().toISOString(),
-                expiryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
-                status: 'active',
-                imageUrl: data.imageUrl
-            };
-            setBatches([newBatch, ...batches]);
+        try {
+            await updateBatch.mutateAsync({
+                id: editingBatchId,
+                data: payload,
+            });
+            await queryClient.invalidateQueries({ queryKey: ["batch-list"] });
+            await queryClient.invalidateQueries({ queryKey: ["batch-detail", editingBatchId] });
+            setEditingBatchId(null);
+        } catch (error) {
+            handleErrorApi({ error });
         }
     };
 
     return (
-        <div className="flex flex-col space-y-6 pb-6">
-            {/* Header */}
-            <div className="flex justify-between items-end">
+        <div className="space-y-6">
+            <div className="flex items-end justify-between">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-800">Batch Management</h1>
-                    <p className="text-sm text-gray-500 mt-1">Track production batches, expiry dates, and stock levels.</p>
-                </div>
-                <div className="flex gap-3">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:border-primary hover:text-primary transition-colors cursor-pointer">
-                        <FunnelIcon className="w-5 h-5" />
-                        <span>Filter</span>
-                    </button>
-                    <button
-                        onClick={handleCreate}
-                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold hover:bg-primary-dark transition-colors shadow-lg shadow-primary/20 cursor-pointer"
-                    >
-                        <PlusIcon className="w-5 h-5" />
-                        <span>New Batch</span>
-                    </button>
+                    <h1 className="text-2xl font-black text-text-main">Batch Management</h1>
+                    <p className="text-sm text-text-muted">View and update warehouse batches from backend data.</p>
                 </div>
             </div>
 
-            {/* Search Bar */}
-            <div className="relative">
-                <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                    type="text"
-                    placeholder="Search by Batch Code, Product Name or SKU..."
-                    className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+            <BaseFilter filters={filterConfig} />
+
+            <div className="rounded-3xl border border-gray-100 bg-white shadow-sm">
+                <BatchesTable
+                    batches={batches}
+                    rowStart={rowStart}
+                    isLoading={listQuery.isLoading}
+                    isError={listQuery.isError}
+                    onEdit={setEditingBatchId}
                 />
-            </div>
 
-            {/* Batches Table/List */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex flex-col">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm">
-                        <thead className="bg-gray-50/50 border-b border-gray-100 text-gray-500 font-medium uppercase tracking-wider">
-                            <tr>
-                                <th className="px-6 py-4">Batch Code</th>
-                                <th className="px-6 py-4">Product</th>
-                                <th className="px-6 py-4 text-center">Status</th>
-                                <th className="px-6 py-4 text-right">Quantity</th>
-                                <th className="px-6 py-4">Dates</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {batches.map((batch) => (
-                                <tr key={batch.id} className="hover:bg-gray-50/50 transition-colors group">
-                                    <td className="px-6 py-4 font-bold text-gray-800">
-                                        {batch.batchCode}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-gray-700">{batch.product.name}</span>
-                                            <span className="text-xs text-gray-400">{batch.product.sku}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-center">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getStatusColor(batch.status)}`}>
-                                            {batch.status.toUpperCase()}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex flex-col items-end">
-                                            <span className="font-bold text-gray-800">{batch.quantity} <span className="text-xs font-normal text-gray-400">{batch.product.baseUnit}</span></span>
-                                            <span className="text-xs text-gray-400">of {batch.initialQuantity}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex flex-col text-xs">
-                                            <span className="text-gray-500">Mfg: {new Date(batch.manufactureDate).toLocaleDateString()}</span>
-                                            <span className="text-red-500 font-medium">Exp: {new Date(batch.expiryDate).toLocaleDateString()}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <button
-                                                onClick={() => handleEdit(batch)}
-                                                className="p-2 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-primary transition-colors"
-                                            >
-                                                <PencilSquareIcon className="w-5 h-5" />
-                                            </button>
-                                            <button className="p-2 hover:bg-red-50 rounded-lg text-gray-400 hover:text-red-500 transition-colors">
-                                                <TrashIcon className="w-5 h-5" />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                <div className="border-t border-gray-100 px-6 py-4">
+                    <BasePagination
+                        currentPage={meta.currentPage}
+                        totalPages={meta.totalPages}
+                        onPageChange={handlePageChange}
+                        totalItems={meta.totalItems}
+                        itemsPerPage={meta.itemsPerPage}
+                    />
                 </div>
             </div>
 
             <BatchModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onSubmit={handleSubmit}
-                initialData={selectedBatch}
+                isOpen={Boolean(editingBatchId)}
+                onClose={() => setEditingBatchId(null)}
+                onSubmit={handleSubmitUpdate}
+                initialData={(detailQuery.data as Batch) ?? null}
+                isPending={updateBatch.isPending}
             />
         </div>
     );

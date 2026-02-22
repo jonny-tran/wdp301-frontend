@@ -37,7 +37,7 @@ export default async function RootLayout({
   const refreshToken = cookieStore.get("refreshToken");
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${bebasNeue.variable} ${poppins.variable} antialiased`}
       >
@@ -54,8 +54,6 @@ export default async function RootLayout({
             </ThemeProvider>
           </QueryClientProviderWrapper>
         </AuthProvider>
-
-
       </body>
     </html>
   );

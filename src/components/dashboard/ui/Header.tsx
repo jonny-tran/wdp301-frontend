@@ -1,55 +1,56 @@
 "use client";
-import {
-    MagnifyingGlassIcon,
-    BellIcon,
-    ShoppingCartIcon
-} from "@heroicons/react/24/outline";
+import { useMemo } from "react";
+import { useSessionStore } from "@/stores/sesionStore";
+import { Role } from "@/utils/enum";
 
+const ROLE_LABEL: Record<Role, string> = {
+    [Role.ADMIN]: "Admin",
+    [Role.MANAGER]: "Manager",
+    [Role.SUPPLY_COORDINATOR]: "Supply Coordinator",
+    [Role.CENTRAL_KITCHEN_STAFF]: "Central Kitchen",
+    [Role.FRANCHISE_STORE_STAFF]: "Franchise Staff",
+};
 
 export default function Header({ title = "Dashboard" }: { title?: string }) {
+    const user = useSessionStore((state) => state.user);
+    const todayText = useMemo(
+        () =>
+            new Date().toLocaleDateString("en-US", {
+                weekday: "long",
+                day: "2-digit",
+                month: "2-digit",
+                year: "numeric",
+            }),
+        [],
+    );
+
+    const username = user?.username || "Unknown User";
+    const roleLabel = user?.role ? ROLE_LABEL[user.role] : "No Role";
+
     return (
-        <header className="h-24 bg-white/50 backdrop-blur-sm sticky top-0 z-40 px-8 flex items-center justify-between">
-            {/* Title */}
+        <header className="sticky top-0 z-40 flex h-20 items-center justify-between border-b border-gray-100 bg-white/80 px-8 backdrop-blur-sm">
             <div>
                 <h1 className="text-2xl font-extrabold text-text-main">{title}</h1>
+                <p className="text-xs font-medium text-text-muted capitalize">{todayText}</p>
             </div>
 
-            {/* Search Bar */}
-            <div className="flex-1 max-w-lg mx-12 hidden md:block">
-                <div className="relative group">
-                    <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 group-focus-within:text-primary transition-colors" />
-                    <input
-                        type="text"
-                        placeholder="Search here..."
-                        className="w-full bg-bg-light border-none rounded-full py-3.5 pl-12 pr-4 text-sm focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-gray-400"
-                    />
+            <div className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-gray-50 px-3 py-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                    {username.slice(0, 1).toUpperCase()}
                 </div>
-            </div>
-
-            {/* Actions & Profile */}
-            <div className="flex items-center gap-6">
-                <button className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
-                    <ShoppingCartIcon className="w-6 h-6 text-text-main" />
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
-                </button>
-                <button className="relative p-2 rounded-full hover:bg-gray-100 transition-colors">
-                    <BellIcon className="w-6 h-6 text-text-main" />
-                    <span className="absolute top-1.5 right-2 w-2 h-2 bg-secondary rounded-full animate-pulse"></span>
-                </button>
-
-                <div className="h-8 w-[1px] bg-gray-200"></div>
-
-                <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-                    <div className="relative w-10 h-10 rounded-full overflow-hidden border-2 border-white shadow-sm">
-                        {/* Placeholder Avatar */}
-                        <div className="w-full h-full bg-primary flex items-center justify-center text-white font-bold">K</div>
-                    </div>
-                    <div className="hidden lg:block">
-                        <p className="text-sm font-bold text-text-main leading-tight">Kitchen Mgr</p>
-                        <p className="text-[10px] text-text-muted font-medium">Head Chef</p>
-                    </div>
+                <div className="text-right">
+                    {/* <p className="text-sm font-bold leading-tight text-text-main">{username}</p> */}
+                    <p className="text-[11px] font-medium text-text-muted">{roleLabel}</p>
+                    {user?.storeId && (
+                        <p className="text-[10px] text-text-muted">Store: {user.storeId}</p>
+                    )}
                 </div>
-            </div>
+                <div className="h-8 w-[1px] bg-gray-200" />
+                {/* <div className="text-right">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">Mode</p>
+                    <p className="text-xs font-bold text-text-main">API-driven</p>
+                </div> */}
+                    </div>
         </header>
     );
 }

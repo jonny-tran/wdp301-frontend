@@ -19,6 +19,14 @@ export default function LoginForm() {
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const roleRedirects: Record<string, string> = {
+        [Role.ADMIN]: '/admin',
+        [Role.MANAGER]: '/manager/products',
+        [Role.SUPPLY_COORDINATOR]: '/supply',
+        [Role.CENTRAL_KITCHEN_STAFF]: '/kitchen/dashboard'
+    };
+
     const {
         register,
         handleSubmit,

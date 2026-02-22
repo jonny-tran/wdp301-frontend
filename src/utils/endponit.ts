@@ -46,7 +46,7 @@ export const ENDPOINT_CLIENT = {
 
     // Inventory
     INVENTORY_STORE: '/inventory/store',
-    INVENTORY_STORE_TRANSACTIONS: '/inventory/store/transactions',
+    INVENTORY_STORE_TRANSACTION: '/inventory/store/transactions',
     INVENTORY_SUMMARY: '/inventory/summary',
     INVENTORY_LOW_STOCK: '/inventory/low-stock',
     INVENTORY_ADJUST: '/inventory/adjust',
@@ -98,7 +98,4 @@ export const ENDPOINT_CLIENT = {
     // Suppliers
     SUPPLIERS: '/suppliers',
     SUPPLIER_DETAIL: (id: string | number) => `/suppliers/${id}`,
-
-    // Upload
-    UPLOAD_IMAGE: '/upload/image',
 }

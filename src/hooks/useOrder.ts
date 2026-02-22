@@ -3,10 +3,9 @@ import { orderRequest } from "@/apiRequest/order";
 import { handleErrorApi } from "@/lib/errors";
 import { OrderFillRateQueryType, OrderSLAQueryType } from "@/schemas/analytics";
 import { ApproveOrderBodyType, CreateOrderBodyType, RejectOrderBodyType } from "@/schemas/order";
-import { QueryOrder } from "@/types/order";
-import { KEY, QUERY_KEY } from "@/utils/constant";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { QueryCatelog, QueryOrder } from "@/types/order";
+import { QUERY_KEY } from "@/utils/constant";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 export const useOrder = () => {
     const queryClient = useQueryClient();
@@ -19,7 +18,7 @@ export const useOrder = () => {
             }
         })
     }
-    const catalogList = (query: QueryOrder) => {
+    const catalogList = (query: QueryCatelog) => {
         return useQuery({
             queryKey: QUERY_KEY.orders.catalog(query),
             queryFn: async () => {
@@ -43,7 +42,8 @@ export const useOrder = () => {
             queryFn: async () => {
                 const res = await orderRequest.getOrderDetail(id)
                 return res.data
-            }
+            },
+            enabled: !!id
         })
     }
     const reviewOrder = (id: string) => {
@@ -52,7 +52,8 @@ export const useOrder = () => {
             queryFn: async () => {
                 const res = await orderRequest.reviewOrder(id)
                 return res.data
-            }
+            },
+            enabled: !!id
         })
     }
 

@@ -62,16 +62,6 @@ export const useWarehouse = () => {
         },
     })
 
-    const pickingTaskDetail = (id: string) => {
-        return useQuery({
-            queryKey: QUERY_KEY.warehouse.pickingTaskDetail(id),
-            queryFn: async () => {
-                const res = await warehouseRequest.getPickingTaskDetail(id)
-                return res.data
-            },
-            enabled: !!id
-        })
-    }
     const shipmentLabel = (id: string) => {
         return useQuery({
             queryKey: QUERY_KEY.warehouse.shipmentLabel(id),
@@ -99,7 +89,6 @@ export const useWarehouse = () => {
         resetPickingTask,
         finalizeBulkShipment,
         reportIssue,
-        pickingTaskDetail,
         shipmentLabel,
         scanCheckBatch
     }

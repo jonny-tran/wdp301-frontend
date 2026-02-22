@@ -10,7 +10,7 @@ export const inventoryRequest = {
     getInventoryStore: (query: QueryInventory) => http.get<BaseResponePagination<InventoryStoreItem[]>>(ENDPOINT_CLIENT.INVENTORY_STORE, { query }),
 
     // GET /inventory/store/transactions
-    getInventoryStoreTransactions: (query: QueryInventoryTransaction) => http.get<BaseResponePagination<StoreInventoryTransaction[]>>(ENDPOINT_CLIENT.INVENTORY_STORE_TRANSACTIONS, { query }),
+    getInventoryStoreTransaction: (query: QueryInventoryTransaction) => http.get(ENDPOINT_CLIENT.INVENTORY_STORE_TRANSACTION, { query }),
 
     // GET /inventory/summary
     getInventorySummary: (query: QueryInventorySummary) => http.get<BaseResponePagination<InventorySummaryItem[]>>(ENDPOINT_CLIENT.INVENTORY_SUMMARY, { query }),

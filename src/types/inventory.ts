@@ -84,7 +84,7 @@ export type KitchSummary = {
 export type QueryKitchen = BaseRequestPagination & {
     sortBy?: string;
     warehouseId?: number;
-    searchTerm?: string;
+    search?: string;
 }
 
 export type QueryInventory = BaseRequestPagination & {
