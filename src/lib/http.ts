@@ -12,7 +12,7 @@ interface CustomOptions extends RequestInit {
     skipAuth?: boolean;
 }
 
-const isExpired = "Token expired";
+const isExpired = "Token đã hết hạn";
 
 // Helper: Check runtime
 const isServerRuntime = () => typeof window === "undefined";

@@ -14,12 +14,3 @@ export type User = {
     createdAt: string;
 };
 
-export type LoginResponse = {
-    userId: string;
-    email: string;
-    username: string;
-    role: Role;
-    storeId: string;
-    accessToken: string;
-    refreshToken: string;
-};

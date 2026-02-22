@@ -18,13 +18,13 @@ export const inboundRequest = {
     addReceiptItem: (id: string, data: AddReceiptItemBodyType) => http.post<ReceiptItem>(ENDPOINT_CLIENT.INBOUND_ADD_ITEM(id), data),
 
     // GET /inbound/batches/:id/label
-    getBatchLabel: (id: number | string) => http.get<BatchLabel>(ENDPOINT_CLIENT.INBOUND_BATCH_LABEL(id)),
+    getBatchLabel: (id: string) => http.get<BatchLabel>(ENDPOINT_CLIENT.INBOUND_BATCH_LABEL(id)),
 
     // PATCH /inbound/receipts/:id/complete
-    completeReceipt: (id: string) => http.patch<{ receiptId: string, status: string, completedAt: string }>(ENDPOINT_CLIENT.INBOUND_COMPLETE(id), {}),
+    completeReceipt: (id: string) => http.patch(ENDPOINT_CLIENT.INBOUND_COMPLETE(id), {}),
 
     // DELETE /inbound/items/:batchId
-    deleteReceiptItem: (batchId: number | string) => http.delete(ENDPOINT_CLIENT.INBOUND_DELETE_ITEM(batchId)),
+    deleteReceiptItem: (batchId: string) => http.delete(ENDPOINT_CLIENT.INBOUND_DELETE_ITEM(batchId)),
 
     // POST /inbound/batches/reprint
     reprintBatch: (data: ReprintBatchBodyType) => http.post<ReprintLog>(ENDPOINT_CLIENT.INBOUND_REPRINT_BATCH, data),

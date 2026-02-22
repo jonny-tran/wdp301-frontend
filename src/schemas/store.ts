@@ -7,10 +7,11 @@ export const CreateStoreBody = z.object({
     managerName: z.string().optional()
 });
 
-export type CreateStoreBodyType = z.infer<typeof CreateStoreBody>;
+
 
 export const UpdateStoreBody = CreateStoreBody.partial().extend({
     isActive: z.boolean().optional()
 });
 
+export type CreateStoreBodyType = z.infer<typeof CreateStoreBody>;
 export type UpdateStoreBodyType = z.infer<typeof UpdateStoreBody>;

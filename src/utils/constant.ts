@@ -7,6 +7,7 @@ import { QueryStore } from "@/types/store";
 import { QuerySupplier } from "@/types/supplier";
 import { QueryCatelog, QueryOrder } from "@/types/order";
 import { QueryPickingTask } from "@/types/warehouse";
+import { ClaimAnalyticsQueryType, FinancialLossQueryType, InventoryAgingQueryType, InventoryWasteQueryType, OrderFillRateQueryType, OrderSLAQueryType, StoreDemandPatternQueryType } from "@/schemas/analytics";
 
 // Define Actions
 export const Action = {
@@ -24,6 +25,12 @@ export const Action = {
     CONFIGURE: 'configure',
 } as const;
 
+export const Scope = {
+    INCOMING: 'incoming',
+    OUTGOING: 'outgoing',
+    ALL: 'all',
+} as const;
+
 // Define Resources
 export const Resource = {
     ORDER: 'order',
@@ -37,6 +44,25 @@ export const Resource = {
     STORE: 'store',
 } as const;
 
+
+export const KEY = {
+    me: ['profile'],
+    inventoryAnalyticsSummary: ['inventory-analytics-summary'],
+    storeReliabilityAnalytics: ['store-reliability-analytics'],
+
+    // Core Entities
+    orders: ['orders'],
+    claims: ['claims'],
+    receipts: ['receipts'],
+    inventory: ['inventory'],
+    products: ['products'],
+    stores: ['stores'],
+    suppliers: ['suppliers'],
+    shipments: ['shipments'],
+    warehouse: ['warehouse'],
+    analytics: ['analytics'],
+    baseUnits: ['base-units'],
+} as const;
 
 export const QUERY_KEY = {
     // Order

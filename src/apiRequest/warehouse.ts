@@ -12,10 +12,10 @@ export const warehouseRequest = {
     getPickingTaskDetail: (id: string) => http.get<PickingTaskDetail>(ENDPOINT_CLIENT.WAREHOUSE_PICKING_TASK_DETAIL(id)),
 
     // PATCH /warehouse/picking-tasks/:orderId/reset
-    resetPickingTask: (orderId: string) => http.patch<{ orderId: string, status: string }>(ENDPOINT_CLIENT.WAREHOUSE_PICKING_TASK_RESET(orderId), {}),
+    resetPickingTask: (orderId: string) => http.patch(ENDPOINT_CLIENT.WAREHOUSE_PICKING_TASK_RESET(orderId), {}),
 
     // PATCH /warehouse/shipments/finalize-bulk
-    finalizeBulkShipment: (data: FinalizeBulkShipmentBodyType) => http.patch<{ shipmentsCreated: any[] }>(ENDPOINT_CLIENT.WAREHOUSE_FINALIZE_BULK, data),
+    finalizeBulkShipment: (data: FinalizeBulkShipmentBodyType) => http.patch(ENDPOINT_CLIENT.WAREHOUSE_FINALIZE_BULK, data),
 
     // GET /warehouse/shipments/:id/label
     getShipmentLabel: (id: string) => http.get<ShipmentLabel>(ENDPOINT_CLIENT.WAREHOUSE_SHIPMENT_LABEL(id)),

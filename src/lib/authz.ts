@@ -1,8 +1,8 @@
 
 import { User } from "@/types/user";
-import { Action, Resource } from "@/utils/constant";
-
+import { Action, Resource, Scope } from "@/utils/constant";
 import { Role } from "@/utils/enum";
+import { toast } from "sonner";
 
 
 
@@ -10,13 +10,14 @@ import { Role } from "@/utils/enum";
 
 export type ResourceType = typeof Resource[keyof typeof Resource];
 export type ActionType = typeof Action[keyof typeof Action];
-
+export type ScopeType = typeof Scope[keyof typeof Scope];
 // Define Permissions Schema
 type Permissions = {
     [key in Role]: {
         [key in ResourceType]?: string[];
     };
 };
+
 
 const PERMISSION: Permissions = {
     [Role.FRANCHISE_STORE_STAFF]: {
@@ -99,6 +100,8 @@ const PERMISSION: Permissions = {
  * @param action The specific action or permission string to check
  * @returns boolean
  */
+
+
 export const checkPermission = (
     user: User | null | undefined,
     resource: ResourceType,
@@ -109,18 +112,19 @@ export const checkPermission = (
     // Normalize role string to match Enum values if necessary, 
     // or assume user.role matches Role values exactly.
     // Here we cast user.role to Role for lookup.
-    const roleKey = Object.values(Role).find(r => r === user.role);
+    const roleKey = Object.values(Role).find(r => r === user.role)
 
     if (!roleKey) {
-        console.warn(`Role definition not found for user role: ${user.role}`);
+        toast.warning('Not found your role in system')
         return false;
     }
 
-    const rolePermissions = PERMISSION[roleKey as Role];
-    if (!rolePermissions) return false;
-
+    const rolePermissions = PERMISSION[roleKey];
     const resourcePermissions = rolePermissions[resource];
-    if (!resourcePermissions) return false;
+    if (!resourcePermissions) {
+        toast.warning('Not found your permission in system')
+        return false;
+    }
 
     // Check if the specific action string exists in the resource permissions
     // This allows for exact matches or partial matches if logic requires extension

@@ -1,13 +1,16 @@
 'use client'
 import { warehouseRequest } from "@/apiRequest/warehouse";
+import { handleErrorApi } from "@/lib/errors";
 import { FinalizeBulkShipmentBodyType, ReportIssueBodyType } from "@/schemas/warehouse";
 import { QueryPickingTask } from "@/types/warehouse";
-import { QUERY_KEY } from "@/utils/constant";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { KEY, QUERY_KEY } from "@/utils/constant";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const useWarehouse = () => {
+    const queryClient = useQueryClient();
     const getPickingTaskList = (query: QueryPickingTask) => useQuery({
-        queryKey: QUERY_KEY.pickingTaskList(query),
+        queryKey: QUERY_KEY.warehouse.pickingTaskList(query),
         queryFn: async () => {
             const res = await warehouseRequest.getWarehouses(query)
             return res.data
@@ -15,7 +18,7 @@ export const useWarehouse = () => {
     })
     const getPickingTaskDetail = (id: string) => {
         return useQuery({
-            queryKey: QUERY_KEY.pickingTaskDetail(id),
+            queryKey: QUERY_KEY.warehouse.pickingTaskDetail(id),
             queryFn: async () => {
                 const res = await warehouseRequest.getPickingTaskDetail(id)
                 return res.data
@@ -27,6 +30,13 @@ export const useWarehouse = () => {
         mutationFn: async (orderId: string) => {
             const res = await warehouseRequest.resetPickingTask(orderId)
             return res.data
+        },
+        onSuccess: () => {
+            toast.success('Picking task reset successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.warehouse })
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
         }
     })
 
@@ -34,19 +44,27 @@ export const useWarehouse = () => {
         mutationFn: async (data: FinalizeBulkShipmentBodyType) => {
             const res = await warehouseRequest.finalizeBulkShipment(data)
             return res.data
-        }
+        },
+        onSuccess: () => {
+            toast.success('Bulk shipment finalized successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.warehouse })
+        },
     })
 
     const reportIssue = useMutation({
         mutationFn: async (data: ReportIssueBodyType) => {
             const res = await warehouseRequest.reportIssue(data)
             return res.data
-        }
+        },
+        onSuccess: () => {
+            toast.success('Issue reported successfully')
+            queryClient.invalidateQueries({ queryKey: KEY.warehouse })
+        },
     })
 
     const shipmentLabel = (id: string) => {
         return useQuery({
-            queryKey: QUERY_KEY.shipmentLabel(id),
+            queryKey: QUERY_KEY.warehouse.shipmentLabel(id),
             queryFn: async () => {
                 const res = await warehouseRequest.getShipmentLabel(id)
                 return res.data
@@ -56,7 +74,7 @@ export const useWarehouse = () => {
     }
     const scanCheckBatch = (batchCode: string) => {
         return useQuery({
-            queryKey: QUERY_KEY.scanCheckBatch(batchCode),
+            queryKey: QUERY_KEY.warehouse.scanCheckBatch(batchCode),
             queryFn: async () => {
                 const res = await warehouseRequest.scanCheckBatch(batchCode)
                 return res.data

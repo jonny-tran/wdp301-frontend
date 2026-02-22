@@ -9,12 +9,17 @@ import {
     HomeIcon,
     InboxArrowDownIcon
 } from "@heroicons/react/24/outline";
-
+import { permission } from "@/utils/helper";
 export default function KitchenLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
+
+
+
+
+
     const navItems = [
         { name: "Dashboard", href: "/kitchen/dashboard", icon: HomeIcon },
         { name: "Inventory", href: "/kitchen/inventory", icon: CubeIcon },
@@ -30,7 +35,6 @@ export default function KitchenLayout({
     return (
         <DashboardLayout
             navItems={navItems}
-            bottomItems={bottomItems}
             title="Kitchen Management"
         >
             {children}

@@ -33,3 +33,17 @@ export type QueryClaim = BaseRequestPagination & {
     fromDate?: string
     toDate?: string
 }
+
+export type ClaimAnalyticsSummary = {
+    totalShipments: number;
+    totalClaims: number;
+    damageRate: number;
+    missingRate: number;
+    bottleneckProducts: {
+        productId: number;
+        productName: string;
+        damageCount: number;
+        missingCount: number;
+        totalIssues: number;
+    }[];
+};

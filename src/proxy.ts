@@ -3,9 +3,10 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { decodeJWT } from '@/utils/helper';
 import { Role } from '@/utils/enum';
+import { cookies } from 'next/headers'
 
 // Define public routes that don't require authentication
-const publicPaths = ['/auth/login', '/auth/forgot-password', '/api/login', '/api/logout', '/api/refresh_token', "/"];
+const publicPaths = ['/auth/login', '/auth/forgot-password', '/api/login', '/api/logout', '/api/refresh_token'];
 
 // Define role-based route access
 // Map URL prefixes to allowed roles
@@ -17,21 +18,23 @@ const rolePermissions: Record<string, Role[]> = {
     '/manager': [Role.MANAGER],
 };
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
+    const cookieStore = await cookies()
+    const accessToken = cookieStore.get('accessToken')?.value;
+    const refreshToken = cookieStore.get('refreshToken')?.value;
 
-    // 1. Check if the path is public or Next.js internals
-    if (publicPaths.some(path => pathname.startsWith(path)) ||
+    const isPublic =
+        publicPaths.some(path => pathname.startsWith(path)) ||
         pathname.startsWith('/_next') ||
         pathname.startsWith('/favicon.ico') ||
-        pathname.startsWith('/public')) {
+        pathname.startsWith('/public') ||
+        pathname === '/';
+
+    // Case 1: Public route
+    if (isPublic) {
         return NextResponse.next();
     }
-
-    // 2. Get tokens from cookies
-    const accessToken = request.cookies.get('accessToken')?.value;
-    const refreshToken = request.cookies.get('refreshToken')?.value;
-
     // Case 2: No refresh_token -> Middleware blocks immediately (As per AuthContext logic)
     if (!refreshToken) {
         const url = new URL('/auth/login', request.url);
