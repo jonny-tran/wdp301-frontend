@@ -5,19 +5,20 @@ import { OrderFillRateQueryType, OrderSLAQueryType } from "@/schemas/analytics";
 import { ApproveOrderBodyType, CreateOrderBodyType, RejectOrderBodyType } from "@/schemas/order";
 import { QueryCatelog, QueryOrder } from "@/types/order";
 import { QUERY_KEY } from "@/utils/constant";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export const useOrder = () => {
     const queryClient = useQueryClient();
-    const orderList = (query: QueryOrder) => {
-        return useQuery({
-            queryKey: QUERY_KEY.orders.list(query),
-            queryFn: async () => {
-                const res = await orderRequest.getOrderList(query)
-                return res.data
-            }
-        })
-    }
+const orderList = (query: QueryOrder, enabled: boolean = true) => {
+    return useQuery({
+        queryKey: QUERY_KEY.orders.list(query),
+        queryFn: async () => {
+            const res = await orderRequest.getOrderList(query)
+            return res.data
+        },
+        enabled: enabled 
+    })
+}
     const catalogList = (query: QueryCatelog) => {
         return useQuery({
             queryKey: QUERY_KEY.orders.catalog(query),
