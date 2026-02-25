@@ -23,6 +23,7 @@ export type Batch = {
     currentQuantity: number;
     expiryDate: string;
     imageUrl?: string;
+    status?: string;
     createdAt: string;
     updatedAt?: string;
 };

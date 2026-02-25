@@ -48,14 +48,15 @@ export default function NavSidebar({
 }: NavSidebarProps) {
     const pathname = usePathname();
     const { logout } = useAuth();
-    const handleLogout = () => {
+    const handleLogout = async () => {
         // check reffreshtoken
         const refreshToken = useSessionStore.getState().refreshToken;
         if (!refreshToken) {
             toast.error("You are not logged in");
             return;
         }
-        logout.mutateAsync({ refreshToken });
+        await logout.mutateAsync({ refreshToken });
+       
     }
     return (
         <aside

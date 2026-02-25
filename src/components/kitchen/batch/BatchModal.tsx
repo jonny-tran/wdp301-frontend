@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import { FormEvent, useEffect, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { UpdateBatchBodyType } from "@/schemas/product";
 import { Batch } from "@/types/product";
+import { BatchStatus } from "@/utils/enum";
 
 interface BatchModalProps {
     isOpen: boolean;
@@ -13,19 +14,29 @@ interface BatchModalProps {
     isPending?: boolean;
 }
 
+const BATCH_STATUS_OPTIONS = [
+    { value: BatchStatus.PENDING, label: "Chờ xử lý" },
+    { value: BatchStatus.AVAILABLE, label: "Sẵn sàng" },
+    { value: BatchStatus.EMPTY, label: "Hết hàng" },
+    { value: BatchStatus.EXPIRED, label: "Hết hạn" },
+];
+
 export function BatchModal({ isOpen, onClose, onSubmit, initialData, isPending }: BatchModalProps) {
     const [initialQuantity, setInitialQuantity] = useState("");
     const [imageUrl, setImageUrl] = useState("");
+    const [status, setStatus] = useState<BatchStatus | "">("");
 
     useEffect(() => {
         if (!initialData) {
             setInitialQuantity("");
             setImageUrl("");
+            setStatus("");
             return;
         }
 
         setInitialQuantity(String(initialData.initialQuantity ?? ""));
         setImageUrl(initialData.imageUrl ?? "");
+        setStatus((initialData.status as BatchStatus) ?? "");
     }, [initialData]);
 
     if (!isOpen) return null;
@@ -41,6 +52,10 @@ export function BatchModal({ isOpen, onClose, onSubmit, initialData, isPending }
 
         if (imageUrl.trim()) {
             payload.imageUrl = imageUrl.trim();
+        }
+
+        if (status) {
+            payload.status = status as BatchStatus;
         }
 
         onSubmit(payload);
@@ -85,7 +100,8 @@ export function BatchModal({ isOpen, onClose, onSubmit, initialData, isPending }
                             <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-primary">Initial Quantity (Editable)</label>
                             <input
                                 type="number"
-                                min="1"
+                                min="0.1"
+                                step="0.1"
                                 value={initialQuantity}
                                 onChange={(event) => setInitialQuantity(event.target.value)}
                                 className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-bold text-text-main outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all"
@@ -105,6 +121,22 @@ export function BatchModal({ isOpen, onClose, onSubmit, initialData, isPending }
                                 className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-text-main outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all"
                                 placeholder="https://image-url.com/..."
                             />
+                        </div>
+
+                        <div>
+                            <label className="mb-1.5 block text-[10px] font-black uppercase tracking-widest text-primary">Trạng thái lô (Editable)</label>
+                            <select
+                                value={status}
+                                onChange={(e) => setStatus(e.target.value as BatchStatus | "")}
+                                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-text-main outline-none focus:ring-4 focus:ring-primary/5 transition-all"
+                            >
+                                <option value="">-- Giữ nguyên --</option>
+                                {BATCH_STATUS_OPTIONS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                        {opt.label}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 

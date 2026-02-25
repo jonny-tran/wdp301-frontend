@@ -1,13 +1,13 @@
 import http from "@/lib/http";
 import { StoreDemandPatternQueryType } from "@/schemas/analytics";
 import { CreateStoreBodyType, UpdateStoreBodyType } from "@/schemas/store";
-import { BaseResponePagination } from "@/types/base";
+import { BaseResponsePagination } from "@/types/base";
 import { QueryStore, Store, StoreDemandPatternAnalytics, StoreReliabilityAnalytics } from "@/types/store";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
 export const storeRequest = {
     // GET /stores
-    getStores: (query: QueryStore) => http.get<BaseResponePagination<Store[]>>(ENDPOINT_CLIENT.STORES, { query }),
+    getStores: (query: QueryStore) => http.get<BaseResponsePagination<Store>>(ENDPOINT_CLIENT.STORES, { query }),
 
     // POST /stores
     createStore: (data: CreateStoreBodyType) => http.post<Store>(ENDPOINT_CLIENT.CREATE_STORE, data),

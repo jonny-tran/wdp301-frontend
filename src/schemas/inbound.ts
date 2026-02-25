@@ -9,7 +9,7 @@ export const CreateReceiptBody = z.object({
 
 export const AddReceiptItemBody = z.object({
     productId: z.number().int().positive("ID sản phẩm không hợp lệ"),
-    quantity: z.number().int().positive("Số lượng không hợp lệ"),
+    quantity: z.number().min(0.1, "Số lượng phải >= 0.1"),
 });
 
 

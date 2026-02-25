@@ -34,7 +34,6 @@ export enum ShipmentStatus {
     IN_TRANSIT = 'in_transit',   // Đang vận chuyển
     DELIVERED = 'delivered',     // Đã giao hàng
     COMPLETED = 'completed',     // Hoàn thành
-    CANCELLED = 'cancelled'      // Đã hủy
 }
 
 export enum ClaimStatus {
@@ -68,6 +67,6 @@ export enum WarehouseType {
 }
 
 export enum UserStatus {
-    ACTIVE = 'active',           // Đang hoạt động
-    BANNED = 'banned'            // Bị khóa
+    ACTIVE = 'ACTIVE',           // Đang hoạt động
+    INACTIVE = 'INACTIVE',       // Ngừng hoạt động
 }

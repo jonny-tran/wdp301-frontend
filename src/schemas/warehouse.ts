@@ -1,5 +1,6 @@
 import { WarehouseType } from "@/utils/enum";
 import { z } from "zod";
+
 export const CreateWarehouseBody = z.object({
     name: z.string().min(1, "Tên kho không được để trống"),
     type: z.enum(WarehouseType),
@@ -14,11 +15,11 @@ export const CreateWarehouseBody = z.object({
 export const FinalizeBulkShipmentBody = z.object({
     orders: z.array(
         z.object({
-            orderId: z.uuid(),
+            orderId: z.string().uuid(),
             pickedItems: z.array(
                 z.object({
                     batchId: z.number(),
-                    quantity: z.number().int().positive('Số lượng phải là số nguyên dương'),
+                    quantity: z.number().min(0.1, "Số lượng phải >= 0.1"),
                 })
             )
         })

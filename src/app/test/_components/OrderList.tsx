@@ -43,8 +43,8 @@ export default function OrderList({ searchParams }: OrderListProps) {
 
     const data = responseData || { items: [], meta: { totalItems: 0, totalPages: 0, currentPage: 1, itemsPerPage: 10 } }
     // IMPORTANT: Map API response structure to what the UI expects if mismatch occurs, 
-    // BUT looking at types, `BaseResponePagination` has `items` and `meta`.
-    // Wait, let's double check `BaseResponePagination` definition in `src/types/base.ts`.
+    // BUT looking at types, `BaseResponsePagination` has `items` and `meta`.
+    // Wait, let's double check `BaseResponsePagination` definition in `src/types/base.ts`.
     // It was modified by user in Step 99 to have `totalItems`, `itemCount`, `itemsPerPage`, `totalPages`, `currentPage`.
     // My previous code in Step 102 used `meta.totalItems`.
     // The API request hook `useOrder` returns `res.data`.

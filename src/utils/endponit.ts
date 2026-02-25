@@ -101,4 +101,7 @@ export const ENDPOINT_CLIENT = {
     // Suppliers
     SUPPLIERS: '/suppliers',
     SUPPLIER_DETAIL: (id: string | number) => `/suppliers/${id}`,
+
+    // Upload
+    UPLOAD_IMAGE: '/upload/image',
 }
