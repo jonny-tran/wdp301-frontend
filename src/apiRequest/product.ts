@@ -1,6 +1,6 @@
 import http from "@/lib/http";
 import { CreateProductBodyType, UpdateBatchBodyType, UpdateProductBodyType } from "@/schemas/product";
-import { BaseResponePagination } from "@/types/base";
+import { BaseResponsePagination } from "@/types/base";
 import { Batch, Product, QueryBatch, QueryProduct } from "@/types/product";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
@@ -27,8 +27,8 @@ export const productRequest = {
   updateBatch: (id: number, data: UpdateBatchBodyType) => http.patch<Batch>(ENDPOINT_CLIENT.UPDATE_BATCH(id), data),
 
   // GET /products
-  getProducts: (query: QueryProduct) => http.get<BaseResponePagination<Product[]>>(ENDPOINT_CLIENT.PRODUCTS, { query }),
+  getProducts: (query: QueryProduct) => http.get<BaseResponsePagination<Product>>(ENDPOINT_CLIENT.PRODUCTS, { query }),
 
   // GET /products/batches
-  getBatches: (query: QueryBatch) => http.get<BaseResponePagination<Batch[]>>(ENDPOINT_CLIENT.BATCHES, { query }),
+  getBatches: (query: QueryBatch) => http.get<BaseResponsePagination<Batch>>(ENDPOINT_CLIENT.BATCHES, { query }),
 };

@@ -20,12 +20,19 @@ export default function AuthLayout({
         [Role.MANAGER]: "/manager/products",
         [Role.SUPPLY_COORDINATOR]: "/supply",
         [Role.CENTRAL_KITCHEN_STAFF]: "/kitchen/dashboard",
+        [Role.FRANCHISE_STORE_STAFF]: "/", // Default to landing page for now
     };
     useEffect(() => {
         if (user) {
-            router.push(roleRedirects[user.role as Role]);
+            const redirectPath = roleRedirects[user.role as Role];
+            if (redirectPath) {
+                router.push(redirectPath);
+            } else {
+                console.warn(`No redirect path defined for role: ${user.role}`);
+                router.push("/"); // Fallback to landing page
+            }
         }
-    }, [user]);
+    }, [user, router]);
 
     // Nếu đang có user → không render login form
     if (user) return null;

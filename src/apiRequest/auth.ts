@@ -39,4 +39,9 @@ export const authRequest = {
   me: () => http.get<User>(ENDPOINT_CLIENT.PROFILE),
   createUser: (data: CreateUserBodyType) => http.post<User>(ENDPOINT_CLIENT.CREATE_USER, data),
   getRoles: () => http.get<{ value: string; label: string }[]>(ENDPOINT_CLIENT.ROLES),
+  getUsers: (query: any) => 
+    http.get<User>('/auth/users', { query }),
+
+updateUser: (id: string, data: { status: string; role: string; email: string; phone: string }) => 
+    http.patch<any>(`/auth/users/${id}`, data),
 };

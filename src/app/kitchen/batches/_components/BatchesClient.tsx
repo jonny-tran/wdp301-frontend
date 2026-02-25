@@ -8,6 +8,7 @@ import { BasePagination } from "@/components/layout/BasePagination";
 import { BatchModal } from "@/components/kitchen/batch/BatchModal";
 import { useProduct } from "@/hooks/useProduct";
 import { handleErrorApi } from "@/lib/errors";
+import { UpdateBatchBodyType } from "@/schemas/product";
 import { Batch } from "@/types/product";
 import { createPaginationSearchParams, normalizeMeta, parseKitchenListQuery, RawSearchParams } from "@/app/kitchen/_components/query";
 import { extractBatches } from "./batches.mapper";
@@ -73,10 +74,10 @@ export default function BatchesClient({ searchParams }: BatchesClientProps) {
         router.push(`${pathname}?${query}`);
     };
 
-    const handleSubmitUpdate = async (payload: { initialQuantity?: number; imageUrl?: string }) => {
+    const handleSubmitUpdate = async (payload: UpdateBatchBodyType) => {
         if (!editingBatchId) return;
 
-        if (payload.initialQuantity === undefined && !payload.imageUrl) {
+        if (payload.initialQuantity === undefined && !payload.imageUrl && !payload.status) {
             setEditingBatchId(null);
             return;
         }
@@ -131,6 +132,7 @@ export default function BatchesClient({ searchParams }: BatchesClientProps) {
                 onSubmit={handleSubmitUpdate}
                 initialData={(detailQuery.data as Batch) ?? null}
                 isPending={updateBatch.isPending}
+                isLoadingData={detailQuery.isLoading}
             />
         </div>
     );

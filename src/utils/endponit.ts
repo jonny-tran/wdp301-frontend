@@ -14,6 +14,9 @@ export const ENDPOINT_CLIENT = {
     ROLES: '/auth/roles',
     CREATE_USER: '/auth/create-user',
 
+    // Upload
+    UPLOAD_IMAGE: "/upload/image",
+
     // Orders
     ORDER_LIST: '/orders',
     ORDER_CATALOG: '/orders/catalog',
@@ -98,4 +101,7 @@ export const ENDPOINT_CLIENT = {
     // Suppliers
     SUPPLIERS: '/suppliers',
     SUPPLIER_DETAIL: (id: string | number) => `/suppliers/${id}`,
+
+    // Upload
+    UPLOAD_IMAGE: '/upload/image',
 }

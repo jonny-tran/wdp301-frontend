@@ -11,6 +11,7 @@ import { handleErrorApi } from "@/lib/errors";
 import { OrderStatus } from "@/utils/enum";
 import { createPaginationSearchParams, normalizeMeta, parseListQuery, RawSearchParams } from "@/app/supply/_components/query";
 import { formatStatusLabel, getHttpErrorMessage, isForceApproveError } from "@/app/supply/_components/format";
+import { KEY, QUERY_KEY } from "@/utils/constant";
 import ForceApproveModal from "./ForceApproveModal";
 import OrderDetailModal from "./OrderDetailModal";
 import OrdersTable from "./OrdersTable";
@@ -155,9 +156,9 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
 
     const invalidateOrderData = async (orderId: string) => {
         await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ["order-list"] }),
-            queryClient.invalidateQueries({ queryKey: ["order-detail", orderId] }),
-            queryClient.invalidateQueries({ queryKey: ["review-order", orderId] }),
+            queryClient.invalidateQueries({ queryKey: KEY.orders }),
+            queryClient.invalidateQueries({ queryKey: QUERY_KEY.orders.detail(orderId) }),
+            queryClient.invalidateQueries({ queryKey: QUERY_KEY.orders.review(orderId) }),
         ]);
     };
 
@@ -169,6 +170,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
             });
 
             await invalidateOrderData(order.id);
+            refreshData();
             setForceTarget(null);
             setForceMessage("");
             if (detailTargetId === order.id) {
@@ -197,6 +199,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
             });
 
             await invalidateOrderData(rejectTarget.id);
+            refreshData();
 
             if (detailTargetId === rejectTarget.id) {
                 setDetailTargetId("");

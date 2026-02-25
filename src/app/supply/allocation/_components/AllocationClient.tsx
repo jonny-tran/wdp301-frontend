@@ -25,6 +25,7 @@ import {
   isForceApproveError,
 } from "@/app/supply/_components/format";
 import { OrderStatus } from "@/utils/enum";
+import { KEY, QUERY_KEY } from "@/utils/constant";
 
 import AllocationReviewModal from "./AllocationReviewModal";
 import ForceApproveAllocationModal from "./ForceApproveAllocationModal";
@@ -201,9 +202,9 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
 
   const invalidateOrders = async (orderId: string) => {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ["order-list"] }),
-      queryClient.invalidateQueries({ queryKey: ["review-order", orderId] }),
-      queryClient.invalidateQueries({ queryKey: ["shipment-list"] }),
+      queryClient.invalidateQueries({ queryKey: KEY.orders }),
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY.orders.review(orderId) }),
+      queryClient.invalidateQueries({ queryKey: KEY.shipments }),
     ]);
   };
 
@@ -215,6 +216,7 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
       });
 
       await invalidateOrders(orderId);
+      refreshAll();
 
       if (reviewTargetId === orderId) setReviewTargetId("");
       setForceTargetId("");
@@ -240,6 +242,7 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
       });
 
       await invalidateOrders(rejectTargetId);
+      refreshAll();
 
       if (reviewTargetId === rejectTargetId) setReviewTargetId("");
       setRejectTargetId("");
@@ -411,8 +414,8 @@ function MiniKpi({
     tone === "amber"
       ? "bg-amber-50 text-amber-700"
       : tone === "green"
-      ? "bg-green-50 text-green-700"
-      : "bg-gray-50 text-text-main";
+        ? "bg-green-50 text-green-700"
+        : "bg-gray-50 text-text-main";
 
   return (
     <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">

@@ -69,7 +69,14 @@ export default function SuggestedPicksPanel({
                     disabled={isFinalizing || rows.length === 0}
                     className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary-dark disabled:opacity-60"
                 >
-                    {isFinalizing ? "Finalizing..." : "Finalize Bulk Shipment"}
+                    {isFinalizing ? (
+                        <>
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                            Processing...
+                        </>
+                    ) : (
+                        "Finalize Bulk Shipment"
+                    )}
                 </button>
             </div>
         </div>

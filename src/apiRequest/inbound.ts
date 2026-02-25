@@ -1,12 +1,12 @@
 import http from "@/lib/http";
 import { AddReceiptItemBodyType, CreateReceiptBodyType, ReprintBatchBodyType } from "@/schemas/inbound";
-import { BaseResponePagination } from "@/types/base";
+import { BaseResponsePagination } from "@/types/base";
 import { BatchLabel, QueryIbound, Receipt, ReceiptItem, ReprintLog } from "@/types/inbound";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
 export const inboundRequest = {
     // GET /inbound/receipts
-    getReceipts: (query: QueryIbound) => http.get<BaseResponePagination<Receipt[]>>(ENDPOINT_CLIENT.INBOUND_RECEIPTS, { query }),
+    getReceipts: (query: QueryIbound) => http.get<BaseResponsePagination<Receipt>>(ENDPOINT_CLIENT.INBOUND_RECEIPTS, { query }),
 
     // POST /inbound/receipts
     createReceipt: (data: CreateReceiptBodyType) => http.post<Receipt>(ENDPOINT_CLIENT.INBOUND_RECEIPTS, data),

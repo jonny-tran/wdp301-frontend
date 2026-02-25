@@ -10,13 +10,14 @@ import { toast } from "sonner";
 
 export const useOrder = () => {
     const queryClient = useQueryClient();
-    const orderList = (query: QueryOrder) => {
+    const orderList = (query: QueryOrder, enabled: boolean = true) => {
         return useQuery({
             queryKey: QUERY_KEY.orders.list(query),
             queryFn: async () => {
                 const res = await orderRequest.getOrderList(query)
                 return res.data
-            }
+            },
+            enabled: enabled
         })
     }
     const catalogList = (query: QueryCatelog) => {

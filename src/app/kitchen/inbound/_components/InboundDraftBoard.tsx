@@ -44,7 +44,7 @@ export default function InboundDraftBoard({
                 </div>
             ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {drafts.slice(0, 6).map((receipt, index) => (
+                    {drafts.map((receipt, index) => (
                         <div
                             key={String(receipt.receiptId ?? receipt.id ?? index)}
                             onClick={() => onSelect(String(receipt.receiptId ?? receipt.id), receipt.receiptCode ?? `REC-${index + 1}`)}
