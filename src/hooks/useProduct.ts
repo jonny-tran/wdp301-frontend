@@ -15,7 +15,7 @@ export const useProduct = () => {
       return res.data
     },
     onSuccess: () => {
-      toast.success('Product created successfully')
+      // toast.success('Product created successfully')
       queryClient.invalidateQueries({ queryKey: KEY.products })
     },
   })

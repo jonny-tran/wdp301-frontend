@@ -3,50 +3,53 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth"; // Sử dụng hook nguyên bản của bạn
 import {
-  ArchiveBoxIcon,
   ChartBarIcon,
   ArrowLeftOnRectangleIcon,
-  CubeIcon,
   Bars3Icon,
   XMarkIcon,
   UserGroupIcon,
-  ClipboardDocumentListIcon,
-  TruckIcon,
-  InboxStackIcon,
-  ShieldExclamationIcon,
-  BuildingStorefrontIcon, // Icon mới cho Tồn kho
+  ShieldCheckIcon,
+  BuildingOfficeIcon,
+  ClipboardDocumentCheckIcon,
+  AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
+import { TruckIcon } from "lucide-react";
 
-// Danh sách Menu cập nhật cho Manager
-const sidebarLinks = [
-  { name: "Dashboard", href: "/manager", icon: ChartBarIcon },
-  { name: "Sản phẩm", href: "/manager/products", icon: CubeIcon },
+// Danh sách menu riêng cho Admin
+const adminLinks = [
+  { name: "Dashboard", href: "/admin", icon: ChartBarIcon },
+  { name: "Người dùng", href: "/admin/auth", icon: UserGroupIcon },
+  { name: "Quản lý Giao hàng", href: "/admin/shipment", icon: TruckIcon },
   {
-    name: "Lô hàng",
-    href: "/manager/batch",
-    icon: InboxStackIcon,
+    name: "Xử lý Khiếu nại",
+    href: "/admin/claim",
+    icon: ClipboardDocumentCheckIcon,
   },
-  { name: "Tồn kho", href: "/manager/inventory", icon: InboxStackIcon },
-  { name: "Đơn hàng", href: "/manager/order", icon: ClipboardDocumentListIcon },
-  { name: "Vận chuyển", href: "/manager/shipment", icon: TruckIcon },
-  { name: "Đơn vị tính", href: "/manager/baseUnits", icon: ArchiveBoxIcon },
-  { name: "Nhà cung cấp", href: "/manager/supplier", icon: UserGroupIcon },
   {
-    name: "Khiếu nại",
-    href: "/manager/claim",
-    icon: ShieldExclamationIcon,
+    name: "Cấu hình hệ thống",
+    href: "/admin/config", // Đường dẫn tới trang cấu hình
+    icon: AdjustmentsHorizontalIcon,
   },
-  { name: "Cửa hàng", href: "/manager/store", icon: BuildingStorefrontIcon },
 ];
 
-export default function ManagerLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { logout } = useAuth(); // Lấy hàm logout từ hook của bạn
+
+  const handleLogout = () => {
+    // Gọi mutation logout từ hook useAuth
+    const refreshToken = localStorage.getItem("refreshToken");
+    if (refreshToken) {
+      logout.mutate({ refreshToken });
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-white font-sans antialiased text-slate-900">
@@ -58,7 +61,7 @@ export default function ManagerLayout({
         />
       )}
 
-      {/* 2. SIDEBAR - Light Mode Minimalist (w-56) */}
+      {/* 2. SIDEBAR ADMIN (Sử dụng màu Indigo để phân biệt với Manager) */}
       <aside
         className={`
         fixed inset-y-0 left-0 w-56 bg-white border-r border-slate-100 p-3 flex flex-col justify-between z-[70]
@@ -69,7 +72,7 @@ export default function ManagerLayout({
         <div>
           <div className="px-3 py-5 flex justify-between items-center">
             <h2 className="text-base font-black text-slate-950 uppercase italic tracking-tighter">
-              Manager <span className="text-blue-600">Portal</span>
+              Admin <span className="text-indigo-600">Portal</span>
             </h2>
             <button
               onClick={() => setIsMobileOpen(false)}
@@ -80,7 +83,7 @@ export default function ManagerLayout({
           </div>
 
           <nav className="space-y-1 mt-4">
-            {sidebarLinks.map((link) => {
+            {adminLinks.map((link) => {
               const isActive =
                 pathname === link.href || pathname.startsWith(`${link.href}/`);
               return (
@@ -92,13 +95,13 @@ export default function ManagerLayout({
                     group flex items-center gap-2.5 px-3 py-3 rounded-xl text-[11px] font-black transition-all duration-200
                     ${
                       isActive
-                        ? "bg-slate-900 text-white shadow-md scale-[1.02]"
-                        : "text-slate-400 hover:bg-slate-50 hover:text-slate-900"
+                        ? "bg-indigo-600 text-white shadow-md scale-[1.02]"
+                        : "text-slate-400 hover:bg-slate-50 hover:text-indigo-600"
                     }
                   `}
                 >
                   <link.icon
-                    className={`h-4 w-4 ${isActive ? "text-white" : "group-hover:text-slate-900"}`}
+                    className={`h-4 w-4 ${isActive ? "text-white" : "group-hover:text-indigo-600"}`}
                   />
                   <span className="uppercase tracking-widest">{link.name}</span>
                 </Link>
@@ -108,9 +111,13 @@ export default function ManagerLayout({
         </div>
 
         <div className="pt-4 border-t border-slate-50">
-          <button className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-[9px] font-black text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all uppercase tracking-[0.2em]">
+          <button
+            onClick={handleLogout}
+            disabled={logout.isPending}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-[9px] font-black text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all uppercase tracking-[0.2em]"
+          >
             <ArrowLeftOnRectangleIcon className="h-4 w-4" />
-            Logout
+            {logout.isPending ? "Logging out..." : "Logout"}
           </button>
         </div>
       </aside>
@@ -118,8 +125,8 @@ export default function ManagerLayout({
       {/* 3. MAIN AREA */}
       <div className="flex-1 flex flex-col min-w-0 lg:ml-56">
         <header className="lg:hidden h-12 bg-white border-b border-slate-100 flex items-center px-4 justify-between sticky top-0 z-40">
-          <span className="text-[10px] font-black uppercase italic">
-            Manager Console
+          <span className="text-[10px] font-black uppercase italic text-indigo-600">
+            Admin Management
           </span>
           <button
             onClick={() => setIsMobileOpen(true)}

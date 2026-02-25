@@ -14,6 +14,9 @@ export const ENDPOINT_CLIENT = {
     ROLES: '/auth/roles',
     CREATE_USER: '/auth/create-user',
 
+    // Upload
+    UPLOAD_IMAGE: "/upload/image",
+
     // Orders
     ORDER_LIST: '/orders',
     ORDER_CATALOG: '/orders/catalog',

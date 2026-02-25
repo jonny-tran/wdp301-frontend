@@ -1,16 +1,10 @@
-import { Suspense } from "react";
-import ProductList from "./_components/product-list";
+// src/app/manager/products/page.tsx
+import ProductClient from "./_components/ProductClient";
 
-type Props = {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-};
-
-export default async function Page(props: Props) {
-  const searchParams = await props.searchParams;
-
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <ProductList searchParams={searchParams} />
-    </Suspense>
-  );
+export default function ProductsPage({ searchParams }: { searchParams: any }) {
+    return (
+        <main className="p-8">
+            <ProductClient searchParams={searchParams} />
+        </main>
+    );
 }
