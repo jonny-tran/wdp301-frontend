@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useProduct } from "@/hooks/useProduct"; // Đổi từ useBatches
-import { extractBatchItems } from "./batch.mapper";
+import { extractBatchItems } from "../../batch/_components/batch.mapper";
 import { XMarkIcon, CubeIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { clsx } from "clsx";
-import BatchCreateModal from "./BatchCreateModal";
+import BatchCreateModal from "../../batch/_components/BatchFormModal";
 
 export default function ProductBatchModal({ isOpen, onClose, product }: any) {
   const { batchList } = useProduct();

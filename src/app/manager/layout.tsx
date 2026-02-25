@@ -22,6 +22,11 @@ import {
 const sidebarLinks = [
   { name: "Dashboard", href: "/manager", icon: ChartBarIcon },
   { name: "Sản phẩm", href: "/manager/products", icon: CubeIcon },
+  {
+    name: "Lô hàng",
+    href: "/manager/batch",
+    icon: InboxStackIcon,
+  },
   { name: "Tồn kho", href: "/manager/inventory", icon: InboxStackIcon },
   { name: "Đơn hàng", href: "/manager/order", icon: ClipboardDocumentListIcon },
   { name: "Vận chuyển", href: "/manager/shipment", icon: TruckIcon },
