@@ -9,7 +9,7 @@ export const CreateClaimBody = z.object({
         quantityMissing: z.number().int().min(0, "Số lượng thiếu không được âm"),
         quantityDamaged: z.number().int().min(0, "Số lượng hàng hỏng không được âm"),
         reason: z.string().optional(),
-        imageProofUrl: z.url("Link ảnh không hợp lệ").optional()
+        imageProofUrl: z.array(z.url("Link ảnh không hợp lệ"))
     }))
 });
 

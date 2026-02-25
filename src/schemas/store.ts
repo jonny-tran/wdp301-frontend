@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const CreateStoreBody = z.object({
-    name: z.string().min(3, "Tên cửa hàng phải có ít nhất 3 ký tự"),
+    name: z.string().min(1, "Tên cửa hàng không được để trống"),
     address: z.string().min(1, "Địa chỉ không được để trống"),
     phone: z.string().optional(),
     managerName: z.string().optional()
