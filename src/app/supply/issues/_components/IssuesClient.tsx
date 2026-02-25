@@ -11,6 +11,7 @@ import { handleErrorApi } from "@/lib/errors";
 import { ClaimStatus } from "@/utils/enum";
 import { createPaginationSearchParams, normalizeMeta, parseListQuery, RawSearchParams } from "@/app/supply/_components/query";
 import { formatStatusLabel } from "@/app/supply/_components/format";
+import { KEY, QUERY_KEY } from "@/utils/constant";
 import ClaimDetailModal from "./ClaimDetailModal";
 import IssuesTable from "./IssuesTable";
 import ResolveClaimModal from "./ResolveClaimModal";
@@ -169,10 +170,11 @@ export default function IssuesClient({ searchParams }: IssuesClientProps) {
             });
 
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ["claim-list"] }),
-                queryClient.invalidateQueries({ queryKey: ["claim-detail", resolveTarget.id] }),
+                queryClient.invalidateQueries({ queryKey: KEY.claims }),
+                queryClient.invalidateQueries({ queryKey: QUERY_KEY.claims.detail(resolveTarget.id) }),
             ]);
 
+            handleRefresh();
             if (detailTargetId === resolveTarget.id) {
                 detailQuery.refetch();
             }

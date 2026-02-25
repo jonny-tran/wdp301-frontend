@@ -12,14 +12,16 @@ export function normalizeTask(task: Record<string, unknown>): PickingTaskRow {
 }
 
 export function extractTasks(raw: unknown): PickingTaskRow[] {
-    const response = (raw ?? {}) as { items?: unknown };
-    const rawItems = Array.isArray(response.items)
+    const response = (raw ?? {}) as any;
+    const items = Array.isArray(response.items)
         ? response.items
-        : Array.isArray(raw)
-            ? raw
-            : [];
+        : Array.isArray(response.data?.items)
+            ? response.data.items
+            : Array.isArray(raw)
+                ? raw
+                : [];
 
-    return rawItems
-        .map((item) => normalizeTask(item as Record<string, unknown>))
-        .filter((task) => Boolean(task.orderId));
+    return items
+        .map((item: any) => normalizeTask(item as Record<string, unknown>))
+        .filter((task: any) => Boolean(task.orderId));
 }

@@ -29,13 +29,15 @@ export default function PickingClient({ orderId }: PickingClientProps) {
     } = useWarehouse();
 
     const detailQuery = getPickingTaskDetail(orderId);
-    const detail = (detailQuery.data ?? {}) as Record<string, unknown>;
-    const detailItems = useMemo(
-        () => (Array.isArray(detail.items) ? detail.items : []),
-        [detail.items],
-    );
-    const shipmentId = typeof detail.shipmentId === "string" ? detail.shipmentId : "";
+    const detail = useMemo(() => (detailQuery.data ?? {}) as any, [detailQuery.data]);
 
+    const detailItems = useMemo(() => {
+        if (Array.isArray(detail.items)) return detail.items;
+        if (Array.isArray(detail.data?.items)) return detail.data.items;
+        return [];
+    }, [detail]);
+
+    const shipmentId = useMemo(() => String(detail.shipmentId ?? detail.data?.shipmentId ?? ""), [detail]);
     const labelQuery = shipmentLabel(shipmentId || "");
 
     const [scanInput, setScanInput] = useState("");
