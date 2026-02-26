@@ -29,6 +29,7 @@ export async function proxy(request: NextRequest) {
         pathname.startsWith('/_next') ||
         pathname.startsWith('/favicon.ico') ||
         pathname.startsWith('/public') ||
+        /\.(png|jpg|jpeg|gif|webp|svg|ico)$/i.test(pathname) ||
         pathname === '/';
 
     // Case 1: Public route
@@ -98,6 +99,6 @@ export const config = {
          * - _next/image (image optimization files)
          * - favicon.ico, sitemap.xml, robots.txt (metadata files)
          */
-        '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
+        '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:png|jpg|jpeg|gif|webp|svg)).*)',
     ],
 };

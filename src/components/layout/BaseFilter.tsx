@@ -127,7 +127,7 @@ export default function BaseFilter({ filters, onFilterChange }: BaseFilterProps)
                                 placeholder={filter.placeholder}
                                 value={value}
                                 onChange={(e) => handleValuesChange(filter.key, e.target.value)}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-text-main placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                             />
                         )}
 
@@ -135,11 +135,11 @@ export default function BaseFilter({ filters, onFilterChange }: BaseFilterProps)
                             <select
                                 value={value}
                                 onChange={(e) => handleValuesChange(filter.key, e.target.value)}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all cursor-pointer"
                             >
                                 <option value="">All</option>
                                 {filter.options?.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
+                                    <option key={opt.value} value={opt.value} className="text-text-main bg-white">
                                         {opt.label}
                                     </option>
                                 ))}
@@ -151,7 +151,7 @@ export default function BaseFilter({ filters, onFilterChange }: BaseFilterProps)
                                 type="date"
                                 value={value}
                                 onChange={(e) => handleValuesChange(filter.key, e.target.value)}
-                                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-text-main focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
                             />
                         )}
                     </div>
@@ -161,7 +161,7 @@ export default function BaseFilter({ filters, onFilterChange }: BaseFilterProps)
             <div className="flex items-end">
                 <button
                     onClick={clearFilters}
-                    className="w-full rounded-md bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                    className="w-full rounded-md bg-gray-100 px-3 py-2 text-sm font-black uppercase tracking-wider text-text-muted hover:bg-gray-200 hover:text-text-main transition-all focus:outline-none focus:ring-2 focus:ring-gray-300"
                 >
                     Clear Filters
                 </button>
