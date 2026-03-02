@@ -1,12 +1,13 @@
 import http from "@/lib/http";
 import { FinalizeBulkShipmentBodyType, ReportIssueBodyType } from "@/schemas/warehouse";
-import { IssueReport, PickingTaskDetail, QueryPickingTask, ScanCheckResult, ShipmentLabel } from "@/types/warehouse";
+import { BaseResponsePagination } from "@/types/base";
+import { IssueReport, PickingTaskDetail, PickingTaskListItem, QueryPickingTask, ScanCheckResult, ShipmentLabel } from "@/types/warehouse";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
 export const warehouseRequest = {
 
     // GET /warehouse/picking-tasks
-    getWarehouses: (query: QueryPickingTask) => http.get(ENDPOINT_CLIENT.WAREHOUSE_PICKING_TASKS, { query }),
+    getWarehouses: (query: QueryPickingTask) => http.get<BaseResponsePagination<PickingTaskListItem>>(ENDPOINT_CLIENT.WAREHOUSE_PICKING_TASKS, { query }),
 
     // GET /warehouse/picking-tasks/:id
     getPickingTaskDetail: (id: string) => http.get<PickingTaskDetail>(ENDPOINT_CLIENT.WAREHOUSE_PICKING_TASK_DETAIL(id)),

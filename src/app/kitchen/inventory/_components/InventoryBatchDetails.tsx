@@ -1,8 +1,8 @@
-import { KitchenBatchRow } from "./inventory.types";
+import { KitchenDetail } from "@/types/inventory";
 
 interface InventoryBatchDetailsProps {
     selectedProductId: number | null;
-    batches: KitchenBatchRow[];
+    batches: KitchenDetail["batches"];
     isLoading: boolean;
     isError: boolean;
 }
@@ -32,11 +32,11 @@ export default function InventoryBatchDetails({
     return (
         <div className="max-h-[60vh] space-y-4 overflow-y-auto px-6 py-6">
             <div className="flex flex-col gap-4">
-                {batches.map((batch: any, index: number) => {
-                    const total = batch.totalQuantity ?? batch.total_quantity ?? 0;
-                    const available = batch.availableQuantity ?? batch.available_quantity ?? 0;
-                    const reserved = batch.reservedQuantity ?? batch.reserved_quantity ?? 0;
-                    const rowKey = batch.batchId ?? batch.batchCode ?? `batch-${index}`;
+                {batches.map((batch, index) => {
+                    const total = batch.totalQuantity;
+                    const available = batch.availableQuantity;
+                    const reserved = batch.reservedQuantity;
+                    const rowKey = batch.batchId;
 
                     return (
                         <div key={rowKey} className="flex flex-col bg-white rounded-2xl border border-gray-100 p-5 transition-all hover:shadow-md">

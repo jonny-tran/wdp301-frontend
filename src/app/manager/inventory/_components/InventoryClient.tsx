@@ -3,11 +3,13 @@
 import { useMemo, useState, useEffect } from "react";
 import { useInventory } from "@/hooks/useInventory";
 import {
-  extractInventoryItems,
-  extractInventoryStats,
-  extractAgingBatches,
-  extractWasteReport,
-} from "./inventory.mapper";
+  InventorySummaryItem,
+  LowStockItem,
+  InventoryAgingReport,
+  InventoryWasteReport,
+  InventoryAnalyticsSummary,
+  FinancialLossImpact
+} from "@/types/inventory";
 
 // Components
 import InventoryTable from "./InventoryTable";
@@ -31,9 +33,9 @@ export default function InventoryClient() {
   const [debouncedParams, setDebouncedParams] = useState(params);
 
   // State quản lý Modal điều chỉnh tồn kho
-  const [adjustModal, setAdjustModal] = useState({
+  const [adjustModal, setAdjustModal] = useState<{ isOpen: boolean, item: any | null }>({
     isOpen: false,
-    item: null as any,
+    item: null,
   });
 
   // 2. Lấy tài nguyên từ Hook (Khớp chính xác tên hàm Hàn đã định nghĩa)
@@ -60,6 +62,7 @@ export default function InventoryClient() {
     () => ({
       page: debouncedParams.page,
       limit: debouncedParams.limit,
+      sortOrder: "DESC" as const,
       ...(debouncedParams.warehouseId && {
         warehouseId: Number(debouncedParams.warehouseId),
       }),
@@ -87,16 +90,29 @@ export default function InventoryClient() {
    * 6. MAPPING DỮ LIỆU & CLIENT-SIDE SEARCH
    */
   const items = useMemo(() => {
-    const rawData =
-      activeTab === "summary" ? summaryQuery.data : lowStockQuery.data;
-    const result = extractInventoryItems(rawData);
+    const rawData: any = activeTab === "summary" ? summaryQuery.data : lowStockQuery.data;
+    const data = rawData?.data?.items || rawData?.items || rawData || [];
+    const result = Array.isArray(data) ? data.map((item: any) => {
+      const totalQuantity = item.totalQuantity ?? item.currentQuantity ?? 0;
+      const minStockLevel = item.minStockLevel ?? 10;
+      let status: "normal" | "low-stock" | "out-of-stock" = "normal";
+      if (totalQuantity <= 0) status = "out-of-stock";
+      else if (totalQuantity <= minStockLevel) status = "low-stock";
+
+      return {
+        ...item,
+        totalQuantity,
+        status,
+        warehouseName: item.warehouseName || "Kho chính",
+      };
+    }) : [];
 
     if (!debouncedParams.search.trim()) return result;
     const s = debouncedParams.search.toLowerCase().trim();
     return result.filter(
-      (i) =>
-        i.productName.toLowerCase().includes(s) ||
-        i.sku.toLowerCase().includes(s),
+      (i: any) =>
+        i.productName?.toLowerCase().includes(s) ||
+        i.sku?.toLowerCase().includes(s),
     );
   }, [
     activeTab,
@@ -106,15 +122,47 @@ export default function InventoryClient() {
   ]);
 
   const stats = useMemo(
-    () => extractInventoryStats(rawStats, rawLoss),
+    () => {
+      // Use rawStats directly since it matches InventoryAnalyticsSummary
+      const statsData = (rawStats as any)?.data || rawStats;
+      const lossData = (rawLoss as any)?.data || rawLoss;
+      return {
+        totalProducts: statsData?.totalProducts || 0,
+        lowStockCount: statsData?.lowStockItems || 0,
+        expiringBatches: statsData?.expiringItems || 0,
+        estimatedLossVnd: lossData?.totalLoss || 0,
+      };
+    },
     [rawStats, rawLoss],
   );
   const agingData = useMemo(
-    () => extractAgingBatches(agingQuery.data),
+    () => {
+      const buckets = (agingQuery.data as any)?.data?.buckets || (agingQuery.data as any)?.buckets;
+      const mapBatch = (item: any) => ({
+        batchCode: item.batchCode || "N/A",
+        productName: item.productName || "Sản phẩm không tên",
+        quantity: item.quantity || 0,
+        expiryDate: item.expiryDate || "",
+        percentageLeft: item.percentageLeft ?? 100,
+      });
+
+      return {
+        warning: Array.isArray(buckets?.warning) ? buckets.warning.map(mapBatch) : [],
+        critical: Array.isArray(buckets?.critical) ? buckets.critical.map(mapBatch) : [],
+      };
+    },
     [agingQuery.data],
   );
   const wasteData = useMemo(
-    () => extractWasteReport(wasteQuery.data),
+    () => {
+      const data = (wasteQuery.data as any)?.data || wasteQuery.data;
+      const kpi = data?.kpi || {
+        totalWastedQuantity: 0,
+        period: "N/A"
+      };
+      const details = Array.isArray(data?.details) ? data.details : [];
+      return { kpi, details };
+    },
     [wasteQuery.data],
   );
 
@@ -151,10 +199,9 @@ export default function InventoryClient() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300
-              ${
-                activeTab === tab.id
-                  ? "bg-slate-950 text-white shadow-xl scale-[1.05]"
-                  : "text-slate-400 hover:text-slate-900"
+              ${activeTab === tab.id
+                ? "bg-slate-950 text-white shadow-xl scale-[1.05]"
+                : "text-slate-400 hover:text-slate-900"
               }`}
           >
             {tab.label}
@@ -167,7 +214,7 @@ export default function InventoryClient() {
         <InventoryFilter
           filters={params}
           onFilterChange={(u: any) =>
-            setParams((p) => ({ ...p, ...u, page: 1 }))
+            setParams((p: any) => ({ ...p, ...u, page: 1 }))
           }
         />
       )}

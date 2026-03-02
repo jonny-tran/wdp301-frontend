@@ -1,5 +1,5 @@
 import { formatDateTime, formatStatusLabel } from "@/app/supply/_components/format";
-import { OrderReviewView } from "./orders.types";
+import { OrderReview } from "@/types/order";
 
 interface OrderDetailModalProps {
     orderNo?: number;
@@ -10,7 +10,7 @@ interface OrderDetailModalProps {
     detailData: Record<string, unknown>;
     detailItemsCount: number;
     detailStoreName: string;
-    reviewData: OrderReviewView;
+    reviewData: OrderReview;
 }
 
 export default function OrderDetailModal({

@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { PickingTaskRow } from "./warehouse.types";
+import { PickingTaskListItem } from "@/types/warehouse";
 
 interface WarehouseTasksTableProps {
-    tasks: PickingTaskRow[];
+    tasks: PickingTaskListItem[];
     rowStart: number;
     isLoading: boolean;
     isError: boolean;

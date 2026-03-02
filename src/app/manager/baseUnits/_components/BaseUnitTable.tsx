@@ -5,13 +5,13 @@ import {
   TrashIcon,
   InboxIcon,
 } from "@heroicons/react/24/outline";
-import { BaseUnitRow } from "./base-unit.types";
+import { BaseUnit } from "@/types/base-unit";
 
 interface BaseUnitTableProps {
-  items: BaseUnitRow[];
+  items: BaseUnit[];
   isLoading: boolean;
   isError: boolean;
-  onEdit: (unit: BaseUnitRow) => void;
+  onEdit: (unit: BaseUnit) => void;
   onDelete: (id: number) => void;
 }
 
@@ -68,7 +68,7 @@ export default function BaseUnitTable({
                 </div>
               </td>
               <td className="px-10 py-6 font-bold text-slate-500 group-hover:text-slate-400 transition-colors italic">
-                {item.description}
+                {item.description || "N/A"}
               </td>
               <td className="px-10 py-6 text-right">
                 <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-4 group-hover:translate-x-0">

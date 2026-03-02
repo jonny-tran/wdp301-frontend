@@ -1,5 +1,5 @@
 import { formatStatusLabel } from "@/app/supply/_components/format";
-import { ReviewItem } from "./allocation.types";
+import { Order, OrderReviewItem } from "@/types/order";
 
 interface AllocationReviewModalProps {
     orderNo?: number;
@@ -7,7 +7,7 @@ interface AllocationReviewModalProps {
     isError: boolean;
     storeName?: string;
     status?: string;
-    reviewItems: ReviewItem[];
+    reviewItems: OrderReviewItem[];
     onClose: () => void;
 }
 

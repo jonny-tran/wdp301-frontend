@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { SyntheticEvent, useEffect, useState } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { UpdateBatchBodyType } from "@/schemas/product";
 import { Batch } from "@/types/product";
@@ -44,7 +44,7 @@ export function BatchModal({ isOpen, onClose, onSubmit, initialData, isPending, 
 
     if (!isOpen) return null;
 
-    const handleSubmit = (event: FormEvent) => {
+    const handleSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         const payload: UpdateBatchBodyType = {};

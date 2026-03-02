@@ -11,13 +11,23 @@ import { useClaim } from "@/hooks/useClaim";
 import { toast } from "sonner";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
+import { Claim } from "@/types/claim";
+
+interface ClaimResolveModalProps {
+  claimId: string | null;
+  isOpen: boolean;
+  onClose: () => void;
+  detailData: Claim | null;
+  isLoading: boolean;
+}
+
 export default function ClaimResolveModal({
   claimId,
   isOpen,
   onClose,
   detailData,
   isLoading,
-}: any) {
+}: ClaimResolveModalProps) {
   const { resolveClaim } = useClaim();
   const [note, setNote] = useState("");
 
@@ -40,7 +50,7 @@ export default function ClaimResolveModal({
     }
   };
 
-  const claimInfo = detailData?.data || detailData; // Phòng thủ cấu trúc lồng nhau
+  const claimInfo = (detailData as any)?.data || detailData; // Phòng thủ cấu trúc lồng nhau
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -73,7 +83,7 @@ export default function ClaimResolveModal({
                         {item.productName}
                       </h4>
                       <span className="text-[9px] font-bold text-black/40 uppercase">
-                        SKU: {item.sku}
+                        Batch: {item.batchCode}
                       </span>
                     </div>
                     <div className="flex gap-4 mt-2">
@@ -98,9 +108,9 @@ export default function ClaimResolveModal({
                       "{item.reason}"
                     </p>
                   </div>
-                  {item.imageUrl && (
+                  {item.imageProofUrl && (
                     <img
-                      src={item.imageUrl}
+                      src={item.imageProofUrl}
                       alt="Evidence"
                       className="w-24 h-24 rounded-2xl object-cover shadow-md border-2 border-white group-hover:scale-105 transition-transform"
                     />

@@ -2,11 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useStore } from "@/hooks/useStore";
-import {
-  extractStores,
-  extractStoreReliability,
-  extractDemandPattern,
-} from "./store.mapper";
+import { Store, StoreReliabilityAnalytics, StoreDemandPatternAnalytics } from "@/types/store";
 
 // Components
 import StoreTable from "./StoreTable";
@@ -55,18 +51,18 @@ export default function StoreClient() {
       productId: demandProductId,
     });
 
-  // 3. Sử dụng Mapper phòng thủ (Extract dữ liệu an toàn)
-  const stores = useMemo(() => extractStores(listData), [listData]);
-  const reliabilityStats = useMemo(
-    () => extractStoreReliability(reliabilityRaw),
+  // 3. Sử dụng Raw data trực tiếp
+  const stores: Store[] = useMemo(() => (listData as any)?.items || listData?.items || [], [listData]);
+  const reliabilityStats: StoreReliabilityAnalytics = useMemo(
+    () => (reliabilityRaw as any)?.data || reliabilityRaw || [],
     [reliabilityRaw],
   );
-  const demandPattern = useMemo(
-    () => extractDemandPattern(demandRaw),
+  const demandPattern: StoreDemandPatternAnalytics = useMemo(
+    () => (demandRaw as any)?.data || demandRaw || [],
     [demandRaw],
   );
 
-  const meta = listData?.data?.meta || {
+  const meta = (listData as any)?.meta || (listData as any)?.data?.meta || {
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
@@ -201,11 +197,10 @@ export default function StoreClient() {
                 <button
                   key={i + 1}
                   onClick={() => handlePageChange(i + 1)}
-                  className={`w-11 h-11 rounded-xl text-[10px] font-black transition-all ${
-                    params.page === i + 1
-                      ? "bg-black text-white shadow-xl"
-                      : "bg-slate-50 text-black/40 hover:bg-slate-100"
-                  }`}
+                  className={`w-11 h-11 rounded-xl text-[10px] font-black transition-all ${params.page === i + 1
+                    ? "bg-black text-white shadow-xl"
+                    : "bg-slate-50 text-black/40 hover:bg-slate-100"
+                    }`}
                 >
                   {i + 1}
                 </button>

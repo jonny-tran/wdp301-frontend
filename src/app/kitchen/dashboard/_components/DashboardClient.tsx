@@ -12,7 +12,6 @@ import { useProduct } from "@/hooks/useProduct";
 import { useInbound } from "@/hooks/useInbound";
 import { ReceiptStatus } from "@/utils/enum";
 import { KitchSummary } from "@/types/inventory";
-import { countLowStock, extractItems } from "./dashboard.mapper";
 import InventoryWatchlistCard from "./InventoryWatchlistCard";
 import KitchenQuickActions from "./KitchenQuickActions";
 import KitchenSummaryCard from "./KitchenSummaryCard";
@@ -35,10 +34,10 @@ export default function DashboardClient() {
     const batchesQuery = batchList(DEFAULT_PAGE_QUERY);
     const receiptsQuery = receiptList({ ...DEFAULT_PAGE_QUERY, status: ReceiptStatus.DRAFT });
 
-    const pickingItems = extractItems(pickingTaskQuery.data);
-    const kitchenItems = extractItems(kitchenSummaryQuery.data) as KitchSummary[];
-    const batchItems = extractItems(batchesQuery.data);
-    const receiptItems = extractItems(receiptsQuery.data);
+    const pickingItems = pickingTaskQuery.data?.items || [];
+    const kitchenItems = kitchenSummaryQuery.data?.items || [];
+    const batchItems = batchesQuery.data?.items || [];
+    const receiptItems = receiptsQuery.data?.items || [];
 
     const quickActions = [
         { href: "/kitchen/inventory", label: "Inventory" },
@@ -65,7 +64,7 @@ export default function DashboardClient() {
                 <KitchenSummaryCard
                     icon={<ExclamationTriangleIcon className="h-5 w-5" />}
                     title="Low Stock"
-                    value={String(countLowStock(kitchenItems))}
+                    value={String(kitchenItems.filter(item => item.isLowStock).length)}
                     hint="Require replenishment"
                 />
                 <KitchenSummaryCard

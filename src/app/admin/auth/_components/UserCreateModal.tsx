@@ -1,24 +1,28 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { extractStoreOptions } from "./user.mapper";
 import { toast } from "sonner";
 import {
   XMarkIcon,
-  CheckIcon,
   ShieldCheckIcon,
   UserIcon,
   EnvelopeIcon,
   LockClosedIcon,
   BuildingStorefrontIcon,
 } from "@heroicons/react/24/outline";
+import { useStore } from "@/hooks/useStore";
+import { Role } from "@/utils/enum";
+import { useForm } from "react-hook-form";
+import { CreateUserBody, CreateUserBodyType } from "@/schemas/auth";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { handleErrorApi } from "@/lib/errors";
 
-const HARDCODED_ROLES = [
-  { value: "manager", label: "Quản lý khu vực" },
-  { value: "supply_coordinator", label: "Điều phối viên nguồn cung" },
-  { value: "central_kitchen_staff", label: "Nhân viên bếp trung tâm" },
-  { value: "franchise_store_staff", label: "Nhân viên cửa hàng nhượng quyền" },
+const HARDCODED_ROLES: { value: Role; label: string }[] = [
+  { value: Role.MANAGER, label: "Quản lý khu vực" },
+  { value: Role.SUPPLY_COORDINATOR, label: "Điều phối viên nguồn cung" },
+  { value: Role.CENTRAL_KITCHEN_STAFF, label: "Nhân viên bếp trung tâm" },
+  { value: Role.FRANCHISE_STORE_STAFF, label: "Nhân viên cửa hàng nhượng quyền" },
 ];
 
 export default function UserCreateModal({
@@ -28,59 +32,64 @@ export default function UserCreateModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { createUser, getStores } = useAuth();
+  const { createUser } = useAuth();
+  const { storeList } = useStore();
 
-  const storesQuery = getStores({ limit: 100 });
+  const storesQuery = storeList({ page: 1, limit: 100, sortOrder: "DESC" });
   const storeOptions = useMemo(
-    () => extractStoreOptions(storesQuery.data),
+    () => {
+      const stores: any = (storesQuery.data as any)?.items || (storesQuery.data as any)?.data?.items || [];
+      return Array.isArray(stores) ? stores.map((s: any) => ({
+        value: s.id ?? "",
+        label: s.name ?? "",
+      })) : [];
+    },
     [storesQuery.data],
   );
 
-  const [formData, setFormData] = useState({
-    username: "",
-    email: "",
-    password: "",
-    role: HARDCODED_ROLES[0].value,
-    storeId: "",
+  const {
+    register,
+    handleSubmit,
+    reset,
+    watch,
+    setValue,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateUserBodyType>({
+    resolver: zodResolver(CreateUserBody),
+    defaultValues: {
+      role: Role.MANAGER,
+    },
   });
+
+  const selectedRole = watch("role");
+  const isStoreStaff = selectedRole === Role.FRANCHISE_STORE_STAFF;
 
   useEffect(() => {
     if (isOpen) {
-      setFormData({
+      reset({
         username: "",
         email: "",
         password: "",
-        role: HARDCODED_ROLES[0].value,
-        storeId: "",
+        role: Role.MANAGER,
+        storeId: undefined,
       });
     }
-  }, [isOpen]);
+  }, [isOpen, reset]);
 
-  const isStoreStaff = formData.role === "franchise_store_staff";
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (isStoreStaff && !formData.storeId) {
-      toast.error("Vui lòng liên kết cửa hàng cho nhân viên này!");
-      return;
-    }
-
-    // --- XỬ LÝ DỮ LIỆU TRƯỚC KHI GỬI (FIX LỖI 400 UUID) ---
-    const submitData = { ...formData };
-
-    // Nếu không phải nhân viên store, loại bỏ hoàn toàn trường storeId
-    // Việc gửi "" sẽ bị Backend báo lỗi không đúng định dạng UUID v4
-    if (!isStoreStaff) {
-      delete (submitData as any).storeId;
-    }
-
+  const onSubmit = async (data: CreateUserBodyType) => {
     try {
+      const submitData = { ...data };
+      if (submitData.role !== Role.FRANCHISE_STORE_STAFF) {
+        delete submitData.storeId;
+      }
       await createUser.mutateAsync(submitData);
-      toast.success("Tạo tài khoản thành công!");
       onClose();
     } catch (err) {
-      // Đã handle qua handleErrorApi trong hook
+      handleErrorApi({
+        error: err,
+        setError,
+      });
     }
   };
 
@@ -89,7 +98,7 @@ export default function UserCreateModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         className="w-full max-w-lg bg-white rounded-[2.5rem] p-10 space-y-6 border border-slate-100 shadow-2xl animate-in zoom-in duration-300"
       >
         <div className="flex justify-between items-center border-b border-slate-50 pb-5">
@@ -111,14 +120,12 @@ export default function UserCreateModal({
               <UserIcon className="h-3 w-3" /> Tên đăng nhập
             </label>
             <input
-              required
               placeholder="nguyenvan_a"
-              value={formData.username}
-              onChange={(e) =>
-                setFormData({ ...formData, username: e.target.value })
-              }
-              className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all"
+              {...register("username")}
+              className={`w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all ${errors.username ? "border-red-500 bg-red-50" : ""
+                }`}
             />
+            {errors.username && <p className="text-[10px] text-red-500 ml-4">{errors.username.message}</p>}
           </div>
 
           <div className="space-y-1">
@@ -126,15 +133,13 @@ export default function UserCreateModal({
               <EnvelopeIcon className="h-3 w-3" /> Email định danh
             </label>
             <input
-              required
               type="email"
               placeholder="email@gmail.com"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-              className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all"
+              {...register("email")}
+              className={`w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all ${errors.email ? "border-red-500 bg-red-50" : ""
+                }`}
             />
+            {errors.email && <p className="text-[10px] text-red-500 ml-4">{errors.email.message}</p>}
           </div>
 
           <div className="space-y-1">
@@ -143,15 +148,14 @@ export default function UserCreateModal({
             </label>
             <div className="relative">
               <select
-                required
-                value={formData.role}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    role: e.target.value,
-                    storeId: "",
-                  })
-                }
+                {...register("role")}
+                onChange={(e) => {
+                  const role = e.target.value as Role;
+                  setValue("role", role);
+                  if (role !== Role.FRANCHISE_STORE_STAFF) {
+                    setValue("storeId", undefined);
+                  }
+                }}
                 className="w-full rounded-full bg-slate-50 border border-indigo-600 px-6 py-4 text-sm font-bold text-slate-900 outline-none appearance-none cursor-pointer focus:bg-white transition-all"
               >
                 {HARDCODED_ROLES.map((role) => (
@@ -164,6 +168,7 @@ export default function UserCreateModal({
                 <ShieldCheckIcon className="h-5 w-5" />
               </div>
             </div>
+            {errors.role && <p className="text-[10px] text-red-500 ml-4">{errors.role.message}</p>}
           </div>
 
           {isStoreStaff && (
@@ -173,12 +178,9 @@ export default function UserCreateModal({
                 hàng
               </label>
               <select
-                required
-                value={formData.storeId}
-                onChange={(e) =>
-                  setFormData({ ...formData, storeId: e.target.value })
-                }
-                className="w-full rounded-full bg-indigo-50/50 border border-indigo-100 px-6 py-4 text-sm font-bold text-indigo-900 outline-none"
+                {...register("storeId")}
+                className={`w-full rounded-full bg-indigo-50/50 border border-indigo-100 px-6 py-4 text-sm font-bold text-indigo-900 outline-none ${errors.storeId ? "border-red-500" : ""
+                  }`}
               >
                 <option value="">--- Chọn cửa hàng cụ thể ---</option>
                 {storeOptions.map((s: any) => (
@@ -187,6 +189,7 @@ export default function UserCreateModal({
                   </option>
                 ))}
               </select>
+              {errors.storeId && <p className="text-[10px] text-red-500 ml-4">{errors.storeId.message}</p>}
             </div>
           )}
 
@@ -195,26 +198,25 @@ export default function UserCreateModal({
               <LockClosedIcon className="h-3 w-3" /> Mật khẩu khởi tạo
             </label>
             <input
-              required
               type="password"
               placeholder="••••••••"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all"
+              {...register("password")}
+              className={`w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all ${errors.password ? "border-red-500 bg-red-50" : ""
+                }`}
             />
+            {errors.password && <p className="text-[10px] text-red-500 ml-4">{errors.password.message}</p>}
           </div>
         </div>
 
         <button
           type="submit"
-          disabled={createUser.isPending}
+          disabled={isSubmitting}
           className="w-full flex items-center justify-center gap-3 rounded-full bg-slate-900 py-5 text-xs font-black text-white hover:bg-black transition-all shadow-xl disabled:bg-slate-200"
         >
-          {createUser.isPending ? "Đang ghi danh..." : "XÁC NHẬN TẠO MỚI"}
+          {isSubmitting ? "Đang ghi danh..." : "XÁC NHẬN TẠO MỚI"}
         </button>
       </form>
     </div>
   );
 }
+

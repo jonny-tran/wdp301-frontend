@@ -15,7 +15,7 @@ export const useProduct = () => {
       return res.data
     },
     onSuccess: () => {
-      // toast.success('Product created successfully')
+      toast.success('Tạo sản phẩm thành công')
       queryClient.invalidateQueries({ queryKey: KEY.products })
     },
   })
@@ -26,7 +26,7 @@ export const useProduct = () => {
       return res.data
     },
     onSuccess: () => {
-      toast.success('Product updated successfully')
+      toast.success('Sản phẩm đã được cập nhật')
       queryClient.invalidateQueries({ queryKey: KEY.products })
     },
   })
@@ -37,7 +37,7 @@ export const useProduct = () => {
       return res.data
     },
     onSuccess: () => {
-      toast.success('Product deleted successfully')
+      toast.success('Sản phẩm đã được xóa')
       queryClient.invalidateQueries({ queryKey: KEY.products })
     },
     onError: (error) => {
@@ -51,7 +51,7 @@ export const useProduct = () => {
       return res.data
     },
     onSuccess: () => {
-      toast.success('Product restored successfully')
+      toast.success('Sản phẩm đã được khôi phục')
       queryClient.invalidateQueries({ queryKey: KEY.products })
     },
     onError: (error) => {
@@ -65,7 +65,7 @@ export const useProduct = () => {
       return res.data
     },
     onSuccess: () => {
-      toast.success('Batch updated successfully')
+      toast.success('Cập nhật lô hàng thành công')
       queryClient.invalidateQueries({ queryKey: KEY.products })
     },
 

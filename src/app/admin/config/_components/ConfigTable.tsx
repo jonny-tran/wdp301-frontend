@@ -5,7 +5,7 @@ import {
   AdjustmentsHorizontalIcon,
   CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
-import { SystemConfig } from "./config.types";
+import { SystemConfig } from "./ConfigClient";
 import { format } from "date-fns";
 
 interface Props {

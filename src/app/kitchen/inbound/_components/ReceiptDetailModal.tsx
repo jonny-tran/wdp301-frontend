@@ -4,8 +4,13 @@ import { XMarkIcon, CubeIcon, TagIcon, ScaleIcon, CalendarIcon, TruckIcon, PlusI
 import { useInbound } from "@/hooks/useInbound";
 import { useProduct } from "@/hooks/useProduct";
 import { ReceiptStatus } from "@/utils/enum";
-import { useState, FormEvent } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AddReceiptItemBody, AddReceiptItemBodyType } from "@/schemas/inbound";
+
+import { handleErrorApi } from "@/lib/errors";
 
 interface ReceiptDetailModalProps {
     isOpen: boolean;
@@ -26,14 +31,29 @@ export default function ReceiptDetailModal({
     const { productList } = useProduct();
 
     // Form state for adding item
-    const [productId, setProductId] = useState<string>("");
-    const [quantity, setQuantity] = useState<string>("");
     const [isAddingItem, setIsAddingItem] = useState(false);
+
+    const {
+        register,
+        handleSubmit,
+        reset: resetForm,
+        setError: setErrorForm,
+        formState: { errors: formErrors }
+    } = useForm<AddReceiptItemBodyType>({
+        resolver: zodResolver(AddReceiptItemBody),
+    });
 
     // State for viewing QR Code
     const [viewingBatchId, setViewingBatchId] = useState<string | null>(null);
     const labelQuery = batchLabel(viewingBatchId || "");
     const productsQuery = productList({ page: 1, limit: 100, sortOrder: "DESC" });
+
+    // Reset form when opening Add Item or closing modal
+    useEffect(() => {
+        if (!isAddingItem || !isOpen) {
+            resetForm({ productId: undefined, quantity: undefined });
+        }
+    }, [isAddingItem, isOpen, resetForm]);
 
     if (!isOpen) return null;
 
@@ -41,23 +61,21 @@ export default function ReceiptDetailModal({
     const items = Array.isArray(details?.items) ? details.items : (Array.isArray((details as any)?.data?.items) ? (details as any).data.items : []);
     const products = (productsQuery.data as any)?.items || (productsQuery.data as any)?.data?.items || [];
 
-    const handleAddItem = (e: FormEvent) => {
-        e.preventDefault();
-        if (!details?.id || !productId || !quantity) return;
-
-        addReceiptItem.mutate({
-            id: details.id,
-            data: {
-                productId: Number(productId),
-                quantity: Number(quantity)
-            }
-        }, {
-            onSuccess: () => {
-                setProductId("");
-                setQuantity("");
-                setIsAddingItem(false);
-            }
-        });
+    const onFormSubmit = async (data: AddReceiptItemBodyType) => {
+        if (!details?.id) return;
+        try {
+            await addReceiptItem.mutateAsync({
+                id: details.id,
+                data
+            });
+            resetForm();
+            setIsAddingItem(false);
+        } catch (error) {
+            handleErrorApi({
+                error,
+                setError: setErrorForm
+            });
+        }
     };
 
     const handleDeleteItem = (batchId: string) => {
@@ -65,16 +83,19 @@ export default function ReceiptDetailModal({
         deleteReceiptItem.mutate(batchId);
     };
 
-    const handleComplete = () => {
+    const handleComplete = async () => {
         if (!details?.id) return;
         if (items.length === 0) {
             toast.error("Cannot complete a receipt with no items.");
             return;
         }
         if (!confirm("Confirm completion? This will update warehouse inventory permanently.")) return;
-        completeReceipt.mutate(details.id, {
-            onSuccess: () => onClose()
-        });
+        try {
+            await completeReceipt.mutateAsync(details.id);
+            onClose();
+        } catch (error) {
+            handleErrorApi({ error });
+        }
     };
 
     const handleReprint = (batchId: number) => {
@@ -146,43 +167,37 @@ export default function ReceiptDetailModal({
                     </div>
 
                     {isAddingItem && isDraft && (
-                        <form onSubmit={handleAddItem} className="mb-8 rounded-[2rem] border border-primary/20 bg-primary/5 p-6 space-y-4 animate-in slide-in-from-top duration-300">
+                        <form onSubmit={handleSubmit(onFormSubmit)} className="mb-8 rounded-[2rem] border border-primary/20 bg-primary/5 p-6 space-y-4 animate-in slide-in-from-top duration-300">
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black uppercase text-text-muted ml-2">Product</label>
                                     <select
-                                        required
-                                        value={productId}
-                                        onChange={(e) => setProductId(e.target.value)}
-                                        className="w-full rounded-full border border-white bg-white px-4 py-2.5 text-xs font-bold shadow-sm outline-none focus:ring-2 focus:ring-primary/20"
+                                        {...register("productId", { valueAsNumber: true })}
+                                        className={`w-full rounded-full border border-white bg-white px-4 py-2.5 text-xs font-bold shadow-sm outline-none focus:ring-2 focus:ring-primary/20 ${formErrors.productId ? "border-red-500" : ""}`}
                                     >
-                                        <option value="" disabled>{productsQuery.isLoading ? "Loading products..." : "Select Product..."}</option>
-                                        {!productsQuery.isLoading && products.length === 0 && (
-                                            <option value="" disabled>No products available</option>
-                                        )}
+                                        <option value="" disabled selected>Select Product...</option>
                                         {products.map((p: any) => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
                                         ))}
                                     </select>
+                                    {formErrors.productId && <p className="text-[9px] text-red-500 ml-2">{formErrors.productId.message}</p>}
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-black uppercase text-text-muted ml-2">Quantity</label>
                                     <input
-                                        required
                                         type="number"
                                         step="0.1"
-                                        min="0.1"
-                                        value={quantity}
-                                        onChange={(e) => setQuantity(e.target.value)}
+                                        {...register("quantity", { valueAsNumber: true })}
                                         placeholder="e.g. 50"
-                                        className="w-full rounded-full border border-white bg-white px-4 py-2.5 text-xs font-bold shadow-sm outline-none focus:ring-2 focus:ring-primary/20"
+                                        className={`w-full rounded-full border border-white bg-white px-4 py-2.5 text-xs font-bold shadow-sm outline-none focus:ring-2 focus:ring-primary/20 ${formErrors.quantity ? "border-red-500" : ""}`}
                                     />
+                                    {formErrors.quantity && <p className="text-[9px] text-red-500 ml-2">{formErrors.quantity.message}</p>}
                                 </div>
                             </div>
                             <button
                                 type="submit"
-                                disabled={addReceiptItem.isPending || !productId || !quantity}
-                                className="w-full rounded-full bg-primary py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-primary-dark transition-all disabled:bg-slate-300"
+                                disabled={addReceiptItem.isPending}
+                                className="w-full rounded-full bg-primary py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-primary-dark transition-all disabled:bg-slate-300 shadow-lg shadow-primary/20 active:scale-[0.98]"
                             >
                                 {addReceiptItem.isPending ? "Adding..." : "Confirm Intake"}
                             </button>
@@ -365,3 +380,5 @@ export default function ReceiptDetailModal({
         </div>
     );
 }
+
+

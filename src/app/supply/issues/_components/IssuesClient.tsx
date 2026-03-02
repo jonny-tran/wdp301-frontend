@@ -12,11 +12,10 @@ import { ClaimStatus } from "@/utils/enum";
 import { createPaginationSearchParams, normalizeMeta, parseListQuery, RawSearchParams } from "@/app/supply/_components/query";
 import { formatStatusLabel } from "@/app/supply/_components/format";
 import { KEY, QUERY_KEY } from "@/utils/constant";
+import { Claim } from "@/types/claim";
 import ClaimDetailModal from "./ClaimDetailModal";
 import IssuesTable from "./IssuesTable";
 import ResolveClaimModal from "./ResolveClaimModal";
-import { extractClaims } from "./issues.mapper";
-import { ClaimRow } from "./issues.types";
 
 interface IssuesClientProps {
     searchParams: RawSearchParams;
@@ -46,9 +45,9 @@ export default function IssuesClient({ searchParams }: IssuesClientProps) {
         toDate: parsedQuery.toDate,
     });
 
-    const claims = useMemo(() => extractClaims(listQuery.data), [listQuery.data]);
+    const claims: Claim[] = listQuery.data?.items || [];
     const meta = useMemo(
-        () => normalizeMeta((listQuery.data as { meta?: unknown } | undefined)?.meta, parsedQuery.page, parsedQuery.limit, claims.length),
+        () => normalizeMeta(listQuery.data?.meta, parsedQuery.page, parsedQuery.limit, claims.length),
         [claims.length, listQuery.data, parsedQuery.limit, parsedQuery.page],
     );
     const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
@@ -78,18 +77,18 @@ export default function IssuesClient({ searchParams }: IssuesClientProps) {
     }, [claims]);
 
     const [detailTargetId, setDetailTargetId] = useState("");
-    const [resolveTarget, setResolveTarget] = useState<ClaimRow | null>(null);
+    const [resolveTarget, setResolveTarget] = useState<Claim | null>(null);
     const [resolveStatus, setResolveStatus] = useState<"approved" | "rejected">("approved");
     const [resolveNote, setResolveNote] = useState("");
 
     const detailQuery = claimDetail(detailTargetId);
     const detailClaimNo = useMemo(() => {
-        const index = claims.findIndex((claim) => claim.id === detailTargetId);
+        const index = claims.findIndex((claim) => claim.claimId === detailTargetId);
         return index >= 0 ? rowStart + index + 1 : undefined;
     }, [claims, detailTargetId, rowStart]);
     const resolveClaimNo = useMemo(() => {
         if (!resolveTarget) return undefined;
-        const index = claims.findIndex((claim) => claim.id === resolveTarget.id);
+        const index = claims.findIndex((claim) => claim.claimId === resolveTarget.claimId);
         return index >= 0 ? rowStart + index + 1 : undefined;
     }, [claims, resolveTarget, rowStart]);
 
@@ -162,7 +161,7 @@ export default function IssuesClient({ searchParams }: IssuesClientProps) {
 
         try {
             await resolveClaim.mutateAsync({
-                id: resolveTarget.id,
+                id: resolveTarget.claimId,
                 data: {
                     status: resolveStatus,
                     resolutionNote: resolveNote.trim() || undefined,
@@ -171,11 +170,11 @@ export default function IssuesClient({ searchParams }: IssuesClientProps) {
 
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: KEY.claims }),
-                queryClient.invalidateQueries({ queryKey: QUERY_KEY.claims.detail(resolveTarget.id) }),
+                queryClient.invalidateQueries({ queryKey: QUERY_KEY.claims.detail(resolveTarget.claimId) }),
             ]);
 
             handleRefresh();
-            if (detailTargetId === resolveTarget.id) {
+            if (detailTargetId === resolveTarget.claimId) {
                 detailQuery.refetch();
             }
             setResolveTarget(null);

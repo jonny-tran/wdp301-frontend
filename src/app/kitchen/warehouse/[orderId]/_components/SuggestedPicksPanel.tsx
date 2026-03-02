@@ -1,7 +1,8 @@
-import { PickFormRow } from "./picking.types";
+import { PickFormRow } from "./PickingClient";
+
 
 interface SuggestedPicksPanelProps {
-    rows: PickFormRow[];
+    rows: PickFormRow[]
     shipmentId: string;
     isFinalizing: boolean;
     onChangeRow: (index: number, field: "batchId" | "quantity", value: string) => void;

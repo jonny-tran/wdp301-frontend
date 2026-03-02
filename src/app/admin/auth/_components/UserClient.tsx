@@ -4,10 +4,11 @@ import { useMemo, useState, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { authRequest } from "@/apiRequest/auth";
-import { extractUserItems, extractRoleOptions } from "./user.mapper";
+import { User, QueryUser } from "@/types/user";
 import {
   RawSearchParams,
   createPaginationSearchParams,
+  readValue,
 } from "@/app/kitchen/_components/query";
 import UserTable from "./UserTable";
 import UserCreateModal from "./UserCreateModal";
@@ -29,13 +30,13 @@ export default function UserClient({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
-  const queryParams = useMemo(
+  const queryParams: any = useMemo(
     () => ({
-      page: Number(searchParams.page) || 1,
-      limit: Number(searchParams.limit) || 10,
-      search: (searchParams.search as string) || undefined,
-      role: (searchParams.role as string) || undefined,
-      sortOrder: "DESC",
+      page: Number(readValue(searchParams.page)) || 1,
+      limit: Number(readValue(searchParams.limit)) || 10,
+      search: readValue(searchParams.search),
+      role: readValue(searchParams.role),
+      sortOrder: "DESC" as const,
     }),
     [searchParams],
   );
@@ -43,30 +44,36 @@ export default function UserClient({
   // Fetch danh sách User
   const userQuery = useQuery({
     queryKey: ["users", queryParams],
-    queryFn: () => authRequest.getUsers(queryParams).then((res) => res.data),
+    queryFn: () => authRequest.getUsers(queryParams).then((res: any) => res.data),
     placeholderData: (prev) => prev,
   });
 
   // Fetch danh sách Roles (để lấy label tiếng Việt)
   const rolesQuery = useQuery({
     queryKey: ["roles"],
-    queryFn: () => authRequest.getRoles().then((res) => res.data),
+    queryFn: () => authRequest.getRoles().then((res: any) => res.data),
   });
 
   // Mapping dữ liệu
-  const items = useMemo(
-    () => extractUserItems(userQuery.data),
+  const items: User[] = useMemo(
+    () => (userQuery.data as any)?.items || (userQuery.data as any)?.data?.items || [],
     [userQuery.data],
   );
 
-  // Quan trọng: Tạo mảng roleOptions chứa {value, label}
+  // Mapping roleOptions trực tiếp
   const roleOptions = useMemo(
-    () => extractRoleOptions(rolesQuery.data),
+    () => {
+      const roles: any = (rolesQuery.data as any)?.data || rolesQuery.data || [];
+      return Array.isArray(roles) ? roles.map((r: any) => ({
+        value: r.value ?? r.id ?? "",
+        label: r.label ?? r.name ?? "",
+      })) : [];
+    },
     [rolesQuery.data],
   );
 
   const meta = useMemo(() => {
-    const m = userQuery.data?.data?.meta || userQuery.data?.meta;
+    const m = (userQuery.data as any)?.meta || (userQuery.data as any)?.data?.meta;
     return {
       currentPage: m?.currentPage ?? 1,
       totalPages: m?.totalPages ?? 1,
@@ -92,14 +99,14 @@ export default function UserClient({
       label: "Tìm kiếm",
       type: "text",
       placeholder: "Tên hoặc email...",
-      defaultValue: searchParams.search ?? "",
+      defaultValue: readValue(searchParams.search) ?? "",
     },
     {
       key: "role",
       label: "Vai trò",
       type: "select",
       options: [{ label: "Tất cả vai trò", value: "" }, ...roleOptions],
-      defaultValue: (searchParams.role as string) ?? "",
+      defaultValue: readValue(searchParams.role) ?? "",
     },
   ];
 
@@ -155,13 +162,11 @@ export default function UserClient({
       <UserCreateModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        roleOptions={roleOptions}
       />
       <UserEditModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         user={selectedUser}
-        roleOptions={roleOptions}
       />
     </div>
   );

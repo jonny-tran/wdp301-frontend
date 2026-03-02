@@ -15,7 +15,7 @@ export const useShipment = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Shipment received successfully')
+            toast.success('Đơn hàng đã được nhận')
             queryClient.invalidateQueries({ queryKey: KEY.shipments })
         },
         onError: (error) => {
@@ -29,7 +29,7 @@ export const useShipment = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Shipment received successfully')
+            toast.success('Đơn hàng đã được nhận')
             queryClient.invalidateQueries({ queryKey: KEY.shipments })
         },
     })

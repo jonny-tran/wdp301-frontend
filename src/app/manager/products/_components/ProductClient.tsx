@@ -3,15 +3,16 @@
 import { useMemo, useState, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
-// Hooks & Types
+import { useAuth } from "@/hooks/useAuth";
 import { useProduct } from "@/hooks/useProduct";
-import { QueryProduct } from "@/types/product";
+import { Product, QueryProduct } from "@/types/product";
+import { BaseResponsePagination } from "@/types/base";
 
-// Helpers & Mappers
-import { extractProductDetail, extractProductItems } from "./product.mapper";
+// Helpers
 import {
   RawSearchParams,
   createPaginationSearchParams,
+  readValue,
 } from "@/app/kitchen/_components/query";
 
 // UI Components
@@ -69,21 +70,17 @@ export default function ProductClient({ searchParams }: ProductClientProps) {
   const { productList, deleteProduct, restoreProduct } = useProduct();
   const productQuery = productList(parsedQuery as QueryProduct);
 
-  // --- 3. MAPPING DỮ LIỆU ---
-  const items = useMemo(
-    () => extractProductItems(productQuery.data),
+  const items: Product[] = useMemo(
+    () => productQuery.data?.items || [],
     [productQuery.data],
   );
 
   const meta = useMemo(() => {
-    const m =
-      (productQuery.data as any)?.data?.meta ||
-      (productQuery.data as any)?.meta;
     return {
-      currentPage: m?.currentPage ?? 1,
-      totalPages: m?.totalPages ?? 1,
-      totalItems: m?.totalItems ?? 0,
-      itemsPerPage: m?.itemsPerPage ?? 10,
+      currentPage: productQuery.data?.meta?.currentPage ?? 1,
+      totalPages: productQuery.data?.meta?.totalPages ?? 1,
+      totalItems: productQuery.data?.meta?.totalItems ?? 0,
+      itemsPerPage: productQuery.data?.meta?.itemsPerPage ?? 10,
     };
   }, [productQuery.data]);
 
@@ -113,7 +110,6 @@ export default function ProductClient({ searchParams }: ProductClientProps) {
     if (confirm("Xác nhận ngừng hoạt động sản phẩm này?")) {
       try {
         await deleteProduct.mutateAsync(id);
-        toast.success("Đã chuyển trạng thái sang INACTIVE");
       } catch (e) {
         console.error(e);
       }
@@ -123,7 +119,6 @@ export default function ProductClient({ searchParams }: ProductClientProps) {
   const handleRestore = async (id: number) => {
     try {
       await restoreProduct.mutateAsync(id);
-      toast.success("Đã khôi phục sản phẩm!");
     } catch (e) {
       console.error(e);
     }
@@ -136,7 +131,7 @@ export default function ProductClient({ searchParams }: ProductClientProps) {
       label: "Tìm kiếm",
       type: "text",
       placeholder: "Nhập mã SKU hoặc tên...",
-      defaultValue: searchParams.search ?? "",
+      defaultValue: readValue(searchParams.search) ?? "",
     },
     {
       key: "isActive",

@@ -1,17 +1,17 @@
 import { EyeIcon } from "@heroicons/react/24/outline";
 import { OrderStatus } from "@/utils/enum";
 import { formatAmount, formatDate, formatStatusLabel, getStatusBadgeClass } from "@/app/supply/_components/format";
-import { OrderRow } from "./orders.types";
+import { Order } from "@/types/order";
 
 interface OrdersTableProps {
-    orders: OrderRow[];
+    orders: Order[];
     rowStart: number;
     isLoading: boolean;
     isError: boolean;
     isMutating: boolean;
     onView: (orderId: string) => void;
-    onApprove: (order: OrderRow) => void;
-    onReject: (order: OrderRow) => void;
+    onApprove: (order: Order) => void;
+    onReject: (order: Order) => void;
 }
 
 export default function OrdersTable({

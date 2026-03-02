@@ -1,8 +1,8 @@
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
-import { KitchenSummaryRow } from "./inventory.types";
+import { KitchSummary } from "@/types/inventory";
 
 interface InventorySummaryTableProps {
-    items: KitchenSummaryRow[];
+    items: KitchSummary[];
     selectedProductId: number | null;
     isLoading: boolean;
     isError: boolean;

@@ -11,7 +11,6 @@ import { handleErrorApi } from "@/lib/errors";
 import { UpdateBatchBodyType } from "@/schemas/product";
 import { Batch } from "@/types/product";
 import { createPaginationSearchParams, normalizeMeta, parseKitchenListQuery, RawSearchParams } from "@/app/kitchen/_components/query";
-import { extractBatches } from "./batches.mapper";
 import BatchesTable from "./BatchesTable";
 
 interface BatchesClientProps {
@@ -38,7 +37,7 @@ export default function BatchesClient({ searchParams }: BatchesClientProps) {
         sortOrder: parsedQuery.sortOrder,
     });
 
-    const batches = useMemo(() => extractBatches(listQuery.data), [listQuery.data]);
+    const batches: Batch[] = useMemo(() => (listQuery.data as any)?.items || (listQuery.data as any)?.data?.items || [], [listQuery.data]);
     const meta = useMemo(
         () => normalizeMeta((listQuery.data as { meta?: unknown } | undefined)?.meta, parsedQuery.page, parsedQuery.limit, batches.length),
         [batches.length, listQuery.data, parsedQuery.limit, parsedQuery.page],
@@ -70,7 +69,7 @@ export default function BatchesClient({ searchParams }: BatchesClientProps) {
     ];
 
     const handlePageChange = (nextPage: number) => {
-        const query = createPaginationSearchParams(searchParamsHook, nextPage);
+        const query = createPaginationSearchParams(searchParamsHook, { page: nextPage });
         router.push(`${pathname}?${query}`);
     };
 

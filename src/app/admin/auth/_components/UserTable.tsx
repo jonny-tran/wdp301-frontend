@@ -5,14 +5,19 @@ import {
   UserCircleIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { UserRow, RoleOption } from "./user.types";
+import { User } from "@/types/user";
 import { clsx } from "clsx";
 
+export type RoleOption = {
+  value: string;
+  label: string;
+};
+
 interface UserTableProps {
-  items: UserRow[];
+  items: User[];
   isLoading: boolean;
   roleOptions: RoleOption[]; // Nhận danh sách nhãn tiếng Việt từ Client
-  onEdit: (user: UserRow) => void;
+  onEdit: (user: User) => void;
 }
 
 export default function UserTable({

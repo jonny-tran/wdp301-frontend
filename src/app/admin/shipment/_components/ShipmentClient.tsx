@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useShipment } from "@/hooks/useShipment";
-import { extractShipmentItems } from "./shipment.mapper";
+import { Shipment } from "@/types/shipment";
 import ShipmentTable from "./ShipmentTable";
 import ShipmentFilter from "./ShipmentFilter";
 
@@ -58,7 +58,7 @@ export default function ShipmentClient() {
   }, [debouncedParams]);
 
   const { data: rawData, isLoading } = shipmentList(safeQuery);
-  const items = useMemo(() => extractShipmentItems(rawData), [rawData]);
+  const items: Shipment[] = useMemo(() => (rawData as any)?.items || (rawData as any)?.data?.items || [], [rawData]);
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-500">
@@ -71,7 +71,7 @@ export default function ShipmentClient() {
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">
             {isLoading
               ? "Đang đồng bộ..."
-              : `Hệ thống tìm thấy ${rawData?.data?.meta?.totalItems || 0} vận đơn`}
+              : `Hệ thống tìm thấy ${(rawData as any)?.meta?.totalItems || (rawData as any)?.data?.meta?.totalItems || 0} vận đơn`}
           </p>
         </div>
       </div>
@@ -79,7 +79,7 @@ export default function ShipmentClient() {
       {/* FILTER BAR */}
       <ShipmentFilter
         filters={queryParams}
-        onFilterChange={(updates) =>
+        onFilterChange={(updates: any) =>
           setQueryParams((prev) => ({ ...prev, ...updates, page: 1 }))
         }
       />

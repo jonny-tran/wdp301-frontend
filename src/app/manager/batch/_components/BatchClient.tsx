@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useProduct } from "@/hooks/useProduct";
-import { extractBatchItems } from "./batch.mapper";
+import { Batch } from "@/types/product";
 import BatchTable from "./BatchTable";
 import BatchFormModal from "./BatchFormModal";
 import {
@@ -29,28 +29,24 @@ export default function BatchClient() {
   const { data, isLoading, isError, isPlaceholderData } = batchList({
     page,
     limit: 10,
+    sortOrder: "DESC",
   });
 
   // 4. Mapper dữ liệu phòng thủ
-  const items = useMemo(() => {
-    const all = extractBatchItems(data);
+  const items: Batch[] = useMemo(() => {
+    const all = (data as any)?.items || data || [];
     if (!searchTerm) return all;
     // Lọc client-side theo mã lô hàng
-    return all.filter((b) =>
+    return (all as Batch[]).filter((b) =>
       b.batchCode.toLowerCase().includes(searchTerm.toLowerCase()),
     );
   }, [data, searchTerm]);
 
-  const meta = data?.data?.meta || data?.meta;
+  const meta = (data as any)?.meta;
 
   // 5. Logic đóng mở Modal
-  const handleOpenCreate = () => {
-    setSelectedBatch(null); // Không có data => Mode Create
-    setIsModalOpen(true);
-  };
-
   const handleOpenEdit = (batch: any) => {
-    setSelectedBatch(batch); // Có data => Mode Edit
+    setSelectedBatch(batch);
     setIsModalOpen(true);
   };
 
@@ -82,13 +78,6 @@ export default function BatchClient() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-
-          <button
-            onClick={handleOpenCreate}
-            className="flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white rounded-full text-xs font-black uppercase italic hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-100 border-b-4 border-indigo-800"
-          >
-            <PlusIcon className="h-4 w-4 stroke-[3px]" /> Khởi tạo Lô
-          </button>
         </div>
       </div>
 

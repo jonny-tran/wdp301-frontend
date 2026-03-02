@@ -8,12 +8,16 @@ import {
   ArchiveBoxIcon,
 } from "@heroicons/react/24/outline";
 
-export default function ClaimsAnalytics({ stats }: { stats: any }) {
+import { ClaimAnalyticsSummary } from "@/types/claim";
+
+export default function ClaimsAnalytics({ stats }: { stats: ClaimAnalyticsSummary | null }) {
   const [searchId, setSearchId] = useState("");
 
+  if (!stats) return null;
+
   // Tìm kiếm sản phẩm trong danh sách bottlenecks dựa trên ID nhập vào
-  const searchedProduct = stats.bottlenecks.find(
-    (p: any) => p.id.toString() === searchId.trim(),
+  const searchedProduct = stats.bottleneckProducts.find(
+    (p) => p.productId.toString() === searchId.trim(),
   );
 
   return (
@@ -68,15 +72,15 @@ export default function ClaimsAnalytics({ stats }: { stats: any }) {
             searchedProduct ? (
               <div className="animate-in fade-in slide-in-from-left-2 duration-500">
                 <p className="text-[11px] font-black text-white uppercase italic truncate">
-                  {searchedProduct.name}
+                  {searchedProduct.productName}
                 </p>
                 <div className="mt-2 flex items-baseline gap-2">
                   <span className="text-4xl font-black text-yellow-400 italic leading-none">
-                    {searchedProduct.rate}
+                    {searchedProduct.totalIssues}
                   </span>
                   <span className="text-[9px] font-bold text-white/40 uppercase tracking-tighter">
-                    Hỏng: {searchedProduct.totalDamaged} /{" "}
-                    {searchedProduct.totalShipped}
+                    Lỗi: Damaged {searchedProduct.damageCount} / Missing{" "}
+                    {searchedProduct.missingCount}
                   </span>
                 </div>
               </div>
@@ -87,16 +91,16 @@ export default function ClaimsAnalytics({ stats }: { stats: any }) {
             )
           ) : (
             /* Hiển thị Top 2 mặc định nếu không search */
-            stats.bottlenecks.slice(0, 2).map((p: any) => (
+            stats.bottleneckProducts.slice(0, 2).map((p) => (
               <div
-                key={p.id}
+                key={p.productId}
                 className="border-l-2 border-white/10 pl-4 py-1 hover:border-yellow-400 transition-colors"
               >
                 <p className="text-[10px] font-black text-white uppercase italic truncate opacity-80">
-                  #{p.id} - {p.name}
+                  #{p.productId} - {p.productName}
                 </p>
                 <p className="text-[12px] font-black text-yellow-400 italic">
-                  {p.rate}{" "}
+                  {p.totalIssues}{" "}
                   <span className="text-[8px] text-white/40 ml-1 not-italic">
                     lỗi
                   </span>

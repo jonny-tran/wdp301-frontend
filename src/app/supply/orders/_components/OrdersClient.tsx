@@ -12,12 +12,11 @@ import { OrderStatus } from "@/utils/enum";
 import { createPaginationSearchParams, normalizeMeta, parseListQuery, RawSearchParams } from "@/app/supply/_components/query";
 import { formatStatusLabel, getHttpErrorMessage, isForceApproveError } from "@/app/supply/_components/format";
 import { KEY, QUERY_KEY } from "@/utils/constant";
+import { Order, OrderReview } from "@/types/order";
 import ForceApproveModal from "./ForceApproveModal";
 import OrderDetailModal from "./OrderDetailModal";
 import OrdersTable from "./OrdersTable";
 import RejectOrderModal from "./RejectOrderModal";
-import { normalizeOrders, normalizeReview } from "./orders.mapper";
-import { OrderRow } from "./orders.types";
 
 interface OrdersClientProps {
     searchParams: RawSearchParams;
@@ -47,9 +46,9 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         toDate: parsedQuery.toDate,
     });
 
-    const orders = useMemo(() => normalizeOrders(listQuery.data), [listQuery.data]);
+    const orders: Order[] = listQuery.data?.items || [];
     const meta = useMemo(
-        () => normalizeMeta((listQuery.data as { meta?: unknown } | undefined)?.meta, parsedQuery.page, parsedQuery.limit, orders.length),
+        () => normalizeMeta(listQuery.data?.meta, parsedQuery.page, parsedQuery.limit, orders.length),
         [listQuery.data, orders.length, parsedQuery.limit, parsedQuery.page],
     );
     const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
@@ -79,9 +78,9 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
     }, [orders]);
 
     const [detailTargetId, setDetailTargetId] = useState("");
-    const [rejectTarget, setRejectTarget] = useState<OrderRow | null>(null);
+    const [rejectTarget, setRejectTarget] = useState<Order | null>(null);
     const [rejectReason, setRejectReason] = useState("");
-    const [forceTarget, setForceTarget] = useState<OrderRow | null>(null);
+    const [forceTarget, setForceTarget] = useState<Order | null>(null);
     const [forceMessage, setForceMessage] = useState("");
 
     const detailQuery = orderDetail(detailTargetId);
@@ -162,7 +161,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         ]);
     };
 
-    const handleApprove = async (order: OrderRow, force = false) => {
+    const handleApprove = async (order: Order, force = false) => {
         try {
             await approveOrder.mutateAsync({
                 id: order.id,
@@ -211,10 +210,10 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         }
     };
 
-    const detailData = (detailQuery.data ?? {}) as Record<string, unknown>;
+    const detailData = (detailQuery.data ?? {}) as any;
     const detailItems = Array.isArray(detailData.items) ? detailData.items : [];
     const detailStore = detailData.store as Record<string, unknown> | undefined;
-    const reviewData = normalizeReview(reviewQuery.data);
+    const reviewData = (reviewQuery.data ?? {}) as OrderReview;
 
     const isMutating = approveOrder.isPending || rejectOrder.isPending;
 

@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useSupplier } from "@/hooks/useSupplier";
-import { extractSupplierItems } from "./supplier.mapper";
+import { Supplier } from "@/types/supplier";
 import SupplierTable from "./SupplierTable";
 import SupplierCreateModal from "./SupplierCreateModal";
 import SupplierEditModal from "./SupplierEditModal"; // Import component mới
@@ -10,19 +10,18 @@ import { toast } from "sonner";
 
 export default function SupplierClient() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingSupplier, setEditingSupplier] = useState<any>(null); // Quản lý đối tác đang được sửa
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
 
   const { supplierList, deleteSupplier } = useSupplier();
-  const { data: rawData, isLoading, isError } = supplierList();
+  const { data: rawData, isLoading, isError } = supplierList({ page: 1, limit: 100, sortOrder: "DESC" });
 
   // Mapping dữ liệu an toàn
-  const items = useMemo(() => extractSupplierItems(rawData), [rawData]);
+  const items: Supplier[] = useMemo(() => (rawData as any)?.items || rawData?.items || [], [rawData]);
 
   const handleDelete = async (id: number) => {
     if (confirm("Xác nhận xóa nhà cung cấp này?")) {
       try {
-        await deleteSupplier.mutateAsync(id);
-        toast.success("Đã xóa nhà cung cấp thành công!");
+        await deleteSupplier.mutateAsync(String(id));
       } catch (e) {
         console.error("Lỗi xóa:", e);
       }

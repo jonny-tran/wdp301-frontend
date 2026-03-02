@@ -1,4 +1,4 @@
-import { FormEvent } from "react";
+import { SyntheticEvent } from "react";
 
 interface ReportIssueCardProps {
     batchId: string;
@@ -6,7 +6,7 @@ interface ReportIssueCardProps {
     isPending: boolean;
     onChangeBatchId: (value: string) => void;
     onChangeReason: (value: string) => void;
-    onSubmit: (event: FormEvent) => void;
+    onSubmit: (event: SyntheticEvent<HTMLFormElement>) => void;
 }
 
 export default function ReportIssueCard({

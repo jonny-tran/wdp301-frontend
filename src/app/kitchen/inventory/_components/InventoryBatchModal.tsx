@@ -1,14 +1,14 @@
 "use client";
 
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { KitchenBatchRow } from "./inventory.types";
+import { KitchenDetail } from "@/types/inventory";
 import InventoryBatchDetails from "./InventoryBatchDetails";
 
 interface InventoryBatchModalProps {
     isOpen: boolean;
     onClose: () => void;
     productName: string;
-    batches: KitchenBatchRow[];
+    batches: KitchenDetail["batches"];
     isLoading: boolean;
     isError: boolean;
 }

@@ -52,11 +52,11 @@ export default function NavSidebar({
         // check reffreshtoken
         const refreshToken = useSessionStore.getState().refreshToken;
         if (!refreshToken) {
-            toast.error("You are not logged in");
+            toast.error("Bạn đã đăng xuất");
             return;
         }
         await logout.mutateAsync({ refreshToken });
-       
+
     }
     return (
         <aside

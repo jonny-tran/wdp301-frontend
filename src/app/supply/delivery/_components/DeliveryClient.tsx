@@ -9,9 +9,9 @@ import { useShipment } from "@/hooks/useShipment";
 import { createPaginationSearchParams, normalizeMeta, parseListQuery, RawSearchParams } from "@/app/supply/_components/query";
 import { formatStatusLabel } from "@/app/supply/_components/format";
 import { ShipmentStatus } from "@/utils/enum";
+import { Shipment, ShipmentPickingList } from "@/types/shipment";
 import DeliveryTable from "./DeliveryTable";
 import PickingDetailModal from "./PickingDetailModal";
-import { extractShipments, normalizePicking } from "./delivery.mapper";
 
 interface DeliveryClientProps {
     searchParams: RawSearchParams;
@@ -40,16 +40,16 @@ export default function DeliveryClient({ searchParams }: DeliveryClientProps) {
         toDate: parsedQuery.toDate,
     });
 
-    const shipments = useMemo(() => extractShipments(shipmentQuery.data), [shipmentQuery.data]);
+    const shipments: Shipment[] = shipmentQuery.data?.items || [];
     const meta = useMemo(
-        () => normalizeMeta((shipmentQuery.data as { meta?: unknown } | undefined)?.meta, parsedQuery.page, parsedQuery.limit, shipments.length),
+        () => normalizeMeta(shipmentQuery.data?.meta, parsedQuery.page, parsedQuery.limit, shipments.length),
         [parsedQuery.limit, parsedQuery.page, shipmentQuery.data, shipments.length],
     );
     const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
 
     const [detailTargetId, setDetailTargetId] = useState("");
     const pickingQuery = shipmentPickingList(detailTargetId);
-    const pickingData = normalizePicking(pickingQuery.data);
+    const pickingData = (pickingQuery.data ?? {}) as ShipmentPickingList;
     const detailShipmentNo = useMemo(() => {
         const index = shipments.findIndex((shipment) => shipment.id === detailTargetId);
         return index >= 0 ? rowStart + index + 1 : undefined;

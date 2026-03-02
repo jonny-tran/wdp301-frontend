@@ -8,11 +8,12 @@ import {
   TrashIcon,
   InboxIcon,
 } from "@heroicons/react/24/outline";
+import { Store } from "@/types/store";
 
 interface StoreTableProps {
-  items: any[];
+  items: Store[];
   isLoading: boolean;
-  onEdit: (store: any) => void;
+  onEdit: (store: Store) => void;
   onDelete: (id: string) => void;
 }
 
@@ -105,11 +106,10 @@ export default function StoreTable({
                 <div className="flex justify-center">
                   <span
                     className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all
-                    ${
-                      store.isActive
+                    ${store.isActive
                         ? "bg-green-50 text-green-700 group-hover:bg-green-600 group-hover:text-white"
                         : "bg-slate-100 text-slate-400 group-hover:bg-slate-700 group-hover:text-white"
-                    }`}
+                      }`}
                   >
                     {store.isActive ? "Active" : "Inactive"}
                   </span>

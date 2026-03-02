@@ -6,10 +6,20 @@ import {
   ArchiveBoxIcon,
 } from "@heroicons/react/24/outline";
 
+export type InventoryRowItem = {
+  productId: number;
+  productName: string;
+  sku: string;
+  totalQuantity: number;
+  unit: string;
+  status: "normal" | "low-stock" | "out-of-stock";
+  warehouseName?: string;
+};
+
 interface InventoryTableProps {
-  items: any[];
+  items: InventoryRowItem[];
   isLoading: boolean;
-  onAdjust?: (item: any) => void; // Prop để mở Modal
+  onAdjust?: (item: InventoryRowItem) => void;
 }
 
 export default function InventoryTable({
@@ -97,13 +107,12 @@ export default function InventoryTable({
                 <div className="flex justify-center">
                   <span
                     className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all
-                    ${
-                      item.status === "normal"
+                    ${item.status === "normal"
                         ? "bg-green-100 text-green-700 group-hover:bg-green-600 group-hover:text-white"
                         : item.status === "low-stock"
                           ? "bg-orange-100 text-orange-700 group-hover:bg-orange-600 group-hover:text-white"
                           : "bg-red-100 text-red-700 group-hover:bg-red-600 group-hover:text-white"
-                    }`}
+                      }`}
                   >
                     {item.status.replace("-", " ")}
                   </span>

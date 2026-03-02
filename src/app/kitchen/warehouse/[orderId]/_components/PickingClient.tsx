@@ -1,13 +1,39 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { SyntheticEvent, useEffect, useMemo, useState } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWarehouse } from "@/hooks/useWarehouse";
 import { handleErrorApi } from "@/lib/errors";
-import { buildPickRows } from "./picking.mapper";
-import { PickFormRow } from "./picking.types";
+import { PickingTaskDetail, PickingTaskItem, PickingSuggestionBatch } from "@/types/warehouse";
+
+export interface PickFormRow {
+    key: string;
+    productName: string;
+    batchCode: string;
+    batchId: string;
+    quantity: string;
+    expiry?: string;
+}
+
+function buildPickRows(detailItems: PickingTaskItem[]): PickFormRow[] {
+    const rows: PickFormRow[] = [];
+    detailItems.forEach((item, itemIdx) => {
+        const suggested = item.suggestedBatches || [];
+        suggested.forEach((batch, batchIdx) => {
+            rows.push({
+                key: `${item.productId || itemIdx}-${batch.batchCode || batch.batchId || batchIdx}`,
+                productName: item.productName || "Product",
+                batchCode: batch.batchCode || "-",
+                batchId: batch.batchId ? String(batch.batchId) : "",
+                quantity: String(batch.qtyToPick || 0),
+                expiry: batch.expiryDate || batch.expiry,
+            });
+        });
+    });
+    return rows;
+}
 import ReportIssueCard from "./ReportIssueCard";
 import ScanCheckCard from "./ScanCheckCard";
 import ShipmentLabelCard from "./ShipmentLabelCard";
@@ -29,15 +55,8 @@ export default function PickingClient({ orderId }: PickingClientProps) {
     } = useWarehouse();
 
     const detailQuery = getPickingTaskDetail(orderId);
-    const detail = useMemo(() => (detailQuery.data ?? {}) as any, [detailQuery.data]);
-
-    const detailItems = useMemo(() => {
-        if (Array.isArray(detail.items)) return detail.items;
-        if (Array.isArray(detail.data?.items)) return detail.data.items;
-        return [];
-    }, [detail]);
-
-    const shipmentId = useMemo(() => String(detail.shipmentId ?? detail.data?.shipmentId ?? ""), [detail]);
+    const detailItems = detailQuery.data?.items || [];
+    const shipmentId = detailQuery.data?.shipmentId || "";
     const labelQuery = shipmentLabel(shipmentId || "");
 
     const [scanInput, setScanInput] = useState("");
@@ -59,13 +78,13 @@ export default function PickingClient({ orderId }: PickingClientProps) {
         return Math.round((validCount / pickRows.length) * 100);
     }, [pickRows]);
 
-    const handleScanSubmit = (event: FormEvent) => {
+    const handleScanSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!scanInput.trim()) return;
         setScanCode(scanInput.trim());
     };
 
-    const handleReportIssue = async (event: FormEvent) => {
+    const handleReportIssue = async (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
         const batchId = Number(issueBatchId);
         if (!Number.isFinite(batchId) || batchId <= 0 || !issueReason.trim()) {

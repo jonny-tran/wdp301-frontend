@@ -15,7 +15,7 @@ export const useInventory = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Inventory adjusted successfully')
+            toast.success('Đã điều chỉnh kho')
             queryClient.invalidateQueries({ queryKey: KEY.inventory })
         },
     })
@@ -33,7 +33,7 @@ export const useInventory = () => {
         return useQuery({
             queryKey: QUERY_KEY.inventory.transaction(query),
             queryFn: async () => {
-                const res = await inventoryRequest.getInventoryStoreTransactions(query)
+                const res = await inventoryRequest.getInventoryStoreTransaction(query)
                 return res.data
             }
         })

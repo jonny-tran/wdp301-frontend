@@ -6,38 +6,41 @@ import {
   TruckIcon,
   DocumentMagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
-import { OrderAnalyticsStats } from "./order.types";
+import { FillRateAnalytics, SLAPerformanceLeadTime } from "@/types/order";
 
 export default function OrderAnalytics({
   data,
 }: {
-  data: OrderAnalyticsStats;
+  data: {
+    fillRate: FillRateAnalytics | null;
+    leadTime: SLAPerformanceLeadTime | null;
+  };
 }) {
   const cards = [
     {
       label: "Tỉ lệ hoàn tất",
-      value: `${data.fillRate}%`,
+      value: `${data.fillRate?.fillRate || 0}%`,
       sub: "Fill Rate",
       icon: CheckBadgeIcon,
       color: "text-green-600",
     },
     {
       label: "Duyệt đơn (Avg)",
-      value: `${data.avgReview}h`,
+      value: `${data.leadTime?.avgReviewTime || 0}${data.leadTime?.unit || 'h'}`,
       sub: "Review Time",
       icon: DocumentMagnifyingGlassIcon,
       color: "text-blue-600",
     },
     {
       label: "Nhặt hàng (Avg)",
-      value: `${data.avgPicking}h`,
+      value: `${data.leadTime?.avgPickingTime || 0}${data.leadTime?.unit || 'h'}`,
       sub: "Picking Time",
       icon: ClockIcon,
       color: "text-orange-600",
     },
     {
       label: "Giao hàng (Avg)",
-      value: `${data.avgDelivery}h`,
+      value: `${data.leadTime?.avgDeliveryTime || 0}${data.leadTime?.unit || 'h'}`,
       sub: "Delivery Time",
       icon: TruckIcon,
       color: "text-purple-600",

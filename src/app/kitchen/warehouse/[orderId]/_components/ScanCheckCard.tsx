@@ -1,14 +1,15 @@
-import { FormEvent } from "react";
+import { SyntheticEvent } from "react";
 import { QrCodeIcon } from "@heroicons/react/24/outline";
+import { ScanCheckResult } from "@/types/warehouse";
 
 interface ScanCheckCardProps {
     scanInput: string;
     scanCode: string;
-    scanData: unknown;
+    scanData: ScanCheckResult | undefined;
     isLoading: boolean;
     isError: boolean;
     onChangeInput: (value: string) => void;
-    onSubmit: (event: FormEvent) => void;
+    onSubmit: (event: SyntheticEvent<HTMLFormElement>) => void;
 }
 
 export default function ScanCheckCard({
@@ -20,8 +21,6 @@ export default function ScanCheckCard({
     onChangeInput,
     onSubmit,
 }: ScanCheckCardProps) {
-    const data = (scanData ?? {}) as Record<string, unknown>;
-
     return (
         <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
             <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-text-muted">Scan Check</h3>
@@ -47,17 +46,17 @@ export default function ScanCheckCard({
                         <p className="text-text-muted">Scanning...</p>
                     ) : isError ? (
                         <p className="text-red-500">Batch not found or inaccessible.</p>
-                    ) : (
+                    ) : scanData ? (
                         <>
                             <div className="flex items-center justify-between mb-1">
-                                <p className="font-semibold text-text-main">{String(data.productName ?? "-")}</p>
-                                <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 rounded uppercase">ID: {String(data.batchId ?? "-")}</span>
+                                <p className="font-semibold text-text-main">{scanData.productName || "-"}</p>
+                                <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 rounded uppercase">ID: {scanData.batchId || "-"}</span>
                             </div>
-                            <p className="text-text-muted">Code: {String(data.batchCode ?? "-")}</p>
-                            <p className="text-text-muted">Quantity: {Number(data.quantityPhysical ?? data.currentQuantity ?? 0)}</p>
-                            <p className="text-text-muted">Status: {String(data.status ?? "-")}</p>
+                            <p className="text-text-muted">Code: {scanData.batchCode || "-"}</p>
+                            <p className="text-text-muted">Quantity: {scanData.quantityPhysical ?? scanData.currentQuantity ?? 0}</p>
+                            <p className="text-text-muted">Status: {scanData.status || "-"}</p>
                         </>
-                    )}
+                    ) : null}
                 </div>
             )}
         </div>

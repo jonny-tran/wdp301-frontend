@@ -37,7 +37,7 @@ export const useBaseUnit = () => {
             return res.data;
         },
         onSuccess: () => {
-            toast.success('Base unit created successfully')
+            toast.success('Đã tạo đơn vị đo')
             queryClient.invalidateQueries({ queryKey: KEY.baseUnits })
         },
     })
@@ -48,7 +48,7 @@ export const useBaseUnit = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Base unit updated successfully')
+            toast.success('Đã cập nhật đơn vị đo')
             queryClient.invalidateQueries({ queryKey: KEY.baseUnits })
         },
     })
@@ -59,7 +59,7 @@ export const useBaseUnit = () => {
             return res.message
         },
         onSuccess: () => {
-            toast.success('Base unit deleted successfully')
+            toast.success('Đã xóa đơn vị đo này')
             queryClient.invalidateQueries({ queryKey: KEY.baseUnits })
         },
         onError: (error) => {

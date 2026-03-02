@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import {
   XMarkIcon,
   CheckIcon,
@@ -10,9 +10,13 @@ import {
 } from "@heroicons/react/24/outline";
 import { useProduct } from "@/hooks/useProduct";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
-import { extractBaseUnitOptions } from "./product.mapper";
+import { BaseUnit } from "@/types/base-unit";
 import ImageUpload from "@/components/shared/ImageUpload";
 import { toast } from "sonner";
+import { useForm, Controller } from "react-hook-form";
+import { CreateProductBody, CreateProductBodyType } from "@/schemas/product";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { handleErrorApi } from "@/lib/errors";
 
 // Ảnh mặc định hệ thống
 const DEFAULT_IMAGE_URL = "https://cdn.com/image1.jpg";
@@ -33,44 +37,54 @@ export default function ProductCreateModal({
   const { data: rawBaseUnits, isLoading: isUnitsLoading } = baseUnitList();
 
   const unitOptions = useMemo(
-    () => extractBaseUnitOptions(rawBaseUnits),
+    () => {
+      const source = (rawBaseUnits as any)?.items || rawBaseUnits || [];
+      return (Array.isArray(source) ? source : []).map((u: BaseUnit) => ({
+        value: u.id,
+        label: u.name || `Đơn vị ${u.id}`
+      }));
+    },
     [rawBaseUnits],
   );
 
-  const [formData, setFormData] = useState({
-    name: "",
-    baseUnitId: 0,
-    shelfLifeDays: 0,
-    imageUrl: "",
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateProductBodyType>({
+    resolver: zodResolver(CreateProductBody) as any,
+    defaultValues: {
+      name: "",
+      baseUnitId: 0,
+      shelfLifeDays: 0,
+      imageUrl: DEFAULT_IMAGE_URL,
+    },
   });
 
   // Reset form khi mở modal
   useEffect(() => {
     if (isOpen) {
-      setFormData({ name: "", baseUnitId: 0, shelfLifeDays: 0, imageUrl: "" });
+      reset({
+        name: "",
+        baseUnitId: 0,
+        shelfLifeDays: 0,
+        imageUrl: DEFAULT_IMAGE_URL,
+      });
     }
-  }, [isOpen]);
+  }, [isOpen, reset]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Ràng buộc phải chọn đơn vị
-    if (formData.baseUnitId === 0) {
-      toast.error("Vui lòng chọn đơn vị tính");
-      return;
-    }
-
-    const submissionData = {
-      ...formData,
-      imageUrl: formData.imageUrl.trim() || DEFAULT_IMAGE_URL,
-    };
-
+  const onSubmit = async (data: any) => {
     try {
-      await createProduct.mutateAsync(submissionData);
-      toast.success("Tạo sản phẩm thành công!");
+      await createProduct.mutateAsync(data);
       onClose();
     } catch (error) {
-      console.error("Lỗi POST product:", error);
+      handleErrorApi({
+        error,
+        setError,
+      });
     }
   };
 
@@ -85,17 +99,24 @@ export default function ProductCreateModal({
         className="relative w-full max-w-4xl bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="grid grid-cols-1 md:grid-cols-12">
+        <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-12">
           {/* CỘT TRÁI: Form nhập liệu */}
           <div className="md:col-span-8 p-10 space-y-8 bg-white border-r border-slate-50">
             <div className="space-y-3">
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">
                 Hình ảnh (Cloudinary)
               </label>
-              <ImageUpload
-                value={formData.imageUrl}
-                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+              <Controller
+                name="imageUrl"
+                control={control}
+                render={({ field }) => (
+                  <ImageUpload
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                  />
+                )}
               />
+              {errors.imageUrl && <p className="text-[10px] text-red-500 ml-2">{errors.imageUrl.message}</p>}
             </div>
 
             <div className="space-y-6">
@@ -105,14 +126,11 @@ export default function ProductCreateModal({
                 </label>
                 <input
                   type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className="w-full rounded-full border border-slate-200 bg-slate-50 px-8 py-5 text-sm font-bold text-slate-900 focus:bg-white outline-none transition-all shadow-inner"
+                  {...register("name")}
+                  className={`w-full rounded-full border border-slate-200 bg-slate-50 px-8 py-5 text-sm font-bold text-slate-900 focus:bg-white outline-none transition-all shadow-inner ${errors.name ? "border-red-500 bg-red-50" : ""}`}
                   placeholder="Nhập tên sản phẩm..."
                 />
+                {errors.name && <p className="text-[10px] text-red-500 ml-4">{errors.name.message}</p>}
               </div>
 
               <div className="space-y-3">
@@ -121,18 +139,11 @@ export default function ProductCreateModal({
                 </label>
                 <input
                   type="number"
-                  required
-                  min={1}
-                  value={formData.shelfLifeDays || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      shelfLifeDays: Number(e.target.value),
-                    })
-                  }
-                  className="w-full rounded-full border border-slate-200 bg-slate-50 px-8 py-5 text-sm font-bold text-slate-900 focus:bg-white outline-none transition-all shadow-inner"
+                  {...register("shelfLifeDays")}
+                  className={`w-full rounded-full border border-slate-200 bg-slate-50 px-8 py-5 text-sm font-bold text-slate-900 focus:bg-white outline-none transition-all shadow-inner ${errors.shelfLifeDays ? "border-red-500 bg-red-50" : ""}`}
                   placeholder="Hạn sử dụng..."
                 />
+                {errors.shelfLifeDays && <p className="text-[10px] text-red-500 ml-4">{errors.shelfLifeDays.message}</p>}
               </div>
             </div>
           </div>
@@ -147,6 +158,7 @@ export default function ProductCreateModal({
                 Tạo sản phẩm
               </h3>
               <button
+                type="button"
                 onClick={onClose}
                 className="absolute -top-3 -right-3 p-3 bg-white border border-slate-200 text-slate-400 rounded-full hover:bg-slate-50 shadow-md"
               >
@@ -161,16 +173,9 @@ export default function ProductCreateModal({
                 </label>
                 <div className="relative">
                   <select
-                    required
-                    value={formData.baseUnitId}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        baseUnitId: Number(e.target.value),
-                      })
-                    }
+                    {...register("baseUnitId")}
                     disabled={isUnitsLoading}
-                    className="w-full rounded-[1.5rem] bg-white border border-slate-200 px-6 py-5 text-sm font-bold text-slate-900 outline-none appearance-none cursor-pointer disabled:opacity-50 shadow-sm"
+                    className={`w-full rounded-[1.5rem] bg-white border border-slate-200 px-6 py-5 text-sm font-bold text-slate-900 outline-none appearance-none cursor-pointer disabled:opacity-50 shadow-sm ${errors.baseUnitId ? "border-red-500 bg-red-50" : ""}`}
                   >
                     {isUnitsLoading ? (
                       <option>Đang tải...</option>
@@ -179,7 +184,7 @@ export default function ProductCreateModal({
                         <option value={0} disabled>
                           Chọn đơn vị...
                         </option>
-                        {unitOptions.map((opt) => (
+                        {unitOptions.map((opt: { value: number, label: string }) => (
                           <option key={opt.value} value={opt.value}>
                             {opt.label}
                           </option>
@@ -189,16 +194,16 @@ export default function ProductCreateModal({
                   </select>
                   <ArchiveBoxIcon className="h-5 w-5 absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
                 </div>
+                {errors.baseUnitId && <p className="text-[10px] text-red-500 ml-4">{errors.baseUnitId.message}</p>}
               </div>
 
               <div className="flex flex-col gap-4">
                 <button
                   type="submit"
-                  onClick={handleSubmit}
-                  disabled={createProduct.isPending}
+                  disabled={isSubmitting}
                   className="flex items-center justify-center gap-3 rounded-full py-5 text-xs font-black text-white transition-all bg-green-600 hover:bg-green-700 disabled:bg-slate-300 shadow-lg active:scale-95"
                 >
-                  {createProduct.isPending ? (
+                  {isSubmitting ? (
                     <ArrowPathIcon className="h-4 w-4 animate-spin" />
                   ) : (
                     <CheckIcon className="h-4 w-4" />
@@ -217,8 +222,9 @@ export default function ProductCreateModal({
               </div>
             </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
 }
+

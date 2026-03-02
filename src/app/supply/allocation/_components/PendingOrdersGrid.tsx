@@ -1,9 +1,9 @@
 import { EyeIcon } from "@heroicons/react/24/outline";
 import { formatDateTime, formatStatusLabel, getStatusBadgeClass } from "@/app/supply/_components/format";
-import { OrderCard } from "./allocation.types";
+import { Order } from "@/types/order";
 
 interface PendingOrdersGridProps {
-    orders: OrderCard[];
+    orders: Order[];
     rowStart: number;
     isLoading: boolean;
     isError: boolean;

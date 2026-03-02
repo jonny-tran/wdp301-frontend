@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { ArrowRightIcon } from "@heroicons/react/24/outline";
+import { PickingTaskListItem } from "@/types/warehouse";
 
 interface PickingQueueCardProps {
     isLoading: boolean;
     isError: boolean;
-    tasks: Record<string, unknown>[];
+    tasks: PickingTaskListItem[];
 }
 
 export default function PickingQueueCard({
@@ -30,9 +31,9 @@ export default function PickingQueueCard({
             ) : (
                 <div className="space-y-3">
                     {tasks.slice(0, 6).map((task, index) => {
-                        const orderId = String(task.orderId ?? task.id ?? "");
-                        const storeName = String(task.storeName ?? task.store_name ?? "Store");
-                        const totalItems = Number(task.totalItems ?? task.itemCount ?? 0);
+                        const orderId = task.orderId;
+                        const storeName = task.storeName || "Store";
+                        const totalItems = task.totalItems || 0;
 
                         return (
                             <Link

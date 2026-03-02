@@ -6,12 +6,12 @@ import {
   UserGroupIcon,
   PhoneIcon,
 } from "@heroicons/react/24/outline";
-import { SupplierRow } from "./supplier.types";
+import { Supplier } from "@/types/supplier";
 
 interface SupplierTableProps {
-  items: SupplierRow[];
+  items: Supplier[];
   isLoading: boolean;
-  onEdit: (supplier: SupplierRow) => void;
+  onEdit: (supplier: Supplier) => void;
   onDelete: (id: number) => void;
 }
 
@@ -77,11 +77,10 @@ export default function SupplierTable({
               </td>
               <td className="px-4 py-4 text-center">
                 <span
-                  className={`inline-flex px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all ${
-                    item.isActive
+                  className={`inline-flex px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all ${item.isActive
                       ? "bg-green-100 text-green-700 group-hover:bg-green-600 group-hover:text-white"
                       : "bg-slate-100 text-slate-400 group-hover:bg-slate-700"
-                  }`}
+                    }`}
                 >
                   {item.isActive ? "Active" : "Inactive"}
                 </span>

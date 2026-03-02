@@ -62,6 +62,8 @@ export const KEY = {
     warehouse: ['warehouse'],
     analytics: ['analytics'],
     baseUnits: ['base-units'],
+    users: ['users'],
+    roles: ['roles'],
 } as const;
 
 export const QUERY_KEY = {

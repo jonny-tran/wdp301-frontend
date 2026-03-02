@@ -1,4 +1,4 @@
-import { FormEvent } from "react";
+import { SyntheticEvent } from "react";
 
 interface RejectAllocationModalProps {
     orderNo?: number;
@@ -6,7 +6,7 @@ interface RejectAllocationModalProps {
     isPending: boolean;
     onChangeReason: (reason: string) => void;
     onClose: () => void;
-    onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+    onSubmit: (event: SyntheticEvent<HTMLFormElement>) => void;
 }
 
 export default function RejectAllocationModal({

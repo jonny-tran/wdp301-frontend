@@ -7,17 +7,17 @@ import {
   EyeIcon,
   CubeIcon,
 } from "@heroicons/react/24/outline";
-import { ProductRow } from "./product.types";
+import { Product } from "@/types/product";
 import { clsx } from "clsx";
 
 interface ProductTableProps {
-  items: ProductRow[];
+  items: Product[];
   isLoading: boolean;
   isError: boolean;
-  onEdit: (product: ProductRow) => void;
+  onEdit: (product: Product) => void;
   onDelete: (id: number) => void;
-  onRestore: (id: number) => void; // Thêm prop khôi phục
-  onViewDetail: (product: ProductRow) => void;
+  onRestore: (id: number) => void;
+  onViewDetail: (product: Product) => void;
 }
 
 export default function ProductTable({
@@ -79,8 +79,8 @@ export default function ProductTable({
                       alt={item.name}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                       onError={(e) =>
-                        (e.currentTarget.src =
-                          "https://cdn.com/placeholder.jpg")
+                      (e.currentTarget.src =
+                        "https://cdn.com/placeholder.jpg")
                       }
                     />
                   </div>
@@ -103,11 +103,11 @@ export default function ProductTable({
                       {item.baseUnit}
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 italic">
-                      Hạn: {item.shelfLife} ngày
+                      Hạn: {item.shelfLifeDays} ngày
                     </span>
                   </div>
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                    Min Stock: {item.minStock}
+                    Min Stock: {item.minStockLevel}
                   </p>
                 </div>
               </td>
@@ -117,19 +117,19 @@ export default function ProductTable({
                 <span
                   className={clsx(
                     "inline-flex rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest",
-                    item.status === "ACTIVE"
+                    item.isActive
                       ? "bg-green-50 text-green-600 border border-green-100 shadow-sm shadow-green-50"
                       : "bg-slate-100 text-slate-400 border border-slate-200",
                   )}
                 >
-                  {item.status}
+                  {item.isActive ? 'ACTIVE' : 'INACTIVE'}
                 </span>
               </td>
 
               {/* CỘT 4: Hành động */}
               <td className="px-10 py-6">
                 <div className="flex items-center justify-end gap-2">
-                  {item.status === "ACTIVE" ? (
+                  {item.isActive ? (
                     <>
                       <button
                         onClick={() => onViewDetail(item)}

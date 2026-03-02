@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/hooks/useAuth"; // Sử dụng hook nguyên bản của bạn
+import { useAuth } from "@/hooks/useAuth";
 import {
   ChartBarIcon,
   ArrowLeftOnRectangleIcon,
@@ -16,6 +16,8 @@ import {
   AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
 import { TruckIcon } from "lucide-react";
+import { useSessionStore } from "@/stores/sesionStore";
+import { toast } from "sonner";
 
 // Danh sách menu riêng cho Admin
 const adminLinks = [
@@ -41,14 +43,16 @@ export default function AdminLayout({
 }) {
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const { logout } = useAuth(); // Lấy hàm logout từ hook của bạn
+  const { logout } = useAuth();
 
-  const handleLogout = () => {
-    // Gọi mutation logout từ hook useAuth
-    const refreshToken = localStorage.getItem("refreshToken");
-    if (refreshToken) {
-      logout.mutate({ refreshToken });
+  const handleLogout = async () => {
+    // check reffreshtoken
+    const refreshToken = useSessionStore.getState().refreshToken;
+    if (!refreshToken) {
+      toast.error("Bạn đã đăng xuất");
+      return;
     }
+    await logout.mutateAsync({ refreshToken });
   };
 
   return (
@@ -93,10 +97,9 @@ export default function AdminLayout({
                   onClick={() => setIsMobileOpen(false)}
                   className={`
                     group flex items-center gap-2.5 px-3 py-3 rounded-xl text-[11px] font-black transition-all duration-200
-                    ${
-                      isActive
-                        ? "bg-indigo-600 text-white shadow-md scale-[1.02]"
-                        : "text-slate-400 hover:bg-slate-50 hover:text-indigo-600"
+                    ${isActive
+                      ? "bg-indigo-600 text-white shadow-md scale-[1.02]"
+                      : "text-slate-400 hover:bg-slate-50 hover:text-indigo-600"
                     }
                   `}
                 >

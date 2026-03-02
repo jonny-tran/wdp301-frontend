@@ -40,13 +40,6 @@ export default function InboundClient() {
         setIsDetailOpen(true);
     };
 
-    const handleCreateSubmit = (data: any) => {
-        createReceipt.mutate(data, {
-            onSuccess: () => {
-                setIsCreateOpen(false);
-            }
-        });
-    };
 
     return (
         <div className="space-y-8">
@@ -87,8 +80,6 @@ export default function InboundClient() {
             <InboundCreateModal
                 isOpen={isCreateOpen}
                 onClose={() => setIsCreateOpen(false)}
-                onSubmit={handleCreateSubmit}
-                isPending={createReceipt.isPending}
             />
         </div >
     );

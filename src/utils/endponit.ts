@@ -13,9 +13,10 @@ export const ENDPOINT_CLIENT = {
     PROFILE: '/auth/me',
     ROLES: '/auth/roles',
     CREATE_USER: '/auth/create-user',
+    USERS: '/auth/users',
+    UPDATE_USER: (id: string) => `/auth/users/${id}`,
 
-    // Upload
-    UPLOAD_IMAGE: "/upload/image",
+
 
     // Orders
     ORDER_LIST: '/orders',
