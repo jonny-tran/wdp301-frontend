@@ -6,7 +6,7 @@ import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWarehouse } from "@/hooks/useWarehouse";
 import { handleErrorApi } from "@/lib/errors";
-import { PickingTaskDetail, PickingTaskItem, PickingSuggestionBatch } from "@/types/warehouse";
+import { PickingTaskItem } from "@/types/warehouse";
 
 export interface PickFormRow {
     key: string;

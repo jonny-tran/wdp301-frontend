@@ -16,6 +16,8 @@ import InventoryWatchlistCard from "./InventoryWatchlistCard";
 import KitchenQuickActions from "./KitchenQuickActions";
 import KitchenSummaryCard from "./KitchenSummaryCard";
 import PickingQueueCard from "./PickingQueueCard";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 const DEFAULT_PAGE_QUERY = {
     page: 1,
@@ -40,10 +42,10 @@ export default function DashboardClient() {
     const receiptItems = receiptsQuery.data?.items || [];
 
     const quickActions = [
-        { href: "/kitchen/inventory", label: "Inventory" },
-        { href: "/kitchen/warehouse", label: "Warehouse" },
-        { href: "/kitchen/batches", label: "Batches" },
-        { href: "/kitchen/production-plan", label: "Ops Board" },
+        { href: "/kitchen/inventory", label: "Inventory", permission: { action: P.INVENTORY_READ_KITCHEN_SUMMARY, resource: Resource.INVENTORY } },
+        { href: "/kitchen/warehouse", label: "Warehouse", permission: { action: P.WAREHOUSE_READ_TASKS, resource: Resource.WAREHOUSE } },
+        { href: "/kitchen/batches", label: "Batches", permission: { action: P.INBOUND_READ_BATCH_LABEL, resource: Resource.INBOUND } },
+        { href: "/kitchen/inbound", label: "Inbound", permission: { action: P.INBOUND_CREATE_RECEIPT, resource: Resource.INBOUND } },
     ];
 
     return (

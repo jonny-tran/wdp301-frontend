@@ -1,4 +1,7 @@
 import { PickFormRow } from "./PickingClient";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 
 interface SuggestedPicksPanelProps {
@@ -65,20 +68,22 @@ export default function SuggestedPicksPanel({
 
             <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4">
                 <span className="text-xs text-text-muted">{shipmentId ? "Shipment data available" : "Shipment data not available"}</span>
-                <button
-                    onClick={onFinalize}
-                    disabled={isFinalizing || rows.length === 0}
-                    className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary-dark disabled:opacity-60"
-                >
-                    {isFinalizing ? (
-                        <>
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-                            Processing...
-                        </>
-                    ) : (
-                        "Finalize Bulk Shipment"
-                    )}
-                </button>
+                <Can I={P.WAREHOUSE_CREATE_SHIPMENT} on={Resource.WAREHOUSE}>
+                    <button
+                        onClick={onFinalize}
+                        disabled={isFinalizing || rows.length === 0}
+                        className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white shadow-lg shadow-primary/20 hover:bg-primary-dark disabled:opacity-60"
+                    >
+                        {isFinalizing ? (
+                            <>
+                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                                Processing...
+                            </>
+                        ) : (
+                            "Finalize Bulk Shipment"
+                        )}
+                    </button>
+                </Can>
             </div>
         </div>
     );

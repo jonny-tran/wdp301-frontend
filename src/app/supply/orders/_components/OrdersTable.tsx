@@ -2,6 +2,9 @@ import { EyeIcon } from "@heroicons/react/24/outline";
 import { OrderStatus } from "@/utils/enum";
 import { formatAmount, formatDate, formatStatusLabel, getStatusBadgeClass } from "@/app/supply/_components/format";
 import { Order } from "@/types/order";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 interface OrdersTableProps {
     orders: Order[];
@@ -77,20 +80,24 @@ export default function OrdersTable({
 
                                         {order.status === OrderStatus.PENDING && (
                                             <>
-                                                <button
-                                                    onClick={() => onApprove(order)}
-                                                    disabled={isMutating}
-                                                    className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-60"
-                                                >
-                                                    Approve
-                                                </button>
-                                                <button
-                                                    onClick={() => onReject(order)}
-                                                    disabled={isMutating}
-                                                    className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 disabled:opacity-60"
-                                                >
-                                                    Reject
-                                                </button>
+                                                <Can I={P.ORDER_APPROVE} on={Resource.ORDER}>
+                                                    <button
+                                                        onClick={() => onApprove(order)}
+                                                        disabled={isMutating}
+                                                        className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-60"
+                                                    >
+                                                        Approve
+                                                    </button>
+                                                </Can>
+                                                <Can I={P.ORDER_REJECT} on={Resource.ORDER}>
+                                                    <button
+                                                        onClick={() => onReject(order)}
+                                                        disabled={isMutating}
+                                                        className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 disabled:opacity-60"
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </Can>
                                             </>
                                         )}
                                     </div>

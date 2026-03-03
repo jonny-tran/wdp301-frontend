@@ -29,6 +29,9 @@ import {
   MagnifyingGlassIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 interface ProductClientProps {
   searchParams: RawSearchParams;
@@ -167,13 +170,15 @@ export default function ProductClient({ searchParams }: ProductClientProps) {
           </div>
         </div>
 
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="group flex items-center gap-3 rounded-full bg-slate-900 px-10 py-5 text-xs font-black text-white hover:bg-black transition-all active:scale-95 shadow-2xl shadow-slate-200"
-        >
-          <PlusIcon className="h-4 w-4 stroke-[3px]" />
-          THÊM SẢN PHẨM MỚI
-        </button>
+        <Can I={P.PRODUCT_CREATE} on={Resource.PRODUCT}>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="group flex items-center gap-3 rounded-full bg-slate-900 px-10 py-5 text-xs font-black text-white hover:bg-black transition-all active:scale-95 shadow-2xl shadow-slate-200"
+          >
+            <PlusIcon className="h-4 w-4 stroke-[3px]" />
+            THÊM SẢN PHẨM MỚI
+          </button>
+        </Can>
       </div>
 
       {/* Filter Section */}

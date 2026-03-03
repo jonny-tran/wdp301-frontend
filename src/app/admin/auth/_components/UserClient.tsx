@@ -16,6 +16,9 @@ import UserEditModal from "./UserEditModal";
 import { BasePagination } from "@/components/layout/BasePagination";
 import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
 import { UserGroupIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 export default function UserClient({
   searchParams,
@@ -126,12 +129,14 @@ export default function UserClient({
             Tổng cộng: {meta.totalItems} tài khoản
           </p>
         </div>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-[11px] font-black text-white hover:bg-black transition-all shadow-xl"
-        >
-          <UserPlusIcon className="h-4 w-4 stroke-[3px]" /> THÊM NHÂN VIÊN
-        </button>
+        <Can I={P.USER_CREATE} on={Resource.USER}>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-[11px] font-black text-white hover:bg-black transition-all shadow-xl"
+          >
+            <UserPlusIcon className="h-4 w-4 stroke-[3px]" /> THÊM NHÂN VIÊN
+          </button>
+        </Can>
       </div>
 
       <div className="rounded-[2.5rem] bg-white p-2 shadow-sm border border-slate-100">

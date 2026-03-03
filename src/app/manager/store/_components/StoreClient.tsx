@@ -9,6 +9,9 @@ import StoreTable from "./StoreTable";
 import StoreModal from "./StoreModal";
 import StoreReliability from "./StoreReliability";
 import DemandPattern from "./DemandPattern";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 // Icons
 import {
@@ -93,13 +96,15 @@ export default function StoreClient() {
           </p>
         </div>
 
-        <button
-          onClick={() => setModal({ isOpen: true, editingStore: null })}
-          className="flex items-center gap-2 px-8 py-4 bg-black text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl active:scale-95"
-        >
-          <PlusIcon className="h-4 w-4 stroke-[3px]" />
-          Add Store
-        </button>
+        <Can I={P.STORE_CREATE} on={Resource.STORE}>
+          <button
+            onClick={() => setModal({ isOpen: true, editingStore: null })}
+            className="flex items-center gap-2 px-8 py-4 bg-black text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl active:scale-95"
+          >
+            <PlusIcon className="h-4 w-4 stroke-[3px]" />
+            Add Store
+          </button>
+        </Can>
       </div>
 
       {/* ANALYTICS SECTION */}
