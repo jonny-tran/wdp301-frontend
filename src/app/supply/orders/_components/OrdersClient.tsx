@@ -94,14 +94,14 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
     const filterConfig: FilterConfig[] = [
         {
             key: "search",
-            label: "Search",
+            label: "Tìm kiếm",
             type: "text",
-            placeholder: "Order ID...",
+            placeholder: "Mã đơn hàng...",
             className: "md:col-span-2",
         },
         {
             key: "status",
-            label: "Status",
+            label: "Trạng thái",
             type: "select",
             options: Object.values(OrderStatus).map((status) => ({
                 label: formatStatusLabel(status),
@@ -110,7 +110,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         },
         {
             key: "limit",
-            label: "Rows",
+            label: "Số dòng",
             type: "select",
             defaultValue: String(parsedQuery.limit),
             options: [
@@ -121,22 +121,22 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         },
         {
             key: "sortOrder",
-            label: "Sort",
+            label: "Sắp xếp",
             type: "select",
             defaultValue: parsedQuery.sortOrder,
             options: [
-                { label: "Newest", value: "DESC" },
-                { label: "Oldest", value: "ASC" },
+                { label: "Mới nhất", value: "DESC" },
+                { label: "Cũ nhất", value: "ASC" },
             ],
         },
         {
             key: "fromDate",
-            label: "From",
+            label: "Từ ngày",
             type: "date",
         },
         {
             key: "toDate",
-            label: "To",
+            label: "Đến ngày",
             type: "date",
         },
     ];
@@ -222,25 +222,25 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         <div className="space-y-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-black text-text-main">Order Management</h1>
-                    <p className="text-sm text-text-muted">Approve, reject, and track order status for the supply coordinator role.</p>
+                    <h1 className="text-2xl font-black text-text-main">Quản lý Đơn hàng</h1>
+                    <p className="text-sm text-text-muted">Phê duyệt, từ chối và theo dõi trạng thái đơn hàng cho vai trò điều phối viên.</p>
                 </div>
                 <button
                     onClick={refreshData}
                     className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-text-main hover:border-primary/50 hover:text-primary"
                 >
                     <ArrowPathIcon className="h-4 w-4" />
-                    Refresh
+                    Làm mới
                 </button>
             </div>
 
             <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
                 <div className="grid grid-cols-2 gap-3 text-xs md:grid-cols-5">
-                    <SummaryItem label="Total Records" value={meta.totalItems} tone="default" />
-                    <SummaryItem label="Pending" value={statusSummary.pending} tone="amber" />
-                    <SummaryItem label="Approved" value={statusSummary.approved} tone="green" />
-                    <SummaryItem label="Rejected" value={statusSummary.rejected} tone="red" />
-                    <SummaryItem label="Other" value={statusSummary.other} tone="default" />
+                    <SummaryItem label="Tổng số bản ghi" value={meta.totalItems} tone="default" />
+                    <SummaryItem label="Chờ xử lý" value={statusSummary.pending} tone="amber" />
+                    <SummaryItem label="Đã duyệt" value={statusSummary.approved} tone="green" />
+                    <SummaryItem label="Đã từ chối" value={statusSummary.rejected} tone="red" />
+                    <SummaryItem label="Khác" value={statusSummary.other} tone="default" />
                 </div>
             </div>
 

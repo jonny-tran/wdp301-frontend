@@ -25,31 +25,31 @@ export default function IssuesTable({
             <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50/70 text-xs uppercase tracking-wide text-text-muted">
                     <tr>
-                        <th className="px-6 py-3">No.</th>
-                        <th className="px-6 py-3">Shipment</th>
-                        <th className="px-6 py-3">Created</th>
-                        <th className="px-6 py-3 text-center">Status</th>
-                        <th className="px-6 py-3 text-right">Actions</th>
+                        <th className="px-6 py-3">STT</th>
+                        <th className="px-6 py-3">Giao hàng</th>
+                        <th className="px-6 py-3">Ngày tạo</th>
+                        <th className="px-6 py-3 text-center">Trạng thái</th>
+                        <th className="px-6 py-3 text-right">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {isLoading ? (
                         <tr>
-                            <td colSpan={5} className="px-6 py-8 text-sm text-text-muted">Loading claims...</td>
+                            <td colSpan={5} className="px-6 py-8 text-sm text-text-muted">Đang tải khiếu nại...</td>
                         </tr>
                     ) : isError ? (
                         <tr>
-                            <td colSpan={5} className="px-6 py-8 text-sm text-red-500">Failed to load claim list.</td>
+                            <td colSpan={5} className="px-6 py-8 text-sm text-red-500">Tải danh sách khiếu nại thất bại.</td>
                         </tr>
                     ) : claims.length === 0 ? (
                         <tr>
-                            <td colSpan={5} className="px-6 py-8 text-sm text-text-muted">No claims match current filters.</td>
+                            <td colSpan={5} className="px-6 py-8 text-sm text-text-muted">Không có khiếu nại nào khớp với bộ lọc hiện tại.</td>
                         </tr>
                     ) : (
                         claims.map((claim, index) => (
                             <tr key={claim.id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 font-bold text-text-main">#{rowStart + index + 1}</td>
-                                <td className="px-6 py-4 text-text-main">{claim.shipmentId ? "Available" : "-"}</td>
+                                <td className="px-6 py-4 text-text-main">{claim.shipmentId ? "Có sẵn" : "-"}</td>
                                 <td className="px-6 py-4 text-text-muted">{formatDateTime(claim.createdAt)}</td>
                                 <td className="px-6 py-4 text-center">
                                     <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${getStatusBadgeClass(String(claim.status ?? ""))}`}>
@@ -63,7 +63,7 @@ export default function IssuesTable({
                                             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary"
                                         >
                                             <EyeIcon className="h-4 w-4" />
-                                            Details
+                                            Chi tiết
                                         </button>
 
                                         {claim.status === ClaimStatus.PENDING && (
@@ -71,7 +71,7 @@ export default function IssuesTable({
                                                 onClick={() => onOpenResolve(claim)}
                                                 className="rounded-lg bg-primary px-3 py-1.5 text-xs font-bold text-white hover:bg-primary-dark"
                                             >
-                                                Resolve
+                                                Giải quyết
                                             </button>
                                         )}
                                     </div>

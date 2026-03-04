@@ -67,13 +67,12 @@ export default function ClaimsTable({
                 <div className="flex justify-center">
                   <span
                     className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all
-                    ${
-                      claim.status === "approved"
+                    ${claim.status === "approved"
                         ? "bg-green-50 text-green-700 group-hover:bg-green-600 group-hover:text-white"
                         : claim.status === "pending"
                           ? "bg-orange-50 text-orange-700 group-hover:bg-orange-600 group-hover:text-white"
                           : "bg-red-50 text-red-700 group-hover:bg-red-600 group-hover:text-white"
-                    }`}
+                      }`}
                   >
                     {claim.status}
                   </span>
@@ -86,7 +85,7 @@ export default function ClaimsTable({
                   className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all active:scale-95"
                 >
                   <EyeIcon className="h-3.5 w-3.5 stroke-[3px]" />
-                  View
+                  Xem
                 </button>
               </td>
             </tr>

@@ -41,10 +41,10 @@ export default function DashboardClient() {
     const receiptItems = extractItems(receiptsQuery.data);
 
     const quickActions = [
-        { href: "/kitchen/inventory", label: "Inventory" },
-        { href: "/kitchen/warehouse", label: "Warehouse" },
-        { href: "/kitchen/batches", label: "Batches" },
-        { href: "/kitchen/production-plan", label: "Ops Board" },
+        { href: "/kitchen/inventory", label: "Kho hàng" },
+        { href: "/kitchen/warehouse", label: "Nhà kho" },
+        { href: "/kitchen/batches", label: "Lô hàng" },
+        { href: "/kitchen/production-plan", label: "Bảng điều hành" },
     ];
 
     return (
@@ -52,27 +52,27 @@ export default function DashboardClient() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                 <KitchenSummaryCard
                     icon={<ClipboardDocumentListIcon className="h-5 w-5" />}
-                    title="Picking Tasks"
+                    title="Tác vụ lấy hàng"
                     value={String(pickingItems.length)}
-                    hint="Approved orders waiting"
+                    hint="Đơn hàng đã duyệt đang chờ"
                 />
                 <KitchenSummaryCard
                     icon={<ArchiveBoxIcon className="h-5 w-5" />}
-                    title="Active Batches"
+                    title="Lô hàng đang hoạt động"
                     value={String(batchItems.length)}
-                    hint="From central warehouse"
+                    hint="Từ kho trung tâm"
                 />
                 <KitchenSummaryCard
                     icon={<ExclamationTriangleIcon className="h-5 w-5" />}
-                    title="Low Stock"
+                    title="Sắp hết hàng"
                     value={String(countLowStock(kitchenItems))}
-                    hint="Require replenishment"
+                    hint="Cần bổ sung hàng"
                 />
                 <KitchenSummaryCard
                     icon={<InboxArrowDownIcon className="h-5 w-5" />}
-                    title="Draft Receipts"
+                    title="Phiếu nháp"
                     value={String(receiptItems.length)}
-                    hint="Inbound not completed"
+                    hint="Nhập kho chưa hoàn tất"
                 />
             </div>
 

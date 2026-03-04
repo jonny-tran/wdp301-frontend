@@ -61,17 +61,17 @@ export default function ReceiptDetailModal({
     };
 
     const handleDeleteItem = (batchId: string) => {
-        if (!confirm("Are you sure you want to remove this item?")) return;
+        if (!confirm("Bạn có chắc chắn muốn xóa mặt hàng này không?")) return;
         deleteReceiptItem.mutate(batchId);
     };
 
     const handleComplete = () => {
         if (!details?.id) return;
         if (items.length === 0) {
-            toast.error("Cannot complete a receipt with no items.");
+            toast.error("Không thể hoàn tất phiếu nhập không có mặt hàng.");
             return;
         }
-        if (!confirm("Confirm completion? This will update warehouse inventory permanently.")) return;
+        if (!confirm("Xác nhận hoàn tất? Hành động này sẽ cập nhật tồn kho vĩnh viễn.")) return;
         completeReceipt.mutate(details.id, {
             onSuccess: () => onClose()
         });
@@ -89,7 +89,7 @@ export default function ReceiptDetailModal({
                 {/* Header */}
                 <div className="flex items-center justify-between border-b border-gray-100 bg-gray-50/50 px-8 py-6">
                     <div>
-                        <h3 className="text-xl font-black text-text-main tracking-tight">Receipt Details</h3>
+                        <h3 className="text-xl font-black text-text-main tracking-tight">Chi tiết phiếu nhập</h3>
                         <p className="text-xs font-bold text-primary uppercase tracking-widest mt-0.5">#{String(details?.id || receiptCode).slice(0, 8).toUpperCase()}</p>
                     </div>
                     <button
@@ -108,21 +108,21 @@ export default function ReceiptDetailModal({
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-text-muted">
                                     <TruckIcon className="h-4 w-4" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Supplier Info</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Thông tin nhà cung cấp</span>
                                 </div>
                                 <div className="rounded-2xl border border-gray-100 bg-gray-50/30 p-4">
-                                    <p className="text-sm font-bold text-text-main">{details.supplier?.name || "Unknown Supplier"}</p>
+                                    <p className="text-sm font-bold text-text-main">{details.supplier?.name || "Không rõ nhà cung cấp"}</p>
                                     <p className="mt-1 text-xs text-text-muted">{details.supplier?.contactName} • {details.supplier?.phone}</p>
                                 </div>
                             </div>
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-text-muted">
                                     <TagIcon className="h-4 w-4" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Notes</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Ghi chú</span>
                                 </div>
                                 <div className="rounded-2xl border border-gray-100 bg-gray-50/30 p-4 min-h-[58px]">
                                     <p className="text-xs font-medium text-text-muted italic leading-relaxed">
-                                        {details.note ? `"${details.note}"` : "No notes provided for this shipment."}
+                                        {details.note ? `"${details.note}"` : "Không có ghi chú nào cho chuyến hàng này."}
                                     </p>
                                 </div>
                             </div>
@@ -132,7 +132,7 @@ export default function ReceiptDetailModal({
                     <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-2">
                         <div className="flex items-center gap-2">
                             <CubeIcon className="h-4 w-4 text-primary" />
-                            <h4 className="text-xs font-black uppercase tracking-widest text-text-main">Goods Inventory</h4>
+                            <h4 className="text-xs font-black uppercase tracking-widest text-text-main">Hàng hóa nhập kho</h4>
                         </div>
                         {isDraft && (
                             <button
@@ -140,7 +140,7 @@ export default function ReceiptDetailModal({
                                 className="flex items-center gap-1.5 rounded-lg bg-primary/10 px-3 py-1.5 text-[10px] font-black uppercase text-primary hover:bg-primary/20 transition-colors"
                             >
                                 <PlusIcon className="h-3.5 w-3.5" />
-                                {isAddingItem ? "Cancel" : "Add Item"}
+                                {isAddingItem ? "Hủy" : "Thêm mặt hàng"}
                             </button>
                         )}
                     </div>
@@ -149,16 +149,16 @@ export default function ReceiptDetailModal({
                         <form onSubmit={handleAddItem} className="mb-8 rounded-[2rem] border border-primary/20 bg-primary/5 p-6 space-y-4 animate-in slide-in-from-top duration-300">
                             <div className="grid gap-4 sm:grid-cols-2">
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase text-text-muted ml-2">Product</label>
+                                    <label className="text-[10px] font-black uppercase text-text-muted ml-2">Sản phẩm</label>
                                     <select
                                         required
                                         value={productId}
                                         onChange={(e) => setProductId(e.target.value)}
                                         className="w-full rounded-full border border-white bg-white px-4 py-2.5 text-xs font-bold shadow-sm outline-none focus:ring-2 focus:ring-primary/20"
                                     >
-                                        <option value="" disabled>{productsQuery.isLoading ? "Loading products..." : "Select Product..."}</option>
+                                        <option value="" disabled>{productsQuery.isLoading ? "Đang tải sản phẩm..." : "Chọn sản phẩm..."}</option>
                                         {!productsQuery.isLoading && products.length === 0 && (
-                                            <option value="" disabled>No products available</option>
+                                            <option value="" disabled>Không có sản phẩm nào</option>
                                         )}
                                         {products.map((p: any) => (
                                             <option key={p.id} value={p.id}>{p.name}</option>
@@ -166,7 +166,7 @@ export default function ReceiptDetailModal({
                                     </select>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black uppercase text-text-muted ml-2">Quantity</label>
+                                    <label className="text-[10px] font-black uppercase text-text-muted ml-2">Số lượng</label>
                                     <input
                                         required
                                         type="number"
@@ -184,7 +184,7 @@ export default function ReceiptDetailModal({
                                 disabled={addReceiptItem.isPending || !productId || !quantity}
                                 className="w-full rounded-full bg-primary py-3 text-[10px] font-black uppercase tracking-widest text-white hover:bg-primary-dark transition-all disabled:bg-slate-300"
                             >
-                                {addReceiptItem.isPending ? "Adding..." : "Confirm Intake"}
+                                {addReceiptItem.isPending ? "Đang thêm..." : "Xác nhận nhập"}
                             </button>
                         </form>
                     )}
@@ -192,13 +192,13 @@ export default function ReceiptDetailModal({
                     {isLoading ? (
                         <div className="flex flex-col items-center justify-center py-12">
                             <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                            <p className="mt-4 text-sm font-bold text-text-muted">Loading items...</p>
+                            <p className="mt-4 text-sm font-bold text-text-muted">Đang tải các mặt hàng...</p>
                         </div>
                     ) : items.length === 0 ? (
                         <div className="rounded-[2rem] border-2 border-dashed border-gray-100 py-12 text-center bg-gray-50/30">
                             <CubeIcon className="mx-auto h-12 w-12 text-gray-200" />
-                            <p className="mt-3 text-sm font-bold text-text-main">No products found</p>
-                            <p className="mt-1 text-[11px] text-text-muted px-12 italic">This shipment doesn't have any products checked in yet.</p>
+                            <p className="mt-3 text-sm font-bold text-text-main">Không tìm thấy sản phẩm nào</p>
+                            <p className="mt-1 text-[11px] text-text-muted px-12 italic">Phiếu nhập kho này chưa có bất kỳ sản phẩm nào được ghi nhận.</p>
                         </div>
                     ) : (
                         <div className="grid gap-4">
@@ -222,7 +222,7 @@ export default function ReceiptDetailModal({
                                                     <h4 className="font-bold text-text-main">{productName}</h4>
                                                     <div className="flex items-center gap-1.5 mt-0.5 text-text-muted">
                                                         <TagIcon className="h-3.5 w-3.5" />
-                                                        <span className="text-[10px] font-bold uppercase tracking-wider">Batch: {batchCode}</span>
+                                                        <span className="text-[10px] font-bold uppercase tracking-wider">Lô hàng: {batchCode}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -239,14 +239,14 @@ export default function ReceiptDetailModal({
                                             <div className="flex items-center gap-4">
                                                 <div className="flex items-center gap-2 text-text-muted">
                                                     <CalendarIcon className="h-3.5 w-3.5" />
-                                                    <span className="text-[10px] font-black uppercase tracking-widest">Expiry:</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">Hạn dùng:</span>
                                                 </div>
                                                 <span className="text-xs font-bold text-red-500">
-                                                    {expiryDate ? new Date(expiryDate).toLocaleDateString('en-US', {
+                                                    {expiryDate ? new Date(expiryDate).toLocaleDateString('vi-VN', {
                                                         year: 'numeric',
                                                         month: 'short',
                                                         day: 'numeric'
-                                                    }) : "Pending"}
+                                                    }) : "Đang chờ"}
                                                 </span>
                                             </div>
 
@@ -254,7 +254,7 @@ export default function ReceiptDetailModal({
                                                 <button
                                                     onClick={() => setViewingBatchId(String(item.batchId))}
                                                     className="rounded-lg bg-white p-2 text-text-muted hover:text-primary hover:shadow-sm border border-transparent hover:border-primary/20 transition-all"
-                                                    title="View Label"
+                                                    title="Xem nhãn"
                                                 >
                                                     <QrCodeIcon className="h-4 w-4" />
                                                 </button>
@@ -263,7 +263,7 @@ export default function ReceiptDetailModal({
                                                         onClick={() => handleReprint(item.batchId)}
                                                         disabled={reprintBatch.isPending}
                                                         className="rounded-lg bg-white p-2 text-text-muted hover:text-primary hover:shadow-sm border border-transparent hover:border-primary/20 transition-all"
-                                                        title="Reprint Label"
+                                                        title="In lại nhãn"
                                                     >
                                                         <PrinterIcon className="h-4 w-4" />
                                                     </button>
@@ -272,7 +272,7 @@ export default function ReceiptDetailModal({
                                                     <button
                                                         onClick={() => handleDeleteItem(String(item.batchId))}
                                                         className="rounded-lg bg-white p-2 text-text-muted hover:text-red-500 hover:shadow-sm border border-transparent hover:border-red-200 transition-all ml-1"
-                                                        title="Remove Item"
+                                                        title="Xóa mặt hàng"
                                                     >
                                                         <TrashIcon className="h-4 w-4" />
                                                     </button>
@@ -292,7 +292,7 @@ export default function ReceiptDetailModal({
                         onClick={onClose}
                         className="flex-1 rounded-2xl bg-white border border-gray-200 py-3 text-[10px] font-black uppercase tracking-widest text-text-muted transition-all hover:bg-gray-100 active:scale-[0.98] shadow-sm"
                     >
-                        Close
+                        Đóng
                     </button>
                     {isDraft && items.length > 0 && (
                         <button
@@ -301,7 +301,7 @@ export default function ReceiptDetailModal({
                             className="flex-[2] flex items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-[10px] font-black uppercase tracking-widest text-white transition-all hover:bg-primary-dark active:scale-[0.98] shadow-lg shadow-primary/20 disabled:bg-slate-300"
                         >
                             <CheckCircleIcon className="h-4 w-4" />
-                            {completeReceipt.isPending ? "Completing..." : "Complete & Import Goods"}
+                            {completeReceipt.isPending ? "Đang hoàn tất..." : "Hoàn tất & Nhập hàng"}
                         </button>
                     )}
                 </div>
@@ -319,12 +319,12 @@ export default function ReceiptDetailModal({
                         {labelQuery.isLoading ? (
                             <div className="flex flex-col items-center gap-4">
                                 <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Generating Label Data...</p>
+                                <p className="text-[10px] font-black text-text-muted uppercase tracking-widest">Đang tạo dữ liệu nhãn...</p>
                             </div>
                         ) : labelQuery.data ? (
                             <div className="flex flex-col items-center bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl max-w-sm w-full">
                                 <h4 className="text-sm font-black text-text-main mb-1 uppercase italic tracking-tight">{labelQuery.data.productName}</h4>
-                                <span className="text-[10px] font-bold text-primary mb-6">BATCH: {labelQuery.data.batchCode}</span>
+                                <span className="text-[10px] font-bold text-primary mb-6">LÔ: {labelQuery.data.batchCode}</span>
 
                                 <div className="relative mb-8 bg-white p-4 rounded-3xl border-4 border-slate-50 shadow-inner">
                                     <img
@@ -334,18 +334,18 @@ export default function ReceiptDetailModal({
                                     />
                                     <div className="absolute inset-x-0 -bottom-3 flex justify-center">
                                         <div className="bg-primary px-3 py-1 rounded-full text-[8px] font-black text-white uppercase tracking-widest shadow-md">
-                                            Scan to verify
+                                            Quét để xác minh
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="w-full space-y-3 bg-slate-50 rounded-2xl p-4">
                                     <div className="flex justify-between items-center">
-                                        <span className="text-[8px] font-black text-text-muted uppercase tracking-widest">Qty</span>
-                                        <span className="text-xs font-black text-text-main">{labelQuery.data.quantity} units</span>
+                                        <span className="text-[8px] font-black text-text-muted uppercase tracking-widest">SL</span>
+                                        <span className="text-xs font-black text-text-main">{labelQuery.data.quantity} đơn vị</span>
                                     </div>
                                     <div className="flex justify-between items-center">
-                                        <span className="text-[8px] font-black text-text-muted uppercase tracking-widest">Expiry</span>
+                                        <span className="text-[8px] font-black text-text-muted uppercase tracking-widest">Hạn dùng</span>
                                         <span className="text-xs font-black text-red-500">{new Date(labelQuery.data.expiryDate).toLocaleDateString()}</span>
                                     </div>
                                 </div>
@@ -355,7 +355,7 @@ export default function ReceiptDetailModal({
                                     className="mt-8 flex items-center justify-center gap-2 w-full rounded-2xl bg-text-main py-4 text-[10px] font-black uppercase tracking-widest text-white hover:bg-black transition-all shadow-xl shadow-slate-200"
                                 >
                                     <PrinterIcon className="h-4 w-4" />
-                                    Print Label
+                                    In nhãn
                                 </button>
                             </div>
                         ) : null}

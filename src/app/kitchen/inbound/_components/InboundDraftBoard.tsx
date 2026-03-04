@@ -20,27 +20,27 @@ export default function InboundDraftBoard({
                     <div className="rounded-xl bg-primary/10 p-2 text-primary">
                         <InboxArrowDownIcon className="h-5 w-5" />
                     </div>
-                    <h3 className="text-lg font-black text-text-main tracking-tight">Inbound Draft Board</h3>
+                    <h3 className="text-lg font-black text-text-main tracking-tight">Bảng nháp Nhập kho</h3>
                     <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-text-muted">
-                        Total: {drafts.length}
+                        Tổng cộng: {drafts.length}
                     </span>
                 </div>
                 <p className="mt-1 text-sm text-text-muted">
-                    List of draft incoming shipments scheduled for the kitchen.
+                    Danh sách các lô hàng nháp dự kiến nhập vào bếp.
                 </p>
             </div>
 
             {isLoading ? (
                 <div className="flex items-center justify-center py-8">
-                    <p className="animate-pulse text-sm font-medium text-text-muted">Loading draft receipts...</p>
+                    <p className="animate-pulse text-sm font-medium text-text-muted">Đang tải phiếu nháp...</p>
                 </div>
             ) : isError ? (
                 <div className="rounded-2xl bg-red-50 p-6 text-center">
-                    <p className="text-sm font-bold text-red-600">Error: Could not load draft receipts.</p>
+                    <p className="text-sm font-bold text-red-600">Lỗi: Không thể tải các phiếu nháp.</p>
                 </div>
             ) : drafts.length === 0 ? (
                 <div className="rounded-2xl border-2 border-dashed border-gray-100 py-10 text-center">
-                    <p className="text-sm font-medium text-text-muted italic">No draft receipts in queue.</p>
+                    <p className="text-sm font-medium text-text-muted italic">Không có phiếu nháp nào trong hàng đợi.</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -67,10 +67,10 @@ export default function InboundDraftBoard({
                                 <div>
                                     <div className="mb-1 flex items-center gap-1.5 text-text-muted">
                                         <TruckIcon className="h-3.5 w-3.5" />
-                                        <span className="text-[10px] font-black uppercase tracking-wider">Supplier</span>
+                                        <span className="text-[10px] font-black uppercase tracking-wider">Nhà cung cấp</span>
                                     </div>
                                     <p className="text-sm font-bold text-text-main leading-tight truncate">
-                                        {String(receipt.supplierName ?? receipt.supplier?.name ?? "Unknown")}
+                                        {String(receipt.supplierName ?? receipt.supplier?.name ?? "Không rõ")}
                                     </p>
                                 </div>
 
@@ -88,12 +88,12 @@ export default function InboundDraftBoard({
                                             {String(receipt.user?.username ?? receipt.createdBy?.username ?? "U")[0].toUpperCase()}
                                         </div>
                                         <span className="text-[10px] font-bold text-text-muted">
-                                            {receipt.user?.username ?? receipt.createdBy?.username ?? "Staff"}
+                                            {receipt.user?.username ?? receipt.createdBy?.username ?? "Nhân viên"}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-1 text-primary">
                                         <CalendarDaysIcon className="h-3.5 w-3.5" />
-                                        <span className="text-[10px] font-black uppercase">Draft</span>
+                                        <span className="text-[10px] font-black uppercase">Bản nháp</span>
                                     </div>
                                 </div>
                             </div>

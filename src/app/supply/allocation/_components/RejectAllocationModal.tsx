@@ -17,13 +17,13 @@ export default function RejectAllocationModal({
     onClose,
     onSubmit,
 }: RejectAllocationModalProps) {
-    const title = orderNo ? `Reject Order #${orderNo}` : "Reject Order";
+    const title = orderNo ? `Từ chối Đơn hàng #${orderNo}` : "Từ chối Đơn hàng";
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
             <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-xl">
                 <h3 className="text-lg font-bold text-text-main">{title}</h3>
-                <p className="mt-1 text-sm text-text-muted">Backend requires a rejection reason.</p>
+                <p className="mt-1 text-sm text-text-muted">Hệ thống yêu cầu cung cấp lý do từ chối.</p>
 
                 <form className="mt-4 space-y-4" onSubmit={onSubmit}>
                     <textarea
@@ -31,7 +31,7 @@ export default function RejectAllocationModal({
                         onChange={(event) => onChangeReason(event.target.value)}
                         rows={4}
                         required
-                        placeholder="Enter rejection reason"
+                        placeholder="Nhập lý do từ chối"
                         className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
                     />
 
@@ -41,14 +41,14 @@ export default function RejectAllocationModal({
                             onClick={onClose}
                             className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-text-main hover:border-primary/40"
                         >
-                            Cancel
+                            Hủy
                         </button>
                         <button
                             type="submit"
                             disabled={isPending || !reason.trim()}
                             className="rounded-xl bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
                         >
-                            {isPending ? "Processing..." : "Confirm rejection"}
+                            {isPending ? "Đang xử lý..." : "Xác nhận từ chối"}
                         </button>
                     </div>
                 </form>

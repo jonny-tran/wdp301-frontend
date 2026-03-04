@@ -16,18 +16,18 @@ export default function ShipmentLabelCard({
 
     return (
         <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-text-muted">Shipment Label Preview</h3>
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-text-muted">Xem trước nhãn vận chuyển</h3>
             {!shipmentId ? (
-                <p className="text-xs text-text-muted">No shipment data available from picking detail.</p>
+                <p className="text-xs text-text-muted">Không có dữ liệu vận chuyển từ chi tiết lấy hàng.</p>
             ) : isLoading ? (
-                <p className="text-xs text-text-muted">Loading label...</p>
+                <p className="text-xs text-text-muted">Đang tải nhãn...</p>
             ) : isError ? (
-                <p className="text-xs text-red-500">Failed to load label.</p>
+                <p className="text-xs text-red-500">Tải nhãn thất bại.</p>
             ) : (
                 <div className="space-y-2 text-xs">
-                    <p className="font-semibold text-text-main">Store: {String(data.storeName ?? "-")}</p>
-                    <p className="text-text-muted">Template: {String(data.templateType ?? "-")}</p>
-                    <p className="text-text-muted">Items: {items.length}</p>
+                    <p className="font-semibold text-text-main">Cửa hàng: {String(data.storeName ?? "-")}</p>
+                    <p className="text-text-muted">Mẫu: {String(data.templateType ?? "-")}</p>
+                    <p className="text-text-muted">Mặt hàng: {items.length}</p>
                 </div>
             )}
         </div>

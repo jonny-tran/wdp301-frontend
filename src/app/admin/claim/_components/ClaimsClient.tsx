@@ -13,7 +13,15 @@ export default function ClaimsClient() {
   const [activeTab, setActiveTab] = useState<
     "all" | "pending" | "approved" | "rejected text-red-500"
   >("all");
-  const [params, setParams] = useState({ page: 1, limit: 10 });
+  const [params, setParams] = useState<{
+    page: number;
+    limit: number;
+    sortOrder: "ASC" | "DESC";
+  }>({
+    page: 1,
+    limit: 10,
+    sortOrder: "DESC",
+  });
   const [modal, setModal] = useState<{
     isOpen: boolean;
     claimId: string | null;
@@ -50,7 +58,7 @@ export default function ClaimsClient() {
     <div className="flex flex-col gap-8 animate-in fade-in duration-700">
       <div className="px-1 space-y-1">
         <h1 className="text-3xl font-black uppercase italic tracking-tighter text-black leading-none">
-          Claims Management
+          Quản lý Khiếu nại
         </h1>
         <p className="text-[10px] font-black text-black/40 uppercase tracking-[0.2em] italic">
           Hệ thống phê duyệt khiếu nại & Thất thoát hàng hóa
@@ -69,10 +77,9 @@ export default function ClaimsClient() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300
-              ${
-                activeTab === tab.id
-                  ? "bg-black text-white shadow-2xl scale-[1.05]"
-                  : "text-black/30 hover:text-black hover:bg-white"
+              ${activeTab === tab.id
+                ? "bg-black text-white shadow-2xl scale-[1.05]"
+                : "text-black/30 hover:text-black hover:bg-white"
               }`}
           >
             {tab.label}

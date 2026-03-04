@@ -19,7 +19,7 @@ import { TruckIcon } from "lucide-react";
 
 // Danh sách menu riêng cho Admin
 const adminLinks = [
-  { name: "Dashboard", href: "/admin", icon: ChartBarIcon },
+  { name: "Tổng quan", href: "/admin", icon: ChartBarIcon },
   { name: "Người dùng", href: "/admin/auth", icon: UserGroupIcon },
   { name: "Quản lý Giao hàng", href: "/admin/shipment", icon: TruckIcon },
   {
@@ -93,10 +93,9 @@ export default function AdminLayout({
                   onClick={() => setIsMobileOpen(false)}
                   className={`
                     group flex items-center gap-2.5 px-3 py-3 rounded-xl text-[11px] font-black transition-all duration-200
-                    ${
-                      isActive
-                        ? "bg-indigo-600 text-white shadow-md scale-[1.02]"
-                        : "text-slate-400 hover:bg-slate-50 hover:text-indigo-600"
+                    ${isActive
+                      ? "bg-indigo-600 text-white shadow-md scale-[1.02]"
+                      : "text-slate-400 hover:bg-slate-50 hover:text-indigo-600"
                     }
                   `}
                 >
@@ -117,7 +116,7 @@ export default function AdminLayout({
             className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-[9px] font-black text-slate-400 hover:text-red-500 hover:bg-red-50 transition-all uppercase tracking-[0.2em]"
           >
             <ArrowLeftOnRectangleIcon className="h-4 w-4" />
-            {logout.isPending ? "Logging out..." : "Logout"}
+            {logout.isPending ? "Đang đăng xuất..." : "Đăng xuất"}
           </button>
         </div>
       </aside>
@@ -126,7 +125,7 @@ export default function AdminLayout({
       <div className="flex-1 flex flex-col min-w-0 lg:ml-56">
         <header className="lg:hidden h-12 bg-white border-b border-slate-100 flex items-center px-4 justify-between sticky top-0 z-40">
           <span className="text-[10px] font-black uppercase italic text-indigo-600">
-            Admin Management
+            Quản trị hệ thống
           </span>
           <button
             onClick={() => setIsMobileOpen(true)}

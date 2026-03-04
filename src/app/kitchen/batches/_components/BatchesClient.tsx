@@ -51,14 +51,14 @@ export default function BatchesClient({ searchParams }: BatchesClientProps) {
     const filterConfig: FilterConfig[] = [
         {
             key: "search",
-            label: "Search",
+            label: "Tìm kiếm",
             type: "text",
-            placeholder: "Batch code or product...",
+            placeholder: "Mã lô hoặc sản phẩm...",
             className: "md:col-span-2",
         },
         {
             key: "limit",
-            label: "Rows",
+            label: "Số dòng",
             type: "select",
             defaultValue: String(parsedQuery.limit),
             options: [
@@ -99,8 +99,8 @@ export default function BatchesClient({ searchParams }: BatchesClientProps) {
         <div className="space-y-6">
             <div className="flex items-end justify-between">
                 <div>
-                    <h1 className="text-2xl font-black text-text-main">Batch Management</h1>
-                    <p className="text-sm text-text-muted">View and update warehouse batches from backend data.</p>
+                    <h1 className="text-2xl font-black text-text-main">Quản lý Lô hàng</h1>
+                    <p className="text-sm text-text-muted">Xem và cập nhật các lô hàng trong kho từ dữ liệu hệ thống.</p>
                 </div>
             </div>
 

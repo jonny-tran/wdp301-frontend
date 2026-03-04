@@ -44,8 +44,8 @@ export default function InboundCreateModal({
             <div className="relative w-full max-w-lg overflow-hidden rounded-[2.5rem] bg-white shadow-2xl transition-all animate-in zoom-in duration-300">
                 <div className="flex items-center justify-between border-b border-gray-100 bg-slate-50/50 px-8 py-6">
                     <div>
-                        <h3 className="text-xl font-black text-text-main tracking-tight uppercase italic">New Goods Receipt</h3>
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-0.5">Initialize a draft shipment from supplier</p>
+                        <h3 className="text-xl font-black text-text-main tracking-tight uppercase italic">Phiếu nhập kho mới</h3>
+                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-0.5">Khởi tạo bản nháp nhập hàng từ nhà cung cấp</p>
                     </div>
                     <button
                         onClick={onClose}
@@ -61,7 +61,7 @@ export default function InboundCreateModal({
                         <div className="space-y-3">
                             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-2 flex items-center gap-2">
                                 <TruckIcon className="h-3.5 w-3.5" />
-                                Select Supplier
+                                Chọn nhà cung cấp
                             </label>
                             <div className="relative">
                                 <select
@@ -70,9 +70,9 @@ export default function InboundCreateModal({
                                     onChange={(e) => setSupplierId(e.target.value)}
                                     className="w-full appearance-none rounded-full border border-slate-200 bg-white px-8 py-4 text-sm font-bold text-slate-900 outline-none shadow-sm focus:ring-4 focus:ring-primary/5 transition-all"
                                 >
-                                    <option value="" disabled>{suppliersQuery.isLoading ? "Loading suppliers..." : "Choose a supplier..."}</option>
+                                    <option value="" disabled>{suppliersQuery.isLoading ? "Đang tải nhà cung cấp..." : "Chọn nhà cung cấp..."}</option>
                                     {!suppliersQuery.isLoading && suppliers.length === 0 && (
-                                        <option value="" disabled>No suppliers found</option>
+                                        <option value="" disabled>Không tìm thấy nhà cung cấp</option>
                                     )}
                                     {suppliers.map((s: any) => (
                                         <option key={s.id} value={s.id}>
@@ -86,19 +86,19 @@ export default function InboundCreateModal({
                                     </svg>
                                 </div>
                             </div>
-                            {suppliersQuery.isLoading && <p className="text-[10px] text-primary animate-pulse ml-4 italic">Loading suppliers...</p>}
+                            {suppliersQuery.isLoading && <p className="text-[10px] text-primary animate-pulse ml-4 italic">Đang tải nhà cung cấp...</p>}
                         </div>
 
                         {/* Notes */}
                         <div className="space-y-3">
                             <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-2 flex items-center gap-2">
                                 <DocumentTextIcon className="h-3.5 w-3.5" />
-                                Shipment Notes
+                                Ghi chú nhập kho
                             </label>
                             <textarea
                                 value={note}
                                 onChange={(e) => setNote(e.target.value)}
-                                placeholder="Any specific instructions for this shipment..."
+                                placeholder="Các hướng dẫn cụ thể cho đợt nhập hàng này..."
                                 className="w-full rounded-[2rem] border border-slate-200 bg-white px-8 py-4 text-sm font-bold text-slate-900 outline-none shadow-sm focus:ring-4 focus:ring-primary/5 transition-all min-h-[120px] resize-none placeholder:text-slate-300"
                             />
                         </div>
@@ -110,14 +110,14 @@ export default function InboundCreateModal({
                             onClick={onClose}
                             className="px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors"
                         >
-                            Cancel
+                            Hủy
                         </button>
                         <button
                             type="submit"
                             disabled={isPending || !supplierId}
                             className="flex items-center justify-center gap-3 rounded-full bg-primary px-10 py-4 text-[10px] font-black uppercase tracking-[0.3em] text-white hover:bg-primary-dark shadow-xl shadow-primary/20 disabled:bg-slate-300 transition-all active:scale-95"
                         >
-                            {isPending ? "Starting..." : "Start Receiving"}
+                            {isPending ? "Đang bắt đầu..." : "Bắt đầu nhập kho"}
                         </button>
                     </div>
                 </form>

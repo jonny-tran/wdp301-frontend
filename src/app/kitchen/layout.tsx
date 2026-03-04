@@ -21,11 +21,11 @@ export default function KitchenLayout({
 
 
     const navItems = [
-        { name: "Dashboard", href: "/kitchen/dashboard", icon: HomeIcon },
-        { name: "Inventory", href: "/kitchen/inventory", icon: CubeIcon },
-        { name: "Inbound", href: "/kitchen/inbound", icon: InboxArrowDownIcon },
-        { name: "Batches", href: "/kitchen/batches", icon: CubeIcon },
-        { name: "Warehouse", href: "/kitchen/warehouse", icon: ArchiveBoxIcon },
+        { name: "Tổng quan", href: "/kitchen/dashboard", icon: HomeIcon },
+        { name: "Kho hàng", href: "/kitchen/inventory", icon: CubeIcon },
+        { name: "Nhập kho", href: "/kitchen/inbound", icon: InboxArrowDownIcon },
+        { name: "Lô hàng", href: "/kitchen/batches", icon: CubeIcon },
+        { name: "Nhà kho", href: "/kitchen/warehouse", icon: ArchiveBoxIcon },
     ];
 
     const bottomItems: NavItem[] = [
@@ -35,7 +35,7 @@ export default function KitchenLayout({
     return (
         <DashboardLayout
             navItems={navItems}
-            title="Kitchen Management"
+            title="Quản lý Bếp trung tâm"
         >
             {children}
         </DashboardLayout>

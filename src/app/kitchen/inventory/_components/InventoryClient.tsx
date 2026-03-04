@@ -53,14 +53,14 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
     const filterConfig: FilterConfig[] = [
         {
             key: "search",
-            label: "Search",
+            label: "Tìm kiếm",
             type: "text",
-            placeholder: "Search by product name...",
+            placeholder: "Tìm theo tên sản phẩm...",
             className: "md:col-span-2",
         },
         {
             key: "limit",
-            label: "Rows",
+            label: "Dòng",
             type: "select",
             defaultValue: String(parsedQuery.limit),
             options: [
@@ -85,8 +85,8 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
         <div className="space-y-6">
             <div className="flex items-end justify-between px-2">
                 <div>
-                    <h1 className="text-3xl font-black text-text-main tracking-tight">Kitchen Inventory</h1>
-                    <p className="text-sm text-text-muted">Live product-level stock from central kitchen.</p>
+                    <h1 className="text-3xl font-black text-text-main tracking-tight">Tồn kho Bếp</h1>
+                    <p className="text-sm text-text-muted">Dữ liệu sản phẩm trực tiếp từ kho bếp trung tâm.</p>
                 </div>
             </div>
 
@@ -94,7 +94,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
 
             <div className="rounded-[2.5rem] border border-gray-100 bg-white shadow-xl overflow-hidden transition-all hover:shadow-2xl hover:border-primary/10">
                 <div className="border-b border-gray-100 px-8 py-5 bg-gray-50/30">
-                    <h2 className="text-sm font-black uppercase tracking-widest text-text-muted">Product Summary</h2>
+                    <h2 className="text-sm font-black uppercase tracking-widest text-text-muted">Tổng quan sản phẩm</h2>
                 </div>
 
                 <InventorySummaryTable
@@ -119,7 +119,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
             <InventoryBatchModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                productName={selectedProduct?.productName ?? "Product Details"}
+                productName={selectedProduct?.productName ?? "Chi tiết sản phẩm"}
                 batches={batches}
                 isLoading={detailsQuery.isLoading}
                 isError={detailsQuery.isError}

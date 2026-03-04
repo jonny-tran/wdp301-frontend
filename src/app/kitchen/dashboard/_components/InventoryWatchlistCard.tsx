@@ -13,13 +13,13 @@ export default function InventoryWatchlistCard({
 }: InventoryWatchlistCardProps) {
     return (
         <div className="rounded-3xl border border-gray-100 bg-white p-6 shadow-sm">
-            <h3 className="mb-4 text-base font-bold text-text-main">Inventory Watchlist</h3>
+            <h3 className="mb-4 text-base font-bold text-text-main">Theo dõi tồn kho</h3>
             {isLoading ? (
-                <p className="text-sm text-text-muted">Loading inventory summary...</p>
+                <p className="text-sm text-text-muted">Đang tải tổng quan tồn kho...</p>
             ) : isError ? (
-                <p className="text-sm text-red-500">Failed to load inventory summary.</p>
+                <p className="text-sm text-red-500">Tải tổng quan tồn kho thất bại.</p>
             ) : items.length === 0 ? (
-                <p className="text-sm text-text-muted">No inventory data.</p>
+                <p className="text-sm text-text-muted">Không có dữ liệu tồn kho.</p>
             ) : (
                 <div className="space-y-3">
                     {items
@@ -69,11 +69,11 @@ export default function InventoryWatchlistCard({
                                             className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${isLowStock ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
                                                 }`}
                                         >
-                                            {isLowStock ? "Low" : "Normal"}
+                                            {isLowStock ? "Thấp" : "Bình thường"}
                                         </span>
                                     </div>
                                     <p className="mt-1 text-xs text-text-muted">
-                                        Available: {availableQuantity} {unit}
+                                        Có sẵn: {availableQuantity} {unit}
                                     </p>
                                 </div>
                             );

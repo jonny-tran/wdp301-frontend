@@ -17,17 +17,17 @@ export default function SupplyLayout({
     children: React.ReactNode;
 }) {
     const navItems = [
-        { name: "Dashboard", href: "/supply", icon: HomeIcon },
-        { name: "Orders", href: "/supply/orders", icon: ClipboardDocumentListIcon },
-        { name: "Allocation", href: "/supply/allocation", icon: Squares2X2Icon },
-        { name: "Delivery", href: "/supply/delivery", icon: TruckIcon },
-        { name: "Issues", href: "/supply/issues", icon: ExclamationTriangleIcon },
+        { name: "Tổng quan", href: "/supply", icon: HomeIcon },
+        { name: "Đơn hàng", href: "/supply/orders", icon: ClipboardDocumentListIcon },
+        { name: "Phân bổ", href: "/supply/allocation", icon: Squares2X2Icon },
+        { name: "Giao hàng", href: "/supply/delivery", icon: TruckIcon },
+        { name: "Sự cố", href: "/supply/issues", icon: ExclamationTriangleIcon },
     ];
 
     return (
         <DashboardLayout
             navItems={navItems}
-            title="Supply Chain Management"
+            title="Quản lý Chuỗi cung ứng"
         >
             {children}
         </DashboardLayout>

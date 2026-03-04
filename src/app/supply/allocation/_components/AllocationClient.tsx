@@ -128,8 +128,8 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
   const activityItems = useMemo(() => {
     const approvedActivity = approvedOrders.map((order, index) => ({
       key: `approved-${order.id}`,
-      title: `Order #${index + 1} approved`,
-      subtitle: `Store: ${order.storeId}`,
+      title: `Đơn hàng #${index + 1} đã duyệt`,
+      subtitle: `Cửa hàng: ${order.storeId}`,
       status: formatStatusLabel(order.status),
       statusClass: getStatusBadgeClass(order.status),
       time: order.deliveryDate,
@@ -137,8 +137,8 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
 
     const shipmentActivity = shipments.map((shipment, index) => ({
       key: `shipment-${shipment.id}`,
-      title: `Shipment #${index + 1} update`,
-      subtitle: shipment.orderId ? "Linked order: Available" : "Linked order: Not available",
+      title: `Cập nhật Giao hàng #${index + 1}`,
+      subtitle: shipment.orderId ? "Đơn hàng liên kết: Có sẵn" : "Đơn hàng liên kết: Không khả dụng",
       status: formatStatusLabel(String(shipment.status ?? "")),
       statusClass: getStatusBadgeClass(String(shipment.status ?? "")),
       time: shipment.shipDate,
@@ -158,14 +158,14 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
   const filterConfig: FilterConfig[] = [
     {
       key: "search",
-      label: "Search",
+      label: "Tìm kiếm",
       type: "text",
-      placeholder: "Order ID...",
+      placeholder: "Mã đơn hàng...",
       className: "md:col-span-2",
     },
     {
       key: "limit",
-      label: "Rows",
+      label: "Số dòng",
       type: "select",
       defaultValue: String(parsedQuery.limit),
       options: [
@@ -176,16 +176,16 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
     },
     {
       key: "sortOrder",
-      label: "Sort",
+      label: "Sắp xếp",
       type: "select",
       defaultValue: parsedQuery.sortOrder,
       options: [
-        { label: "Newest", value: "DESC" },
-        { label: "Oldest", value: "ASC" },
+        { label: "Mới nhất", value: "DESC" },
+        { label: "Cũ nhất", value: "ASC" },
       ],
     },
-    { key: "fromDate", label: "From", type: "date" },
-    { key: "toDate", label: "To", type: "date" },
+    { key: "fromDate", label: "Từ ngày", type: "date" },
+    { key: "toDate", label: "Đến ngày", type: "date" },
   ];
 
   const refreshAll = () => {
@@ -261,9 +261,9 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl font-extrabold text-text-main">Allocation</h1>
+          <h1 className="text-xl font-extrabold text-text-main">Phân bổ</h1>
           <p className="text-sm text-text-muted">
-            Review pending orders, verify fulfillment, and monitor shipments.
+            Xem xét các đơn hàng đang chờ, xác minh việc thực hiện và theo dõi giao hàng.
           </p>
         </div>
 
@@ -273,15 +273,15 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
           className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm font-semibold text-text-main hover:border-primary/50 hover:text-primary disabled:opacity-60"
         >
           <ArrowPathIcon className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`} />
-          Refresh
+          Làm mới
         </button>
       </div>
 
       {/* KPI */}
       <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-        <MiniKpi label="Pending" value={pendingOrders.length} tone="amber" />
-        <MiniKpi label="Approved" value={approvedOrders.length} tone="green" />
-        <MiniKpi label="Shipments" value={shipments.length} tone="default" />
+        <MiniKpi label="Chờ xử lý" value={pendingOrders.length} tone="amber" />
+        <MiniKpi label="Đã duyệt" value={approvedOrders.length} tone="green" />
+        <MiniKpi label="Giao hàng" value={shipments.length} tone="default" />
       </div>
 
       <BaseFilter filters={filterConfig} />
@@ -290,7 +290,7 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
         <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
           <header className="flex items-center justify-between">
             <h2 className="text-xs font-bold uppercase tracking-wide text-text-muted">
-              Orders Awaiting Decision
+              Đơn hàng chờ Quyết định
             </h2>
             <span className="rounded-full bg-amber-100 px-2 py-1 text-[10px] font-bold uppercase text-amber-700">
               {pendingOrders.length}
@@ -323,7 +323,7 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
 
         <section className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
-            <h3 className="text-xs font-bold uppercase tracking-wide text-text-muted">Activity</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-text-muted">Hoạt động</h3>
             <span className="rounded-full bg-blue-100 px-2 py-1 text-[10px] font-bold uppercase text-blue-700">
               {activityItems.length}
             </span>
@@ -331,11 +331,11 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
 
           <div className="mt-3">
             {approvedQuery.isLoading && shipmentQuery.isLoading ? (
-              <p className="text-sm text-text-muted">Loading activity...</p>
+              <p className="text-sm text-text-muted">Đang tải hoạt động...</p>
             ) : approvedQuery.isError && shipmentQuery.isError ? (
-              <p className="text-sm text-red-500">Failed to load activity.</p>
+              <p className="text-sm text-red-500">Tải hoạt động thất bại.</p>
             ) : activityItems.length === 0 ? (
-              <p className="text-sm text-text-muted">No activity yet.</p>
+              <p className="text-sm text-text-muted">Chưa có hoạt động nào.</p>
             ) : (
               <div className="max-h-[620px] space-y-2 overflow-y-auto pr-1">
                 {activityItems.map((item) => (
@@ -345,7 +345,7 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
                         {item.title}
                         <span className="ml-2 text-xs font-normal text-text-muted">{item.subtitle}</span>
                       </p>
-                      <p className="text-xs text-text-muted">Time: {formatDateTime(item.time)}</p>
+                      <p className="text-xs text-text-muted">Thời gian: {formatDateTime(item.time)}</p>
                       <span className={`inline-flex w-fit rounded-full px-2 py-1 text-[10px] font-bold uppercase ${item.statusClass}`}>
                         {item.status}
                       </span>

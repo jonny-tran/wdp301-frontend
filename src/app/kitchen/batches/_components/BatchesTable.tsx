@@ -33,39 +33,50 @@ export default function BatchesTable({
         }
     };
 
+    const formatStatus = (status?: string) => {
+        if (!status) return 'N/A';
+        switch (status.toLowerCase()) {
+            case 'available': return 'Có sẵn';
+            case 'pending': return 'Đang chờ';
+            case 'empty': return 'Hết hàng';
+            case 'expired': return 'Hết hạn';
+            default: return status;
+        }
+    };
+
     return (
         <div className="overflow-x-auto">
             <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50/70 text-xs uppercase tracking-wide text-text-muted">
                     <tr>
-                        <th className="px-6 py-3">No.</th>
-                        {hasImage && <th className="px-6 py-3">Image</th>}
-                        {hasProduct && <th className="px-6 py-3">Product</th>}
-                        {hasCurrentQty && <th className="px-6 py-3 text-right">Current Qty</th>}
-                        {hasExpiry && <th className="px-6 py-3">Expiry</th>}
-                        {hasStatus && <th className="px-6 py-3">Status</th>}
-                        <th className="px-6 py-3 text-right">Action</th>
+                        <th className="px-6 py-3">STT</th>
+                        {hasImage && <th className="px-6 py-3">Hình ảnh</th>}
+                        {hasProduct && <th className="px-6 py-3">Sản phẩm</th>}
+                        {hasCurrentQty && <th className="px-6 py-3 text-right">Số lượng hiện tại</th>}
+                        {hasExpiry && <th className="px-6 py-3">Hạn dùng</th>}
+                        {hasStatus && <th className="px-6 py-3">Trạng thái</th>}
+                        <th className="px-6 py-3 text-right">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {isLoading ? (
                         <tr>
-                            <td colSpan={6} className="px-6 py-8 text-sm text-text-muted">Loading batches...</td>
+                            <td colSpan={6} className="px-6 py-8 text-sm text-text-muted">Đang tải lô hàng...</td>
                         </tr>
                     ) : isError ? (
                         <tr>
-                            <td colSpan={6} className="px-6 py-8 text-sm text-red-500">Failed to load batches.</td>
+                            <td colSpan={6} className="px-6 py-8 text-sm text-red-500">Tải danh sách lô hàng thất bại.</td>
                         </tr>
                     ) : batches.length === 0 ? (
                         <tr>
-                            <td colSpan={6} className="px-6 py-8 text-sm text-text-muted">No batch found.</td>
+                            <td colSpan={6} className="px-6 py-8 text-sm text-text-muted">Không tìm thấy lô hàng nào.</td>
                         </tr>
                     ) : (
                         batches.map((batch, index) => (
                             <tr key={batch.id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4">
                                     <p className="font-bold text-text-main">#{rowStart + index + 1}</p>
-                                    <p className="text-xs text-text-muted">Code: {batch.batchCode}</p>
+                                    <p className="text-xs text-text-muted">Mã: {batch.batchCode}</p>
                                 </td>
                                 {hasImage && (
                                     <td className="px-6 py-4">
@@ -86,7 +97,7 @@ export default function BatchesTable({
                                 {hasStatus && (
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${getStatusStyles(batch.status)}`}>
-                                            {batch.status ?? 'N/A'}
+                                            {formatStatus(batch.status)}
                                         </span>
                                     </td>
                                 )}
@@ -96,7 +107,7 @@ export default function BatchesTable({
                                         className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary"
                                     >
                                         <PencilSquareIcon className="h-4 w-4" />
-                                        Edit
+                                        Sửa
                                     </button>
                                 </td>
                             </tr>

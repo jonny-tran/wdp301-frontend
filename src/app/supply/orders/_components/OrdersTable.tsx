@@ -29,33 +29,33 @@ export default function OrdersTable({
             <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50/70 text-xs uppercase tracking-wide text-text-muted">
                     <tr>
-                        <th className="px-6 py-3">No.</th>
-                        <th className="px-6 py-3">Store</th>
-                        <th className="px-6 py-3">Delivery</th>
-                        <th className="px-6 py-3 text-right">Total</th>
-                        <th className="px-6 py-3 text-center">Status</th>
-                        <th className="px-6 py-3 text-right">Actions</th>
+                        <th className="px-6 py-3">STT</th>
+                        <th className="px-6 py-3">Cửa hàng</th>
+                        <th className="px-6 py-3">Ngày giao</th>
+                        <th className="px-6 py-3 text-right">Tổng cộng</th>
+                        <th className="px-6 py-3 text-center">Trạng thái</th>
+                        <th className="px-6 py-3 text-right">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {isLoading ? (
                         <tr>
-                            <td colSpan={6} className="px-6 py-8 text-sm text-text-muted">Loading orders...</td>
+                            <td colSpan={6} className="px-6 py-8 text-sm text-text-muted">Đang tải đơn hàng...</td>
                         </tr>
                     ) : isError ? (
                         <tr>
-                            <td colSpan={6} className="px-6 py-8 text-sm text-red-500">Failed to load order list.</td>
+                            <td colSpan={6} className="px-6 py-8 text-sm text-red-500">Không thể tải danh sách đơn hàng.</td>
                         </tr>
                     ) : orders.length === 0 ? (
                         <tr>
-                            <td colSpan={6} className="px-6 py-8 text-sm text-text-muted">No orders match the current filters.</td>
+                            <td colSpan={6} className="px-6 py-8 text-sm text-text-muted">Không có đơn hàng nào khớp với bộ lọc.</td>
                         </tr>
                     ) : (
                         orders.map((order, index) => (
                             <tr key={order.id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4">
                                     <p className="font-bold text-text-main">#{rowStart + index + 1}</p>
-                                    <p className="text-xs text-text-muted">Created: {formatDate(order.createdAt)}</p>
+                                    <p className="text-xs text-text-muted">Tạo lúc: {formatDate(order.createdAt)}</p>
                                 </td>
                                 <td className="px-6 py-4 text-text-main">{order.storeId}</td>
                                 <td className="px-6 py-4 text-text-muted">{formatDate(order.deliveryDate)}</td>
@@ -72,7 +72,7 @@ export default function OrdersTable({
                                             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary"
                                         >
                                             <EyeIcon className="h-4 w-4" />
-                                            View
+                                            Xem
                                         </button>
 
                                         {order.status === OrderStatus.PENDING && (
@@ -82,14 +82,14 @@ export default function OrdersTable({
                                                     disabled={isMutating}
                                                     className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-60"
                                                 >
-                                                    Approve
+                                                    Duyệt
                                                 </button>
                                                 <button
                                                     onClick={() => onReject(order)}
                                                     disabled={isMutating}
                                                     className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 disabled:opacity-60"
                                                 >
-                                                    Reject
+                                                    Từ chối
                                                 </button>
                                             </>
                                         )}

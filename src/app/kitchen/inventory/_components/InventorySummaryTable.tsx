@@ -17,15 +17,15 @@ export default function InventorySummaryTable({
     onSelect,
 }: InventorySummaryTableProps) {
     if (isLoading) {
-        return <p className="px-6 py-8 text-sm text-text-muted">Loading kitchen summary...</p>;
+        return <p className="px-6 py-8 text-sm text-text-muted">Đang tải tổng quan bếp...</p>;
     }
 
     if (isError) {
-        return <p className="px-6 py-8 text-sm text-red-500">Failed to load kitchen summary.</p>;
+        return <p className="px-6 py-8 text-sm text-red-500">Tải tổng quan bếp thất bại.</p>;
     }
 
     if (items.length === 0) {
-        return <p className="px-6 py-8 text-sm text-text-muted">No inventory data found.</p>;
+        return <p className="px-6 py-8 text-sm text-text-muted">Không tìm thấy dữ liệu tồn kho.</p>;
     }
 
     return (
@@ -33,10 +33,10 @@ export default function InventorySummaryTable({
             <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50/70 text-xs uppercase tracking-wide text-text-muted">
                     <tr>
-                        <th className="px-6 py-3">Product</th>
-                        <th className="px-6 py-3 text-right">Available</th>
-                        <th className="px-6 py-3 text-right">Reserved</th>
-                        <th className="px-6 py-3 text-center">Status</th>
+                        <th className="px-6 py-3">Sản phẩm</th>
+                        <th className="px-6 py-3 text-right">Có sẵn</th>
+                        <th className="px-6 py-3 text-right">Đã đặt trước</th>
+                        <th className="px-6 py-3 text-center">Trạng thái</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -67,7 +67,7 @@ export default function InventorySummaryTable({
                                             }`}
                                     >
                                         {item.isLowStock && <ExclamationTriangleIcon className="h-3 w-3" />}
-                                        {item.isLowStock ? "Low" : "Healthy"}
+                                        {item.isLowStock ? "Thấp" : "Khỏe mạnh"}
                                     </span>
                                 </td>
                             </tr>

@@ -23,31 +23,31 @@ export default function WarehouseTasksTable({
             <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50/70 text-xs uppercase tracking-wide text-text-muted">
                     <tr>
-                        <th className="px-6 py-3">No.</th>
-                        <th className="px-6 py-3">Store</th>
-                        <th className="px-6 py-3">Delivery</th>
-                        <th className="px-6 py-3 text-right">Items</th>
-                        <th className="px-6 py-3 text-center">Status</th>
-                        <th className="px-6 py-3 text-right">Actions</th>
+                        <th className="px-6 py-3">STT</th>
+                        <th className="px-6 py-3">Cửa hàng</th>
+                        <th className="px-6 py-3">Giao hàng</th>
+                        <th className="px-6 py-3 text-right">Mặt hàng</th>
+                        <th className="px-6 py-3 text-center">Trạng thái</th>
+                        <th className="px-6 py-3 text-right">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {isLoading ? (
                         <tr>
                             <td className="px-6 py-8 text-sm text-text-muted" colSpan={6}>
-                                Loading warehouse tasks...
+                                Đang tải các tác vụ kho...
                             </td>
                         </tr>
                     ) : isError ? (
                         <tr>
                             <td className="px-6 py-8 text-sm text-red-500" colSpan={6}>
-                                Failed to load warehouse tasks.
+                                Tải các tác vụ kho thất bại.
                             </td>
                         </tr>
                     ) : tasks.length === 0 ? (
                         <tr>
                             <td className="px-6 py-8 text-sm text-text-muted" colSpan={6}>
-                                No picking task found.
+                                Không tìm thấy tác vụ lấy hàng nào.
                             </td>
                         </tr>
                     ) : (
@@ -71,13 +71,13 @@ export default function WarehouseTasksTable({
                                             disabled={isResetting}
                                             className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary disabled:opacity-50"
                                         >
-                                            Reset
+                                            Đặt lại
                                         </button>
                                         <Link
                                             href={`/kitchen/warehouse/${task.orderId}`}
                                             className="rounded-lg bg-text-main px-3 py-1.5 text-xs font-bold text-white hover:bg-black"
                                         >
-                                            Open
+                                            Mở
                                         </Link>
                                     </div>
                                 </td>
