@@ -5,6 +5,9 @@ import {
   ExclamationCircleIcon,
   ArchiveBoxIcon,
 } from "@heroicons/react/24/outline";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 export type InventoryRowItem = {
   productId: number;
@@ -123,13 +126,15 @@ export default function InventoryTable({
               <td className="px-6 py-5 text-right">
                 <div className="flex justify-end gap-2">
                   {onAdjust && (
-                    <button
-                      onClick={() => onAdjust(item)} // Gọi hàm truyền từ Client
-                      className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-950 transition-all shadow-lg active:scale-95"
-                    >
-                      <PlusIcon className="h-3 w-3 stroke-[3px]" />
-                      Adjust
-                    </button>
+                    <Can I={P.PRODUCT_UPDATE} on={Resource.PRODUCT}>
+                      <button
+                        onClick={() => onAdjust(item)} // Gọi hàm truyền từ Client
+                        className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-950 transition-all shadow-lg active:scale-95"
+                      >
+                        <PlusIcon className="h-3 w-3 stroke-[3px]" />
+                        Adjust
+                      </button>
+                    </Can>
                   )}
                 </div>
               </td>

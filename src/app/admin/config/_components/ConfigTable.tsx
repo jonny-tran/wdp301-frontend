@@ -1,11 +1,14 @@
 "use client";
 
 import {
-  PencilSquareIcon,
   AdjustmentsHorizontalIcon,
   CalendarDaysIcon,
 } from "@heroicons/react/24/outline";
+import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { SystemConfig } from "./ConfigClient";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 import { format } from "date-fns";
 
 interface Props {
@@ -57,12 +60,14 @@ export default function ConfigTable({ configs, onEdit }: Props) {
                 </div>
               </td>
               <td className="px-10 py-6 text-right">
-                <button
-                  onClick={() => onEdit(cfg)}
-                  className="p-2.5 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 hover:shadow-md transition-all active:scale-90"
-                >
-                  <PencilSquareIcon className="h-4 w-4 stroke-[2.5px]" />
-                </button>
+                <Can I={P.SYSTEM_CONFIGURE_PARAMS} on={Resource.SYSTEM}>
+                  <button
+                    onClick={() => onEdit(cfg)}
+                    className="p-3 bg-slate-950 text-white rounded-2xl hover:scale-110 active:scale-95 transition-all shadow-xl shadow-slate-200"
+                  >
+                    <PencilSquareIcon className="h-4 w-4 stroke-[2.5px]" />
+                  </button>
+                </Can>
               </td>
             </tr>
           ))}

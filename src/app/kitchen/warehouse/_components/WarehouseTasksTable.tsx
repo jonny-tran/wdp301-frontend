@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { PickingTaskListItem } from "@/types/warehouse";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 interface WarehouseTasksTableProps {
     tasks: PickingTaskListItem[];
@@ -66,13 +69,15 @@ export default function WarehouseTasksTable({
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="flex items-center justify-end gap-2">
-                                        <button
-                                            onClick={() => onReset(task.orderId)}
-                                            disabled={isResetting}
-                                            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary disabled:opacity-50"
-                                        >
-                                            Reset
-                                        </button>
+                                        <Can I={P.WAREHOUSE_RESET_PICKING} on={Resource.WAREHOUSE}>
+                                            <button
+                                                onClick={() => onReset(task.orderId)}
+                                                disabled={isResetting}
+                                                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary disabled:opacity-50"
+                                            >
+                                                Reset
+                                            </button>
+                                        </Can>
                                         <Link
                                             href={`/kitchen/warehouse/${task.orderId}`}
                                             className="rounded-lg bg-text-main px-3 py-1.5 text-xs font-bold text-white hover:bg-black"

@@ -7,6 +7,9 @@ import SupplierTable from "./SupplierTable";
 import SupplierCreateModal from "./SupplierCreateModal";
 import SupplierEditModal from "./SupplierEditModal"; // Import component mới
 import { toast } from "sonner";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 export default function SupplierClient() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -42,12 +45,14 @@ export default function SupplierClient() {
               : `${items.length} Đối tác hiện có`}
           </p>
         </div>
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="px-6 py-3 bg-slate-950 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg"
-        >
-          + Add Supplier
-        </button>
+        <Can I={P.SUPPLIER_CREATE} on={Resource.SUPPLIER}>
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="px-6 py-3 bg-slate-950 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg"
+          >
+            + Add Supplier
+          </button>
+        </Can>
       </div>
 
       {/* Container chứa Table */}

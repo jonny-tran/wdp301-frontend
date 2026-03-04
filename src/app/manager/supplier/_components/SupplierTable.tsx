@@ -7,6 +7,9 @@ import {
   PhoneIcon,
 } from "@heroicons/react/24/outline";
 import { Supplier } from "@/types/supplier";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 interface SupplierTableProps {
   items: Supplier[];
@@ -78,8 +81,8 @@ export default function SupplierTable({
               <td className="px-4 py-4 text-center">
                 <span
                   className={`inline-flex px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all ${item.isActive
-                      ? "bg-green-100 text-green-700 group-hover:bg-green-600 group-hover:text-white"
-                      : "bg-slate-100 text-slate-400 group-hover:bg-slate-700"
+                    ? "bg-green-100 text-green-700 group-hover:bg-green-600 group-hover:text-white"
+                    : "bg-slate-100 text-slate-400 group-hover:bg-slate-700"
                     }`}
                 >
                   {item.isActive ? "Active" : "Inactive"}
@@ -88,24 +91,26 @@ export default function SupplierTable({
               <td className="px-4 py-4 text-right">
                 {/* FIX 4: Thu nhỏ button để không chiếm chỗ */}
                 <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onEdit(item);
-                    }}
-                    className="p-2 hover:bg-blue-600 text-slate-400 hover:text-white rounded-lg transition-all"
-                  >
-                    <PencilSquareIcon className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDelete(item.id);
-                    }}
-                    className="p-2 hover:bg-red-600 text-slate-400 hover:text-white rounded-lg transition-all"
-                  >
-                    <TrashIcon className="h-4 w-4" />
-                  </button>
+                  <Can I={P.SUPPLIER_UPDATE} on={Resource.SUPPLIER}>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEdit(item);
+                      }}
+                      className="p-2 hover:bg-blue-600 text-slate-400 hover:text-white rounded-lg transition-all"
+                    >
+                      <PencilSquareIcon className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDelete(item.id);
+                      }}
+                      className="p-2 hover:bg-red-600 text-slate-400 hover:text-white rounded-lg transition-all"
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
+                  </Can>
                 </div>
               </td>
             </tr>

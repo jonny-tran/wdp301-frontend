@@ -9,6 +9,9 @@ import {
   InboxIcon,
 } from "@heroicons/react/24/outline";
 import { Store } from "@/types/store";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 interface StoreTableProps {
   items: Store[];
@@ -119,18 +122,20 @@ export default function StoreTable({
               {/* Action Buttons */}
               <td className="px-8 py-6 text-right">
                 <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => onEdit(store)}
-                    className="p-2.5 bg-slate-50 group-hover:bg-white/10 text-black group-hover:text-white rounded-xl transition-all active:scale-95"
-                  >
-                    <PencilSquareIcon className="h-4 w-4 stroke-[2.5px]" />
-                  </button>
-                  <button
-                    onClick={() => onDelete(store.id)}
-                    className="p-2.5 bg-red-50 group-hover:bg-red-600/20 text-red-600 rounded-xl transition-all active:scale-95"
-                  >
-                    <TrashIcon className="h-4 w-4 stroke-[2.5px]" />
-                  </button>
+                  <Can I={P.STORE_UPDATE} on={Resource.STORE}>
+                    <button
+                      onClick={() => onEdit(store)}
+                      className="p-2.5 bg-slate-50 group-hover:bg-white/10 text-black group-hover:text-white rounded-xl transition-all active:scale-95"
+                    >
+                      <PencilSquareIcon className="h-4 w-4 stroke-[2.5px]" />
+                    </button>
+                    <button
+                      onClick={() => onDelete(store.id)}
+                      className="p-2.5 bg-red-50 group-hover:bg-red-600/20 text-red-600 rounded-xl transition-all active:scale-95"
+                    >
+                      <TrashIcon className="h-4 w-4 stroke-[2.5px]" />
+                    </button>
+                  </Can>
                 </div>
               </td>
             </tr>

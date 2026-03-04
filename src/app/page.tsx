@@ -1,5 +1,11 @@
 
+import { Metadata } from "next";
 import Navbar from "@/components/landing/Navbar";
+
+export const metadata: Metadata = {
+  title: "VFC | Best Fried Chicken in Town",
+  description: "Experience the ultimate fried chicken sensation at VFC. Traditional recipes, modern taste.",
+};
 import HeroSection from "@/components/landing/HeroSection";
 import AboutSection from "@/components/landing/AboutSection";
 import AppPromoSection from "@/components/landing/AppPromoSection";
