@@ -30,9 +30,15 @@ export default function ShipmentFilter({ filters, onFilterChange }: any) {
         className="bg-slate-50 border-none rounded-full py-3 px-6 text-[10px] font-black uppercase tracking-widest cursor-pointer outline-none focus:ring-2 focus:ring-slate-900"
       >
         <option value="">TẤT CẢ TRẠNG THÁI</option>
-        {statusOptions.map((s) => (
-          <option key={s} value={s}>
-            {s.toUpperCase()}
+        {[
+          { value: "preparing", label: "Đang chuẩn bị" },
+          { value: "picking", label: "Đang lấy hàng" },
+          { value: "delivering", label: "Đang giao" },
+          { value: "completed", label: "Hoàn thành" },
+          { value: "cancelled", label: "Đã hủy" },
+        ].map((s) => (
+          <option key={s.value} value={s.value}>
+            {s.label.toUpperCase()}
           </option>
         ))}
       </select>

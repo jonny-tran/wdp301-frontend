@@ -23,7 +23,7 @@ export const useWarehouse = () => {
                 const res = await warehouseRequest.getPickingTaskDetail(id)
                 return res.data
             },
-            enabled: !!id
+            enabled: !!id && id !== 'undefined'
         })
     }
     const resetPickingTask = useMutation({
@@ -32,7 +32,7 @@ export const useWarehouse = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Picking task reset successfully')
+            toast.success('Đơn hàng đã được reset')
             queryClient.invalidateQueries({ queryKey: KEY.warehouse })
         },
         onError: (error) => {
@@ -46,7 +46,7 @@ export const useWarehouse = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Bulk shipment finalized successfully')
+            toast.success('Khoảng hàng đã được hoàn thành')
             queryClient.invalidateQueries({ queryKey: KEY.warehouse })
         },
     })
@@ -57,7 +57,7 @@ export const useWarehouse = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Issue reported successfully')
+            toast.success('Báo cáo vấn đề thành công')
             queryClient.invalidateQueries({ queryKey: KEY.warehouse })
         },
     })

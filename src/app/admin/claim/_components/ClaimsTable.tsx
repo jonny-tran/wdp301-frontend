@@ -9,12 +9,32 @@ import {
   InboxIcon,
 } from "@heroicons/react/24/outline";
 
+import { Claim } from "@/types/claim";
+
 export default function ClaimsTable({
   items = [],
   isLoading,
   onViewDetail,
-}: any) {
-  // ... (giữ nguyên phần Loading và Empty state)
+}: {
+  items: Claim[];
+  isLoading: boolean;
+  onViewDetail: (id: string) => void;
+}) {
+  if (isLoading)
+    return (
+      <div className="p-32 text-center flex flex-col items-center gap-4 text-slate-200 uppercase italic font-black text-[10px] tracking-[0.3em]">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-slate-950 mb-4"></div>
+        Đang tải...
+      </div>
+    );
+
+  if (items.length === 0)
+    return (
+      <div className="p-32 text-center flex flex-col items-center gap-4 text-slate-200 uppercase italic font-black text-[10px] tracking-[0.3em]">
+        <InboxIcon className="h-10 w-10 opacity-20" />
+        Không tìm thấy khiếu nại nào
+      </div>
+    );
 
   return (
     <div className="w-full overflow-hidden">
@@ -36,9 +56,9 @@ export default function ClaimsTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-50 bg-white">
-          {items.map((claim: any) => (
+          {items.map((claim) => (
             <tr
-              key={claim.id}
+              key={claim.claimId}
               className="group hover:bg-black transition-all duration-300"
             >
               {/* CỘT NGÀY NHẬN ĐÃ TĂNG CỠ CHỮ */}
@@ -67,13 +87,12 @@ export default function ClaimsTable({
                 <div className="flex justify-center">
                   <span
                     className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all
-                    ${
-                      claim.status === "approved"
+                    ${claim.status === "approved"
                         ? "bg-green-50 text-green-700 group-hover:bg-green-600 group-hover:text-white"
                         : claim.status === "pending"
                           ? "bg-orange-50 text-orange-700 group-hover:bg-orange-600 group-hover:text-white"
                           : "bg-red-50 text-red-700 group-hover:bg-red-600 group-hover:text-white"
-                    }`}
+                      }`}
                   >
                     {claim.status}
                   </span>
@@ -82,11 +101,11 @@ export default function ClaimsTable({
 
               <td className="px-6 py-6 text-right">
                 <button
-                  onClick={() => onViewDetail(claim.id)}
+                  onClick={() => onViewDetail(claim.claimId)}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all active:scale-95"
                 >
                   <EyeIcon className="h-3.5 w-3.5 stroke-[3px]" />
-                  View
+                  Xem
                 </button>
               </td>
             </tr>

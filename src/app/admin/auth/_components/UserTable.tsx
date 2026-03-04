@@ -5,14 +5,22 @@ import {
   UserCircleIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { UserRow, RoleOption } from "./user.types";
+import { User } from "@/types/user";
 import { clsx } from "clsx";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
+
+export type RoleOption = {
+  value: string;
+  label: string;
+};
 
 interface UserTableProps {
-  items: UserRow[];
+  items: User[];
   isLoading: boolean;
   roleOptions: RoleOption[]; // Nhận danh sách nhãn tiếng Việt từ Client
-  onEdit: (user: UserRow) => void;
+  onEdit: (user: User) => void;
 }
 
 export default function UserTable({
@@ -131,12 +139,14 @@ export default function UserTable({
 
                 {/* 4. Nút thao tác (Hiện khi hover dòng) */}
                 <td className="px-10 py-6 text-right">
-                  <button
-                    onClick={() => onEdit(user)}
-                    className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-indigo-600 hover:shadow-xl hover:border-indigo-100 transition-all active:scale-90 opacity-0 group-hover:opacity-100"
-                  >
-                    <PencilSquareIcon className="h-4 w-4 stroke-[2.5px]" />
-                  </button>
+                  <Can I={P.USER_UPDATE} on={Resource.USER}>
+                    <button
+                      onClick={() => onEdit(user)}
+                      className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-indigo-600 hover:shadow-xl hover:border-indigo-100 transition-all active:scale-90 opacity-0 group-hover:opacity-100"
+                    >
+                      <PencilSquareIcon className="h-4 w-4 stroke-[2.5px]" />
+                    </button>
+                  </Can>
                 </td>
               </tr>
             );

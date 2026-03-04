@@ -10,16 +10,13 @@ export const useUpload = () => {
     mutationFn: async (file: File) => {
       if (!file) throw new Error("Không có file nào được chọn");
       const res = await uploadRequest.uploadImage(file);
-      return res.payload?.data || res.data; 
+      return res.data
     },
     onSuccess: (data) => {
-      if (data?.url) {
-        toast.success('Tải ảnh lên kho thành công!');
-      }
+      toast.success('Tải ảnh thành công!');
     },
-    onError: (error: any) => {
-      console.error("Chi tiết lỗi upload:", error);
-      handleErrorApi(error); 
+    onError: () => {
+      handleErrorApi({ error: 'Vui lòng tải ảnh lên với kích thước nhỏ hơn 5MB' });
     }
   });
   return { uploadImage };

@@ -15,7 +15,7 @@ export const useSupplier = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Supplier created successfully')
+            toast.success('Tạo supplier thành công')
             queryClient.invalidateQueries({ queryKey: KEY.suppliers })
         },
     })
@@ -26,7 +26,7 @@ export const useSupplier = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Supplier updated successfully')
+            toast.success('Cập nhật supplier thành công')
             queryClient.invalidateQueries({ queryKey: KEY.suppliers })
         },
     })
@@ -37,7 +37,7 @@ export const useSupplier = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Supplier deleted successfully')
+            toast.success('Xóa supplier thành công')
             queryClient.invalidateQueries({ queryKey: KEY.suppliers })
         },
         onError: (error) => {

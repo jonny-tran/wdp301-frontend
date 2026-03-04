@@ -16,7 +16,7 @@ export const useStore = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Store created successfully')
+            toast.success('Tạo store thành công')
             queryClient.invalidateQueries({ queryKey: KEY.stores })
         },
     })
@@ -27,7 +27,7 @@ export const useStore = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Store updated successfully')
+            toast.success('Cập nhật store thành công')
             queryClient.invalidateQueries({ queryKey: KEY.stores })
         },
     })
@@ -38,7 +38,7 @@ export const useStore = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Store deleted successfully')
+            toast.success('Xóa store thành công')
             queryClient.invalidateQueries({ queryKey: KEY.stores })
         },
         onError: (error) => {

@@ -8,11 +8,15 @@ import {
   TrashIcon,
   InboxIcon,
 } from "@heroicons/react/24/outline";
+import { Store } from "@/types/store";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 interface StoreTableProps {
-  items: any[];
+  items: Store[];
   isLoading: boolean;
-  onEdit: (store: any) => void;
+  onEdit: (store: Store) => void;
   onDelete: (id: string) => void;
 }
 
@@ -105,11 +109,10 @@ export default function StoreTable({
                 <div className="flex justify-center">
                   <span
                     className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all
-                    ${
-                      store.isActive
+                    ${store.isActive
                         ? "bg-green-50 text-green-700 group-hover:bg-green-600 group-hover:text-white"
                         : "bg-slate-100 text-slate-400 group-hover:bg-slate-700 group-hover:text-white"
-                    }`}
+                      }`}
                   >
                     {store.isActive ? "Active" : "Inactive"}
                   </span>
@@ -119,18 +122,20 @@ export default function StoreTable({
               {/* Action Buttons */}
               <td className="px-8 py-6 text-right">
                 <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => onEdit(store)}
-                    className="p-2.5 bg-slate-50 group-hover:bg-white/10 text-black group-hover:text-white rounded-xl transition-all active:scale-95"
-                  >
-                    <PencilSquareIcon className="h-4 w-4 stroke-[2.5px]" />
-                  </button>
-                  <button
-                    onClick={() => onDelete(store.id)}
-                    className="p-2.5 bg-red-50 group-hover:bg-red-600/20 text-red-600 rounded-xl transition-all active:scale-95"
-                  >
-                    <TrashIcon className="h-4 w-4 stroke-[2.5px]" />
-                  </button>
+                  <Can I={P.STORE_UPDATE} on={Resource.STORE}>
+                    <button
+                      onClick={() => onEdit(store)}
+                      className="p-2.5 bg-slate-50 group-hover:bg-white/10 text-black group-hover:text-white rounded-xl transition-all active:scale-95"
+                    >
+                      <PencilSquareIcon className="h-4 w-4 stroke-[2.5px]" />
+                    </button>
+                    <button
+                      onClick={() => onDelete(store.id)}
+                      className="p-2.5 bg-red-50 group-hover:bg-red-600/20 text-red-600 rounded-xl transition-all active:scale-95"
+                    >
+                      <TrashIcon className="h-4 w-4 stroke-[2.5px]" />
+                    </button>
+                  </Can>
                 </div>
               </td>
             </tr>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useProduct } from "@/hooks/useProduct";
 import ImageUpload from "@/components/shared/ImageUpload";
 import { toast } from "sonner";
@@ -8,94 +8,67 @@ import {
   XMarkIcon,
   CheckIcon,
   PencilSquareIcon,
-  PlusIcon,
-  TagIcon,
   CircleStackIcon,
   CalendarIcon,
+  TagIcon,
 } from "@heroicons/react/24/outline";
-import { BatchRow } from "./batch.types";
+import { Batch } from "@/types/product";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { UpdateBatchBody, UpdateBatchBodyType } from "@/schemas/product";
+import { BatchStatus } from "@/utils/enum";
+import { handleErrorApi } from "@/lib/errors";
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  batch: BatchRow | null; // Nếu null là Create, nếu có data là Edit
+  batch: Batch | null;
+  productId?: number;
+  productName?: string;
 }
 
-export default function BatchFormModal({ isOpen, onClose, batch }: Props) {
-  const isEdit = !!batch;
-  const { createProduct, updateBatch, productList } = useProduct();
+export default function BatchFormModal({ isOpen, onClose, batch, productId, productName }: Props) {
+  const { updateBatch } = useProduct();
 
-  // Lấy danh sách sản phẩm (chỉ dùng cho Create hoặc hiển thị thông tin)
-  const { data: rawProductData } = productList({ page: 1, limit: 100 });
-  const products = useMemo(
-    () => rawProductData?.data?.items || rawProductData?.items || [],
-    [rawProductData],
-  );
-
-  const [formData, setFormData] = useState({
-    productId: "",
-    batchCode: "",
-    initialQuantity: 0,
-    expiryDate: "",
-    status: "pending",
-    imageUrl: "",
+  const {
+    register,
+    handleSubmit,
+    reset,
+    control,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<UpdateBatchBodyType>({
+    resolver: zodResolver(UpdateBatchBody) as any,
   });
 
   // Sync dữ liệu khi mở Modal
   useEffect(() => {
-    if (isOpen) {
-      if (batch) {
-        // Chế độ EDIT: Fill dữ liệu cũ
-        setFormData({
-          productId: String(batch.productId),
-          batchCode: batch.batchCode,
-          initialQuantity: Math.floor(Number(batch.currentQuantity)),
-          expiryDate: batch.expiryDate ? batch.expiryDate.split("T")[0] : "",
-          status: batch.status,
-          imageUrl: batch.imageUrl || "",
-        });
-      } else {
-        // Chế độ CREATE: Reset form
-        setFormData({
-          productId: "",
-          batchCode: "",
-          initialQuantity: 0,
-          expiryDate: "",
-          status: "pending",
-          imageUrl: "",
-        });
-      }
+    if (isOpen && batch) {
+      reset({
+        initialQuantity: Math.floor(Number(batch.currentQuantity)),
+        imageUrl: batch.imageUrl || "",
+        status: batch.status as BatchStatus,
+      });
     }
-  }, [isOpen, batch]);
+  }, [isOpen, batch, reset]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onSubmit = async (data: UpdateBatchBodyType) => {
     try {
-      if (isEdit) {
-        // Gọi API PATCH
-        await updateBatch.mutateAsync({
-          id: batch.id,
-          data: {
-            initialQuantity: formData.initialQuantity,
-            imageUrl: formData.imageUrl || undefined,
-            status: formData.status,
-          },
-        });
-        toast.success("Cập nhật lô hàng thành công!");
-      } else {
-        // Gọi API POST
-        if (!formData.productId) return toast.error("Vui lòng chọn sản phẩm!");
-        await createProduct.mutateAsync({
-          ...formData,
-          productId: Number(formData.productId),
-          initialQuantity: Number(formData.initialQuantity),
-        } as any);
-        toast.success("Khởi tạo lô hàng mới thành công!");
-      }
+      if (!batch?.id) return;
+      await updateBatch.mutateAsync({
+        id: batch.id,
+        data: {
+          initialQuantity: data.initialQuantity,
+          imageUrl: data.imageUrl || undefined,
+          status: data.status,
+        },
+      });
       onClose();
     } catch (error) {
-      // Lỗi đã được hook useProduct xử lý
+      handleErrorApi({
+        error,
+        setError,
+      });
     }
   };
 
@@ -104,31 +77,21 @@ export default function BatchFormModal({ isOpen, onClose, batch }: Props) {
   return (
     <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
       <form
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         className="w-full max-w-4xl bg-white rounded-[3rem] p-12 space-y-8 shadow-2xl animate-in zoom-in border border-slate-100"
       >
-        {/* Dynamic Header */}
+        {/* Header */}
         <div className="flex justify-between items-center border-b border-slate-50 pb-6">
           <div className="flex items-center gap-4">
-            <div
-              className={`h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${isEdit ? "bg-amber-500" : "bg-indigo-600"}`}
-            >
-              {isEdit ? (
-                <PencilSquareIcon className="h-6 w-6 stroke-[2.5px]" />
-              ) : (
-                <PlusIcon className="h-6 w-6 stroke-[3px]" />
-              )}
+            <div className="h-12 w-12 rounded-2xl flex items-center justify-center text-white shadow-lg bg-amber-500">
+              <PencilSquareIcon className="h-6 w-6 stroke-[2.5px]" />
             </div>
             <div className="flex flex-col">
               <h3 className="text-2xl font-black uppercase italic text-slate-900 tracking-tighter">
-                {isEdit
-                  ? `Cập nhật Lô: ${batch.batchCode}`
-                  : "Khởi tạo Lô hàng mới"}
+                {batch ? `Cập nhật Lô: ${batch.batchCode}` : `Thêm Lô mới: ${productName}`}
               </h3>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">
-                {isEdit
-                  ? "Batch Modification Mode"
-                  : "New Entry Inventory System"}
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 ml-1">
+                {batch ? 'Batch Modification Mode' : 'New Batch Entry'}
               </p>
             </div>
           </div>
@@ -143,125 +106,89 @@ export default function BatchFormModal({ isOpen, onClose, batch }: Props) {
 
         <div className="grid grid-cols-2 gap-x-10 gap-y-6">
           <div className="space-y-6">
-            {/* SELECT SẢN PHẨM: Disable khi Edit vì thường không được đổi SP của Lô */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2">
-                <TagIcon className="h-3 w-3" /> Sản phẩm định danh
-              </label>
-              <select
-                disabled={isEdit}
-                required
-                value={formData.productId}
-                onChange={(e) =>
-                  setFormData({ ...formData, productId: e.target.value })
-                }
-                className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-black text-slate-900 outline-none focus:bg-white disabled:opacity-60 transition-all shadow-sm"
-              >
-                <option value="">--- Chọn sản phẩm ---</option>
-                {products.map((p: any) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} ({p.sku})
-                  </option>
-                ))}
-              </select>
+            {/* THÔNG TIN CỐ ĐỊNH (DISABLE) */}
+            <div className="grid grid-cols-2 gap-4 opacity-70">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2">
+                  <TagIcon className="h-3 w-3" /> Product ID
+                </label>
+                <div className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-black text-slate-400">
+                  #{batch ? batch.productId : productId}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2">
+                  <CalendarIcon className="h-3 w-3" /> Hạn dùng
+                </label>
+                <div className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold text-slate-400">
+                  {batch?.expiryDate ? batch.expiryDate.split("T")[0] : "N/A"}
+                </div>
+              </div>
             </div>
 
-            {/* BATCH CODE: Disable khi Edit */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
-                Mã số Lô (Batch Code)
-              </label>
-              <input
-                disabled={isEdit}
-                required
-                value={formData.batchCode}
-                onChange={(e) =>
-                  setFormData({ ...formData, batchCode: e.target.value })
-                }
-                className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:bg-white disabled:opacity-60 transition-all shadow-sm"
-              />
-            </div>
-
+            {/* EDITABLE FIELDS */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
-                  Số lượng khởi tạo
+                  Số lượng hiện tại
                 </label>
                 <input
-                  required
                   type="number"
-                  min="0"
-                  value={formData.initialQuantity}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      initialQuantity: Number(e.target.value),
-                    })
-                  }
-                  className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-black text-slate-900 outline-none focus:bg-white transition-all shadow-sm"
+                  {...register("initialQuantity", { valueAsNumber: true })}
+                  className={`w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-black text-slate-900 outline-none focus:bg-white transition-all shadow-sm ${errors.initialQuantity ? "border-red-500 bg-red-50" : ""}`}
                 />
+                {errors.initialQuantity && <p className="text-[10px] text-red-500 ml-4">{errors.initialQuantity.message}</p>}
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
-                  Trạng thái
+                  Trạng thái lô hàng
                 </label>
                 <select
-                  value={formData.status}
-                  onChange={(e) =>
-                    setFormData({ ...formData, status: e.target.value })
-                  }
-                  className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-black text-slate-900 outline-none appearance-none cursor-pointer focus:bg-white transition-all shadow-sm"
+                  {...register("status")}
+                  className={`w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-black text-slate-900 outline-none appearance-none cursor-pointer focus:bg-white transition-all shadow-sm ${errors.status ? "border-red-500 bg-red-50" : ""}`}
                 >
-                  <option value="pending">PENDING</option>
-                  <option value="available">AVAILABLE</option>
+                  <option value={BatchStatus.PENDING}>PENDING</option>
+                  <option value={BatchStatus.AVAILABLE}>AVAILABLE</option>
+                  <option value={BatchStatus.EMPTY}>EMPTY</option>
+                  <option value={BatchStatus.EXPIRED}>EXPIRED</option>
                 </select>
+                {errors.status && <p className="text-[10px] text-red-500 ml-4">{errors.status.message}</p>}
               </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2">
-                <CalendarIcon className="h-3 w-3" /> Hạn sử dụng (Expiry Date)
-              </label>
-              <input
-                disabled={isEdit} // Thường không sửa hạn dùng sau khi nhập lô
-                required
-                type="date"
-                value={formData.expiryDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, expiryDate: e.target.value })
-                }
-                className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:bg-white disabled:opacity-60 transition-all shadow-sm"
-              />
             </div>
           </div>
 
-          {/* CỘT 2: HÌNH ẢNH */}
+          {/* HÌNH ẢNH */}
           <div className="flex flex-col space-y-2">
             <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
               Minh chứng hình ảnh thực tế
             </label>
-            <div className="flex-1 min-h-[250px]">
-              <ImageUpload
-                value={formData.imageUrl}
-                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+            <div className="flex-1 min-h-[200px]">
+              <Controller
+                name="imageUrl"
+                control={control}
+                render={({ field }) => (
+                  <ImageUpload
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                  />
+                )}
               />
             </div>
+            {errors.imageUrl && <p className="text-[10px] text-red-500 ml-4">{errors.imageUrl.message}</p>}
           </div>
         </div>
 
         <button
           type="submit"
-          disabled={createProduct.isPending || updateBatch.isPending}
-          className={`w-full flex items-center justify-center gap-4 rounded-full py-6 text-xs font-black text-white transition-all shadow-2xl active:scale-[0.98] disabled:bg-slate-200 ${isEdit ? "bg-amber-600 hover:bg-amber-700" : "bg-slate-900 hover:bg-black"}`}
+          disabled={isSubmitting}
+          className="w-full flex items-center justify-center gap-4 rounded-full py-6 text-xs font-black text-white transition-all shadow-2xl active:scale-[0.98] disabled:bg-slate-200 bg-amber-600 hover:bg-amber-700"
         >
-          {createProduct.isPending || updateBatch.isPending ? (
+          {isSubmitting ? (
             <CircleStackIcon className="h-5 w-5 animate-spin" />
           ) : (
             <>
-              <CheckIcon className="h-5 w-5 stroke-[3px]" />{" "}
-              {isEdit
-                ? "XÁC NHẬN CẬP NHẬT THAY ĐỔI"
-                : "XÁC NHẬN GHI DANH LÔ HÀNG"}
+              <CheckIcon className="h-5 w-5 stroke-[3px]" /> XÁC NHẬN CẬP NHẬT
+              THAY ĐỔI
             </>
           )}
         </button>
@@ -269,3 +196,5 @@ export default function BatchFormModal({ isOpen, onClose, batch }: Props) {
     </div>
   );
 }
+
+

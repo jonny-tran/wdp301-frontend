@@ -8,6 +8,9 @@ import InboundDraftBoard from "./InboundDraftBoard";
 import ReceiptDetailModal from "./ReceiptDetailModal";
 import InboundCreateModal from "./InboundCreateModal";
 import { PlusIcon } from "@heroicons/react/24/outline";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 const QUERY_CONFIG = {
     page: 1,
@@ -40,13 +43,6 @@ export default function InboundClient() {
         setIsDetailOpen(true);
     };
 
-    const handleCreateSubmit = (data: any) => {
-        createReceipt.mutate(data, {
-            onSuccess: () => {
-                setIsCreateOpen(false);
-            }
-        });
-    };
 
     return (
         <div className="space-y-8">
@@ -56,17 +52,19 @@ export default function InboundClient() {
                         <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">
                             <InboxArrowDownIcon className="h-7 w-7" />
                         </div>
-                        Inbound Management
+                        Quản lý Nhập kho
                     </h1>
-                    <p className="text-text-muted pl-1">Professional goods receiving and shipment tracking.</p>
+                    <p className="text-text-muted pl-1">Tiếp nhận hàng hóa và theo dõi vận chuyển chuyên nghiệp.</p>
                 </div>
-                <button
-                    onClick={() => setIsCreateOpen(true)}
-                    className="flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-primary-dark transition-all active:scale-95 shadow-lg shadow-primary/20"
-                >
-                    <PlusIcon className="h-4 w-4" />
-                    New Receipt
-                </button>
+                <Can I={P.INBOUND_CREATE_RECEIPT} on={Resource.INBOUND}>
+                    <button
+                        onClick={() => setIsCreateOpen(true)}
+                        className="flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-white hover:bg-primary-dark transition-all active:scale-95 shadow-lg shadow-primary/20"
+                    >
+                        <PlusIcon className="h-4 w-4" />
+                        New Receipt
+                    </button>
+                </Can>
             </div>
 
             <InboundDraftBoard
@@ -87,8 +85,6 @@ export default function InboundClient() {
             <InboundCreateModal
                 isOpen={isCreateOpen}
                 onClose={() => setIsCreateOpen(false)}
-                onSubmit={handleCreateSubmit}
-                isPending={createReceipt.isPending}
             />
         </div >
     );

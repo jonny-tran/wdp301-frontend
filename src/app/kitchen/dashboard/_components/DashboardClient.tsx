@@ -12,11 +12,12 @@ import { useProduct } from "@/hooks/useProduct";
 import { useInbound } from "@/hooks/useInbound";
 import { ReceiptStatus } from "@/utils/enum";
 import { KitchSummary } from "@/types/inventory";
-import { countLowStock, extractItems } from "./dashboard.mapper";
 import InventoryWatchlistCard from "./InventoryWatchlistCard";
 import KitchenQuickActions from "./KitchenQuickActions";
 import KitchenSummaryCard from "./KitchenSummaryCard";
 import PickingQueueCard from "./PickingQueueCard";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 const DEFAULT_PAGE_QUERY = {
     page: 1,
@@ -35,16 +36,16 @@ export default function DashboardClient() {
     const batchesQuery = batchList(DEFAULT_PAGE_QUERY);
     const receiptsQuery = receiptList({ ...DEFAULT_PAGE_QUERY, status: ReceiptStatus.DRAFT });
 
-    const pickingItems = extractItems(pickingTaskQuery.data);
-    const kitchenItems = extractItems(kitchenSummaryQuery.data) as KitchSummary[];
-    const batchItems = extractItems(batchesQuery.data);
-    const receiptItems = extractItems(receiptsQuery.data);
+    const pickingItems = pickingTaskQuery.data?.items || [];
+    const kitchenItems = kitchenSummaryQuery.data?.items || [];
+    const batchItems = batchesQuery.data?.items || [];
+    const receiptItems = receiptsQuery.data?.items || [];
 
     const quickActions = [
-        { href: "/kitchen/inventory", label: "Inventory" },
-        { href: "/kitchen/warehouse", label: "Warehouse" },
-        { href: "/kitchen/batches", label: "Batches" },
-        { href: "/kitchen/production-plan", label: "Ops Board" },
+        { href: "/kitchen/inventory", label: "Inventory", permission: { action: P.INVENTORY_READ_KITCHEN_SUMMARY, resource: Resource.INVENTORY } },
+        { href: "/kitchen/warehouse", label: "Warehouse", permission: { action: P.WAREHOUSE_READ_TASKS, resource: Resource.WAREHOUSE } },
+        { href: "/kitchen/batches", label: "Batches", permission: { action: P.INBOUND_READ_BATCH_LABEL, resource: Resource.INBOUND } },
+        { href: "/kitchen/inbound", label: "Inbound", permission: { action: P.INBOUND_CREATE_RECEIPT, resource: Resource.INBOUND } },
     ];
 
     return (
@@ -52,27 +53,27 @@ export default function DashboardClient() {
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
                 <KitchenSummaryCard
                     icon={<ClipboardDocumentListIcon className="h-5 w-5" />}
-                    title="Picking Tasks"
+                    title="Tác vụ lấy hàng"
                     value={String(pickingItems.length)}
-                    hint="Approved orders waiting"
+                    hint="Đơn hàng đã duyệt đang chờ"
                 />
                 <KitchenSummaryCard
                     icon={<ArchiveBoxIcon className="h-5 w-5" />}
-                    title="Active Batches"
+                    title="Lô hàng đang hoạt động"
                     value={String(batchItems.length)}
-                    hint="From central warehouse"
+                    hint="Từ kho trung tâm"
                 />
                 <KitchenSummaryCard
                     icon={<ExclamationTriangleIcon className="h-5 w-5" />}
                     title="Low Stock"
-                    value={String(countLowStock(kitchenItems))}
+                    value={String(kitchenItems.filter(item => item.isLowStock).length)}
                     hint="Require replenishment"
                 />
                 <KitchenSummaryCard
                     icon={<InboxArrowDownIcon className="h-5 w-5" />}
-                    title="Draft Receipts"
+                    title="Phiếu nháp"
                     value={String(receiptItems.length)}
-                    hint="Inbound not completed"
+                    hint="Nhập kho chưa hoàn tất"
                 />
             </div>
 

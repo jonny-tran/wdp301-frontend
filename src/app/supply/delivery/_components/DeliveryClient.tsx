@@ -9,9 +9,9 @@ import { useShipment } from "@/hooks/useShipment";
 import { createPaginationSearchParams, normalizeMeta, parseListQuery, RawSearchParams } from "@/app/supply/_components/query";
 import { formatStatusLabel } from "@/app/supply/_components/format";
 import { ShipmentStatus } from "@/utils/enum";
+import { Shipment, ShipmentPickingList } from "@/types/shipment";
 import DeliveryTable from "./DeliveryTable";
 import PickingDetailModal from "./PickingDetailModal";
-import { extractShipments, normalizePicking } from "./delivery.mapper";
 
 interface DeliveryClientProps {
     searchParams: RawSearchParams;
@@ -40,16 +40,16 @@ export default function DeliveryClient({ searchParams }: DeliveryClientProps) {
         toDate: parsedQuery.toDate,
     });
 
-    const shipments = useMemo(() => extractShipments(shipmentQuery.data), [shipmentQuery.data]);
+    const shipments: Shipment[] = shipmentQuery.data?.items || [];
     const meta = useMemo(
-        () => normalizeMeta((shipmentQuery.data as { meta?: unknown } | undefined)?.meta, parsedQuery.page, parsedQuery.limit, shipments.length),
+        () => normalizeMeta(shipmentQuery.data?.meta, parsedQuery.page, parsedQuery.limit, shipments.length),
         [parsedQuery.limit, parsedQuery.page, shipmentQuery.data, shipments.length],
     );
     const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
 
     const [detailTargetId, setDetailTargetId] = useState("");
     const pickingQuery = shipmentPickingList(detailTargetId);
-    const pickingData = normalizePicking(pickingQuery.data);
+    const pickingData = (pickingQuery.data ?? {}) as ShipmentPickingList;
     const detailShipmentNo = useMemo(() => {
         const index = shipments.findIndex((shipment) => shipment.id === detailTargetId);
         return index >= 0 ? rowStart + index + 1 : undefined;
@@ -79,14 +79,14 @@ export default function DeliveryClient({ searchParams }: DeliveryClientProps) {
     const filterConfig: FilterConfig[] = [
         {
             key: "search",
-            label: "Search",
+            label: "Tìm kiếm",
             type: "text",
-            placeholder: "Shipment ID / Order ID...",
+            placeholder: "Mã giao hàng / Mã đơn hàng...",
             className: "md:col-span-2",
         },
         {
             key: "status",
-            label: "Status",
+            label: "Trạng thái",
             type: "select",
             options: Object.values(ShipmentStatus).map((status) => ({
                 label: formatStatusLabel(status),
@@ -95,7 +95,7 @@ export default function DeliveryClient({ searchParams }: DeliveryClientProps) {
         },
         {
             key: "limit",
-            label: "Rows",
+            label: "Số dòng",
             type: "select",
             defaultValue: String(parsedQuery.limit),
             options: [
@@ -106,22 +106,22 @@ export default function DeliveryClient({ searchParams }: DeliveryClientProps) {
         },
         {
             key: "sortOrder",
-            label: "Sort",
+            label: "Sắp xếp",
             type: "select",
             defaultValue: parsedQuery.sortOrder,
             options: [
-                { label: "Newest", value: "DESC" },
-                { label: "Oldest", value: "ASC" },
+                { label: "Mới nhất", value: "DESC" },
+                { label: "Cũ nhất", value: "ASC" },
             ],
         },
         {
             key: "fromDate",
-            label: "From",
+            label: "Từ ngày",
             type: "date",
         },
         {
             key: "toDate",
-            label: "To",
+            label: "Đến ngày",
             type: "date",
         },
     ];
@@ -142,22 +142,22 @@ export default function DeliveryClient({ searchParams }: DeliveryClientProps) {
         <div className="space-y-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-black text-text-main">Delivery</h1>
-                    <p className="text-sm text-text-muted">Track shipment status and picking lists from backend data.</p>
+                    <h1 className="text-2xl font-black text-text-main">Giao hàng</h1>
+                    <p className="text-sm text-text-muted">Theo dõi trạng thái giao hàng và danh sách lấy hàng từ dữ liệu hệ thống.</p>
                 </div>
                 <button
                     onClick={handleRefresh}
                     className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-text-main hover:border-primary/50 hover:text-primary"
                 >
                     <ArrowPathIcon className="h-4 w-4" />
-                    Refresh
+                    Làm mới
                 </button>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <CounterBox label="Total Shipments" value={meta.totalItems} tone="default" />
-                <CounterBox label="In transit" value={shipmentSummary.inTransit} tone="blue" />
-                <CounterBox label="Completed/Delivered" value={shipmentSummary.completed} tone="green" />
+                <CounterBox label="Tổng số Giao hàng" value={meta.totalItems} tone="default" />
+                <CounterBox label="Đang vận chuyển" value={shipmentSummary.inTransit} tone="blue" />
+                <CounterBox label="Hoàn thành/Đã giao" value={shipmentSummary.completed} tone="green" />
             </div>
 
             <BaseFilter filters={filterConfig} />

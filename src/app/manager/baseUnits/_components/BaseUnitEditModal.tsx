@@ -1,19 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   XMarkIcon,
   CheckIcon,
   ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
-import { BaseUnitRow } from "./base-unit.types";
+import { BaseUnit } from "@/types/base-unit";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { UpdateBaseUnitBody, UpdateBaseUnitBodyType } from "@/schemas/base-unit";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { handleErrorApi } from "@/lib/errors";
 
 interface BaseUnitEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  data: BaseUnitRow | null;
+  data: BaseUnit | null;
 }
 
 export default function BaseUnitEditModal({
@@ -21,21 +25,29 @@ export default function BaseUnitEditModal({
   onClose,
   data,
 }: BaseUnitEditModalProps) {
-  const { updateBaseUnit } = useBaseUnit(); // Gọi PATCH /base-units/:id
-  const [formData, setFormData] = useState({ name: "", description: "" });
+  const { updateBaseUnit } = useBaseUnit();
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<UpdateBaseUnitBodyType>({
+    resolver: zodResolver(UpdateBaseUnitBody),
+  });
 
   // Đồng bộ dữ liệu cũ vào Form khi mở Modal
   useEffect(() => {
     if (data && isOpen) {
-      setFormData({
+      reset({
         name: data.name ?? "",
         description: data.description ?? "",
       });
     }
-  }, [data, isOpen]);
+  }, [data, isOpen, reset]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (formData: UpdateBaseUnitBodyType) => {
     if (!data) return;
 
     try {
@@ -43,10 +55,12 @@ export default function BaseUnitEditModal({
         id: data.id,
         data: formData,
       });
-      toast.success("Cập nhật đơn vị thành công!");
       onClose();
     } catch (error) {
-      console.error("Lỗi cập nhật:", error);
+      handleErrorApi({
+        error,
+        setError,
+      });
     }
   };
 
@@ -61,7 +75,7 @@ export default function BaseUnitEditModal({
         className="relative w-full max-w-3xl bg-white rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300 cursor-default"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="grid grid-cols-1 md:grid-cols-12">
+        <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-12">
           {/* Cột trái: Form nhập liệu (Light Mode) */}
           <div className="md:col-span-7 p-12 space-y-8 bg-white">
             <div className="space-y-6">
@@ -70,13 +84,10 @@ export default function BaseUnitEditModal({
                   Tên đơn vị
                 </label>
                 <input
-                  required
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className="w-full rounded-full border border-slate-200 bg-slate-50/50 px-8 py-5 text-sm font-bold text-slate-900 focus:border-blue-500 outline-none transition-all shadow-inner"
+                  {...register("name")}
+                  className={`w-full rounded-full border border-slate-200 bg-slate-50/50 px-8 py-5 text-sm font-bold text-slate-900 focus:border-blue-500 outline-none transition-all shadow-inner ${errors.name ? "border-red-500 bg-red-50" : ""}`}
                 />
+                {errors.name && <p className="text-[10px] text-red-500 ml-4">{errors.name.message}</p>}
               </div>
               <div className="space-y-3">
                 <label className="text-[10px] font-black uppercase text-slate-400 ml-4 tracking-widest">
@@ -84,12 +95,10 @@ export default function BaseUnitEditModal({
                 </label>
                 <textarea
                   rows={4}
-                  value={formData.description}
-                  onChange={(e) =>
-                    setFormData({ ...formData, description: e.target.value })
-                  }
-                  className="w-full rounded-[2.5rem] border border-slate-200 bg-slate-50/50 px-8 py-5 text-sm font-bold text-slate-900 focus:border-blue-500 outline-none transition-all shadow-inner"
+                  {...register("description")}
+                  className={`w-full rounded-[2.5rem] border border-slate-200 bg-slate-50/50 px-8 py-5 text-sm font-bold text-slate-900 focus:border-blue-500 outline-none transition-all shadow-inner ${errors.description ? "border-red-500 bg-red-50" : ""}`}
                 />
+                {errors.description && <p className="text-[10px] text-red-500 ml-4">{errors.description.message}</p>}
               </div>
             </div>
           </div>
@@ -104,6 +113,7 @@ export default function BaseUnitEditModal({
                 Manager Control Mode
               </p>
               <button
+                type="button"
                 onClick={onClose}
                 className="absolute -top-3 -right-3 p-3 bg-white border border-slate-200 text-slate-400 rounded-full hover:bg-slate-50 shadow-md transition-all active:scale-90"
               >
@@ -113,12 +123,12 @@ export default function BaseUnitEditModal({
 
             <div className="space-y-4">
               <button
-                onClick={handleSubmit}
-                disabled={updateBaseUnit.isPending}
+                type="submit"
+                disabled={isSubmitting}
                 className={`w-full flex items-center justify-center gap-3 rounded-full py-5 text-xs font-black text-white transition-all active:scale-95 shadow-lg
-                                    ${updateBaseUnit.isPending ? "bg-slate-300" : "bg-green-600 hover:bg-green-700 shadow-green-100"}`}
+                                    ${isSubmitting ? "bg-slate-300" : "bg-green-600 hover:bg-green-700 shadow-green-100"}`}
               >
-                {updateBaseUnit.isPending ? (
+                {isSubmitting ? (
                   <ArrowPathIcon className="h-4 w-4 animate-spin" />
                 ) : (
                   <CheckIcon className="h-4 w-4" />
@@ -126,6 +136,7 @@ export default function BaseUnitEditModal({
                 XÁC NHẬN CẬP NHẬT
               </button>
               <button
+                type="button"
                 onClick={onClose}
                 className="w-full py-2 text-xs font-black text-red-500 hover:text-red-700 transition-colors uppercase tracking-[0.3em]"
               >
@@ -133,8 +144,9 @@ export default function BaseUnitEditModal({
               </button>
             </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
 }
+

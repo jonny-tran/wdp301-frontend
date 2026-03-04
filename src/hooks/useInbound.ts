@@ -15,7 +15,7 @@ export const useInbound = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Receipt created successfully')
+            toast.success('Đã tạo phiếu nhập')
             queryClient.invalidateQueries({ queryKey: KEY.receipts })
         },
     })
@@ -26,7 +26,7 @@ export const useInbound = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Receipt item added successfully')
+            toast.success('Đã thêm hàng hóa vào phiếu nhập')
             queryClient.invalidateQueries({ queryKey: KEY.receipts })
         },
     })
@@ -37,7 +37,7 @@ export const useInbound = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Receipt completed successfully')
+            toast.success('Đã hoàn thành phiếu nhập')
             queryClient.invalidateQueries({ queryKey: KEY.receipts })
         },
         onError: (error) => {
@@ -51,7 +51,7 @@ export const useInbound = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Receipt item deleted successfully')
+            toast.success('Đã xóa hàng hóa khỏi phiếu nhập')
             queryClient.invalidateQueries({ queryKey: KEY.receipts })
         },
         onError: (error) => {
@@ -65,7 +65,7 @@ export const useInbound = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Batch reprinted successfully')
+            toast.success('Đã in lại batch')
             queryClient.invalidateQueries({ queryKey: KEY.receipts })
         },
     })

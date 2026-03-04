@@ -6,7 +6,7 @@ export function formatDate(value?: string | Date | null) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "-";
 
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString("vi-VN", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
@@ -19,7 +19,7 @@ export function formatDateTime(value?: string | Date | null) {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return "-";
 
-    return date.toLocaleString("en-US", {
+    return date.toLocaleString("vi-VN", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
@@ -34,7 +34,7 @@ export function formatAmount(value?: string | number | null) {
     const parsed = typeof value === "number" ? value : Number(value);
     if (Number.isNaN(parsed)) return String(value);
 
-    return new Intl.NumberFormat("en-US").format(parsed);
+    return new Intl.NumberFormat("vi-VN").format(parsed);
 }
 
 export function getStatusBadgeClass(status?: string) {
@@ -58,10 +58,21 @@ export function getStatusBadgeClass(status?: string) {
 
 export function formatStatusLabel(status?: string) {
     if (!status) return "-";
-    return status
-        .replaceAll("_", " ")
-        .trim()
-        .replace(/\b\w/g, (match) => match.toUpperCase());
+    const statusMap: Record<string, string> = {
+        pending: "Đang chờ",
+        approved: "Đã duyệt",
+        rejected: "Đã từ chối",
+        cancelled: "Đã hủy",
+        delivering: "Đang giao",
+        delivered: "Đã giao",
+        completed: "Hoàn tất",
+        in_transit: "Đang vận chuyển",
+        picking: "Đang lấy hàng",
+        claimed: "Đã khiếu nại",
+    };
+
+    const key = status.toLowerCase();
+    return statusMap[key] || status.replaceAll("_", " ").replace(/\b\w/g, (match) => match.toUpperCase());
 }
 
 export function isForceApproveError(error: unknown) {

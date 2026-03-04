@@ -7,7 +7,14 @@ import {
   BanknotesIcon,
 } from "@heroicons/react/24/outline";
 
-export default function InventoryAnalytics({ data }: { data: any }) {
+export type InventoryStats = {
+  totalProducts: number;
+  lowStockCount: number;
+  expiringBatches: number;
+  estimatedLossVnd: number;
+};
+
+export default function InventoryAnalytics({ data }: { data: InventoryStats }) {
   const stats = [
     {
       label: "Tổng sản phẩm",

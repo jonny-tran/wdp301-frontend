@@ -1,8 +1,11 @@
 import Link from "next/link";
-import { PickingTaskRow } from "./warehouse.types";
+import { PickingTaskListItem } from "@/types/warehouse";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 interface WarehouseTasksTableProps {
-    tasks: PickingTaskRow[];
+    tasks: PickingTaskListItem[];
     rowStart: number;
     isLoading: boolean;
     isError: boolean;
@@ -23,36 +26,36 @@ export default function WarehouseTasksTable({
             <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50/70 text-xs uppercase tracking-wide text-text-muted">
                     <tr>
-                        <th className="px-6 py-3">No.</th>
-                        <th className="px-6 py-3">Store</th>
-                        <th className="px-6 py-3">Delivery</th>
-                        <th className="px-6 py-3 text-right">Items</th>
-                        <th className="px-6 py-3 text-center">Status</th>
-                        <th className="px-6 py-3 text-right">Actions</th>
+                        <th className="px-6 py-3">STT</th>
+                        <th className="px-6 py-3">Cửa hàng</th>
+                        <th className="px-6 py-3">Giao hàng</th>
+                        <th className="px-6 py-3 text-right">Mặt hàng</th>
+                        <th className="px-6 py-3 text-center">Trạng thái</th>
+                        <th className="px-6 py-3 text-right">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {isLoading ? (
-                        <tr>
+                        <tr key="loading">
                             <td className="px-6 py-8 text-sm text-text-muted" colSpan={6}>
-                                Loading warehouse tasks...
+                                Đang tải các tác vụ kho...
                             </td>
                         </tr>
                     ) : isError ? (
-                        <tr>
+                        <tr key="error">
                             <td className="px-6 py-8 text-sm text-red-500" colSpan={6}>
-                                Failed to load warehouse tasks.
+                                Tải các tác vụ kho thất bại.
                             </td>
                         </tr>
                     ) : tasks.length === 0 ? (
-                        <tr>
+                        <tr key="empty">
                             <td className="px-6 py-8 text-sm text-text-muted" colSpan={6}>
-                                No picking task found.
+                                Không tìm thấy tác vụ lấy hàng nào.
                             </td>
                         </tr>
                     ) : (
                         tasks.map((task, index) => (
-                            <tr key={task.orderId} className="hover:bg-gray-50">
+                            <tr key={task.orderId || task.id || index} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 font-bold text-text-main">#{rowStart + index + 1}</td>
                                 <td className="px-6 py-4 text-text-main">{task.storeName}</td>
                                 <td className="px-6 py-4 text-text-muted">
@@ -66,18 +69,20 @@ export default function WarehouseTasksTable({
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="flex items-center justify-end gap-2">
-                                        <button
-                                            onClick={() => onReset(task.orderId)}
-                                            disabled={isResetting}
-                                            className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary disabled:opacity-50"
-                                        >
-                                            Reset
-                                        </button>
+                                        <Can I={P.WAREHOUSE_RESET_PICKING} on={Resource.WAREHOUSE}>
+                                            <button
+                                                onClick={() => onReset(task.orderId || task.id || "")}
+                                                disabled={isResetting}
+                                                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary disabled:opacity-50"
+                                            >
+                                                Reset
+                                            </button>
+                                        </Can>
                                         <Link
-                                            href={`/kitchen/warehouse/${task.orderId}`}
+                                            href={`/kitchen/warehouse/${task.orderId || task.id}`}
                                             className="rounded-lg bg-text-main px-3 py-1.5 text-xs font-bold text-white hover:bg-black"
                                         >
-                                            Open
+                                            Mở
                                         </Link>
                                     </div>
                                 </td>

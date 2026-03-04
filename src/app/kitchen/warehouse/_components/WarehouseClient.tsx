@@ -7,9 +7,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
 import { BasePagination } from "@/components/layout/BasePagination";
 import { useWarehouse } from "@/hooks/useWarehouse";
+import { PickingTaskListItem } from "@/types/warehouse";
 import { handleErrorApi } from "@/lib/errors";
 import { createPaginationSearchParams, normalizeMeta, parseKitchenListQuery, RawSearchParams } from "@/app/kitchen/_components/query";
-import { extractTasks } from "./warehouse.mapper";
 import WarehouseTasksTable from "./WarehouseTasksTable";
 
 interface WarehouseClientProps {
@@ -37,9 +37,9 @@ export default function WarehouseClient({ searchParams }: WarehouseClientProps) 
         sortOrder: parsedQuery.sortOrder,
     });
 
-    const tasks = useMemo(() => extractTasks(listQuery.data), [listQuery.data]);
+    const tasks = listQuery.data?.items || [];
     const meta = useMemo(
-        () => normalizeMeta((listQuery.data as { meta?: unknown } | undefined)?.meta, parsedQuery.page, parsedQuery.limit, tasks.length),
+        () => normalizeMeta(listQuery.data?.meta, parsedQuery.page, parsedQuery.limit, tasks.length),
         [listQuery.data, parsedQuery.limit, parsedQuery.page, tasks.length],
     );
     const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
@@ -47,19 +47,19 @@ export default function WarehouseClient({ searchParams }: WarehouseClientProps) 
     const filterConfig: FilterConfig[] = [
         {
             key: "search",
-            label: "Search",
+            label: "Tìm kiếm",
             type: "text",
-            placeholder: "Order ID or store...",
+            placeholder: "Mã đơn hoặc cửa hàng...",
             className: "md:col-span-2",
         },
         {
             key: "date",
-            label: "Delivery Date",
+            label: "Ngày giao hàng",
             type: "date",
         },
         {
             key: "limit",
-            label: "Rows",
+            label: "Dòng",
             type: "select",
             defaultValue: String(parsedQuery.limit),
             options: [
@@ -71,7 +71,7 @@ export default function WarehouseClient({ searchParams }: WarehouseClientProps) 
     ];
 
     const handlePageChange = (nextPage: number) => {
-        const query = createPaginationSearchParams(searchParamsHook, nextPage);
+        const query = createPaginationSearchParams(searchParamsHook, { page: nextPage });
         router.push(`${pathname}?${query}`);
     };
 
@@ -88,15 +88,15 @@ export default function WarehouseClient({ searchParams }: WarehouseClientProps) 
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-2xl font-black text-text-main">Picking & Outbound</h1>
-                    <p className="text-sm text-text-muted">Track and process central kitchen picking tasks for store orders.</p>
+                    <h1 className="text-2xl font-black text-text-main">Lấy hàng & Xuất kho</h1>
+                    <p className="text-sm text-text-muted">Theo dõi và xử lý các tác vụ lấy hàng tại bếp trung tâm cho các đơn hàng của cửa hàng.</p>
                 </div>
                 <button
                     onClick={() => listQuery.refetch()}
                     className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-text-main hover:border-primary/50 hover:text-primary"
                 >
                     <ArrowPathIcon className="h-4 w-4" />
-                    Refresh
+                    Làm mới
                 </button>
             </div>
 
