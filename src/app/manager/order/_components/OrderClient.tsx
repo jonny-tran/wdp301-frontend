@@ -2,8 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { useOrder } from "@/hooks/useOrder";
-import { QueryOrder } from "@/types/order";
-import { extractOrderItems, extractOrderAnalytics } from "./order.mapper";
+import { Order, QueryOrder, FillRateAnalytics, SLAPerformanceLeadTime } from "@/types/order";
 import OrderTable from "./OrderTable";
 import OrderAnalytics from "./OrderAnalytics";
 import OrderFilter from "./OrderFilter";
@@ -71,9 +70,12 @@ export default function OrderClient() {
   const { data: rawLead } = slaPerformanceLeadTime({} as any);
 
   // 5. Mapping
-  const items = useMemo(() => extractOrderItems(rawOrders), [rawOrders]);
+  const items: Order[] = useMemo(() => (rawOrders as any)?.items || rawOrders?.items || [], [rawOrders]);
   const stats = useMemo(
-    () => extractOrderAnalytics(rawFill, rawLead),
+    () => ({
+      fillRate: (rawFill as any)?.data || rawFill,
+      leadTime: (rawLead as any)?.data || rawLead,
+    }),
     [rawFill, rawLead],
   );
 
@@ -86,7 +88,7 @@ export default function OrderClient() {
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
           {isLoading
             ? "Đang đồng bộ..."
-            : `Hệ thống tìm thấy ${rawOrders?.data?.meta?.totalItems || 0} đơn hàng`}
+            : `Hệ thống tìm thấy ${rawOrders?.meta?.totalItems || 0} đơn hàng`}
         </p>
       </div>
 

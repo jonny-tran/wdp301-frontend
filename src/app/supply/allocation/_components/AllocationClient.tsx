@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { SyntheticEvent, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useQueryClient } from "@tanstack/react-query";
@@ -27,12 +27,12 @@ import {
 import { OrderStatus } from "@/utils/enum";
 import { KEY, QUERY_KEY } from "@/utils/constant";
 
+import { Order, OrderReviewItem } from "@/types/order";
+import { Shipment } from "@/types/shipment";
 import AllocationReviewModal from "./AllocationReviewModal";
 import ForceApproveAllocationModal from "./ForceApproveAllocationModal";
 import PendingOrdersGrid from "./PendingOrdersGrid";
 import RejectAllocationModal from "./RejectAllocationModal";
-import { extractOrders, extractShipments } from "./allocation.mapper";
-import { ReviewItem } from "./allocation.types";
 
 interface AllocationClientProps {
   searchParams: RawSearchParams;
@@ -84,18 +84,12 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
     storeId: parsedQuery.storeId,
   });
 
-  const pendingOrders = useMemo(() => extractOrders(pendingQuery.data), [pendingQuery.data]);
-  const approvedOrders = useMemo(() => extractOrders(approvedQuery.data), [approvedQuery.data]);
-  const shipments = useMemo(() => extractShipments(shipmentQuery.data), [shipmentQuery.data]);
+  const pendingOrders: Order[] = pendingQuery.data?.items || [];
+  const approvedOrders: Order[] = approvedQuery.data?.items || [];
+  const shipments: Shipment[] = shipmentQuery.data?.items || [];
 
   const pendingMeta = useMemo(
-    () =>
-      normalizeMeta(
-        (pendingQuery.data as { meta?: unknown } | undefined)?.meta,
-        parsedQuery.page,
-        parsedQuery.limit,
-        pendingOrders.length
-      ),
+    () => normalizeMeta(pendingQuery.data?.meta, parsedQuery.page, parsedQuery.limit, pendingOrders.length),
     [parsedQuery.limit, parsedQuery.page, pendingOrders.length, pendingQuery.data]
   );
 
@@ -121,7 +115,7 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
     orderId?: string;
     storeName?: string;
     status?: string;
-    items?: ReviewItem[];
+    items?: OrderReviewItem[];
   };
   const reviewItems = Array.isArray(reviewData.items) ? reviewData.items : [];
 
@@ -231,7 +225,7 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
     }
   };
 
-  const submitReject = async (event: FormEvent<HTMLFormElement>) => {
+  const submitReject = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!rejectTargetId || !rejectReason.trim()) return;
 

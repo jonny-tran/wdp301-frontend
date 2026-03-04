@@ -5,11 +5,24 @@ import {
   ExclamationCircleIcon,
   ArchiveBoxIcon,
 } from "@heroicons/react/24/outline";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
+
+export type InventoryRowItem = {
+  productId: number;
+  productName: string;
+  sku: string;
+  totalQuantity: number;
+  unit: string;
+  status: "normal" | "low-stock" | "out-of-stock";
+  warehouseName?: string;
+};
 
 interface InventoryTableProps {
-  items: any[];
+  items: InventoryRowItem[];
   isLoading: boolean;
-  onAdjust?: (item: any) => void; // Prop để mở Modal
+  onAdjust?: (item: InventoryRowItem) => void;
 }
 
 export default function InventoryTable({
@@ -97,13 +110,12 @@ export default function InventoryTable({
                 <div className="flex justify-center">
                   <span
                     className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all
-                    ${
-                      item.status === "normal"
+                    ${item.status === "normal"
                         ? "bg-green-100 text-green-700 group-hover:bg-green-600 group-hover:text-white"
                         : item.status === "low-stock"
                           ? "bg-orange-100 text-orange-700 group-hover:bg-orange-600 group-hover:text-white"
                           : "bg-red-100 text-red-700 group-hover:bg-red-600 group-hover:text-white"
-                    }`}
+                      }`}
                   >
                     {item.status.replace("-", " ")}
                   </span>
@@ -114,13 +126,15 @@ export default function InventoryTable({
               <td className="px-6 py-5 text-right">
                 <div className="flex justify-end gap-2">
                   {onAdjust && (
-                    <button
-                      onClick={() => onAdjust(item)} // Gọi hàm truyền từ Client
-                      className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-950 transition-all shadow-lg active:scale-95"
-                    >
-                      <PlusIcon className="h-3 w-3 stroke-[3px]" />
-                      Adjust
-                    </button>
+                    <Can I={P.PRODUCT_UPDATE} on={Resource.PRODUCT}>
+                      <button
+                        onClick={() => onAdjust(item)} // Gọi hàm truyền từ Client
+                        className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-950 transition-all shadow-lg active:scale-95"
+                      >
+                        <PlusIcon className="h-3 w-3 stroke-[3px]" />
+                        Adjust
+                      </button>
+                    </Can>
                   )}
                 </div>
               </td>

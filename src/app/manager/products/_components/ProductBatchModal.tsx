@@ -1,22 +1,24 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useProduct } from "@/hooks/useProduct"; // Đổi từ useBatches
-import { extractBatchItems } from "../../batch/_components/batch.mapper";
+import { useProduct } from "@/hooks/useProduct";
+import { Batch, Product } from "@/types/product";
 import { XMarkIcon, CubeIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { clsx } from "clsx";
 import BatchCreateModal from "../../batch/_components/BatchFormModal";
 
-export default function ProductBatchModal({ isOpen, onClose, product }: any) {
+export default function ProductBatchModal({ isOpen, onClose, product }: { isOpen: boolean, onClose: () => void, product: Product | null }) {
   const { batchList } = useProduct();
   const [isAddBatchOpen, setIsAddBatchOpen] = useState(false);
 
   const { data, isLoading } = batchList({
     productId: product?.id,
     limit: 100,
+    page: 1,
+    sortOrder: "DESC",
   });
 
-  const batches = useMemo(() => extractBatchItems(data), [data]);
+  const batches: Batch[] = useMemo(() => (data as any)?.items || data || [], [data]);
 
   if (!isOpen) return null;
 
@@ -104,6 +106,7 @@ export default function ProductBatchModal({ isOpen, onClose, product }: any) {
         <BatchCreateModal
           isOpen={isAddBatchOpen}
           onClose={() => setIsAddBatchOpen(false)}
+          batch={null}
           productId={product?.id}
           productName={product?.name}
         />

@@ -19,17 +19,23 @@ export type QueryStore = BaseRequestPagination & {
 };
 
 export type StoreReliabilityAnalytics = {
-    storeId: string;
-    storeName: string;
-    totalOrders: number;
-    cancelledOrders: number;
-    cancellationRate: number;
-    reliabilityScore: number;
-    riskLevel: "low" | "medium" | "high";
-}[];
+    systemAverage: {
+        averageClaimRatePercentage: number;
+        totalShipments: number;
+    };
+    storeAnalysis: {
+        storeId: string;
+        storeName: string;
+        claimRatePercentage: number;
+        totalDamagedQty: number;
+        isFraudWarning: boolean;
+    }[];
+};
 
 export type StoreDemandPatternAnalytics = {
-    dayOfWeek: string;
-    totalOrders: number;
-    avgQuantity: number;
-}[];
+    productIdFilter: number;
+    demandByDay: {
+        dayOfWeek: string;
+        totalRequestedQuantity: number;
+    }[];
+};

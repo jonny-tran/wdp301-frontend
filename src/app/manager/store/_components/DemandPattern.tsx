@@ -1,17 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { StoreDemandPatternAnalytics } from "@/types/store";
 import { ChartBarIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
-export default function DemandPattern({ data, isLoading, onSearchId }: any) {
-  const [tempId, setTempId] = useState(data?.productId || "");
+export default function DemandPattern({ data, isLoading, onSearchId }: { data: StoreDemandPatternAnalytics | null, isLoading: boolean, onSearchId: (id: number) => void }) {
+  const [tempId, setTempId] = useState<string | number>(data?.productIdFilter || "");
 
   // Đảm bảo chartData luôn là mảng để không gây lỗi render
-  const chartData = useMemo(() => data?.chartData || [], [data]);
+  const chartData = useMemo(() => data?.demandByDay || [], [data]);
 
-  // Tính giá trị cao nhất (1010) để làm mốc 100% chiều cao
+  // Tính giá trị cao nhất để làm mốc 100% chiều cao
   const maxValue = useMemo(
-    () => Math.max(...chartData.map((d: any) => d.value), 1),
+    () => Math.max(...chartData.map((d) => d.totalRequestedQuantity), 1),
     [chartData],
   );
 
@@ -36,7 +37,7 @@ export default function DemandPattern({ data, isLoading, onSearchId }: any) {
             Nhu cầu hàng tuần
           </h3>
           <p className="text-[10px] font-bold text-red-500 uppercase mt-2 italic">
-            Đỉnh điểm: {chartData.find((d: any) => d.value === maxValue)?.day} (
+            Đỉnh điểm: {chartData.find((d) => d.totalRequestedQuantity === maxValue)?.dayOfWeek} (
             {maxValue} đơn)
           </p>
         </div>
@@ -67,7 +68,7 @@ export default function DemandPattern({ data, isLoading, onSearchId }: any) {
       <div className="flex items-end justify-between h-48 gap-3 md:gap-5 px-2 relative z-10">
         {chartData.length > 0 ? (
           chartData.map((d: any, i: number) => {
-            const height = (d.value / maxValue) * 100;
+            const height = (d.totalRequestedQuantity / maxValue) * 100;
             return (
               <div
                 key={i}
@@ -78,16 +79,16 @@ export default function DemandPattern({ data, isLoading, onSearchId }: any) {
                     className="w-full bg-black transition-all duration-1000 ease-out origin-bottom group-hover/bar:bg-slate-700"
                     style={{ height: `${height}%` }}
                   />
-                  {d.value > 0 && (
+                  {d.totalRequestedQuantity > 0 && (
                     <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/bar:opacity-100 transition-opacity bg-black text-white text-[8px] font-black px-2 py-1 rounded-md mb-2 pointer-events-none whitespace-nowrap">
-                      {d.value.toLocaleString()} đơn
+                      {d.totalRequestedQuantity.toLocaleString()} đơn
                     </div>
                   )}
                 </div>
                 <span className="text-[9px] font-black text-black/40 group-hover/bar:text-black transition-colors tracking-tighter uppercase italic">
-                  {d.day.includes("Thứ")
-                    ? d.day.replace("Thứ ", "T")
-                    : d.day.substring(0, 3)}
+                  {d.dayOfWeek.includes("Thứ")
+                    ? d.dayOfWeek.replace("Thứ ", "T")
+                    : d.dayOfWeek.substring(0, 3)}
                 </span>
               </div>
             );
@@ -100,7 +101,7 @@ export default function DemandPattern({ data, isLoading, onSearchId }: any) {
       </div>
 
       <span className="absolute -bottom-4 -right-4 text-7xl font-black text-slate-50 italic -z-10 select-none uppercase">
-        {data?.productId || "DEMAND"}
+        {data?.productIdFilter || "DEMAND"}
       </span>
     </div>
   );

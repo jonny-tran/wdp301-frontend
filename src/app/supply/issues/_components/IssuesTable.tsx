@@ -1,15 +1,15 @@
 import { EyeIcon } from "@heroicons/react/24/outline";
 import { formatDateTime, formatStatusLabel, getStatusBadgeClass } from "@/app/supply/_components/format";
 import { ClaimStatus } from "@/utils/enum";
-import { ClaimRow } from "./issues.types";
+import { Claim } from "@/types/claim";
 
 interface IssuesTableProps {
-    claims: ClaimRow[];
+    claims: Claim[];
     rowStart: number;
     isLoading: boolean;
     isError: boolean;
     onOpenDetail: (claimId: string) => void;
-    onOpenResolve: (claim: ClaimRow) => void;
+    onOpenResolve: (claim: Claim) => void;
 }
 
 export default function IssuesTable({
@@ -34,20 +34,20 @@ export default function IssuesTable({
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {isLoading ? (
-                        <tr>
+                        <tr key="loading">
                             <td colSpan={5} className="px-6 py-8 text-sm text-text-muted">Đang tải khiếu nại...</td>
                         </tr>
                     ) : isError ? (
-                        <tr>
+                        <tr key="error">
                             <td colSpan={5} className="px-6 py-8 text-sm text-red-500">Tải danh sách khiếu nại thất bại.</td>
                         </tr>
                     ) : claims.length === 0 ? (
-                        <tr>
+                        <tr key="empty">
                             <td colSpan={5} className="px-6 py-8 text-sm text-text-muted">Không có khiếu nại nào khớp với bộ lọc hiện tại.</td>
                         </tr>
                     ) : (
                         claims.map((claim, index) => (
-                            <tr key={claim.id} className="hover:bg-gray-50">
+                            <tr key={claim.claimId || index} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 font-bold text-text-main">#{rowStart + index + 1}</td>
                                 <td className="px-6 py-4 text-text-main">{claim.shipmentId ? "Có sẵn" : "-"}</td>
                                 <td className="px-6 py-4 text-text-muted">{formatDateTime(claim.createdAt)}</td>
@@ -59,7 +59,7 @@ export default function IssuesTable({
                                 <td className="px-6 py-4">
                                     <div className="flex items-center justify-end gap-2">
                                         <button
-                                            onClick={() => onOpenDetail(claim.id)}
+                                            onClick={() => onOpenDetail(claim.claimId)}
                                             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary"
                                         >
                                             <EyeIcon className="h-4 w-4" />

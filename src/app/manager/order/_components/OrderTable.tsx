@@ -1,7 +1,7 @@
 "use client";
 
 import { EyeIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
-import { OrderRow } from "./order.types";
+import { Order } from "@/types/order";
 import { format } from "date-fns";
 import { toast } from "sonner"; //
 
@@ -9,7 +9,7 @@ export default function OrderTable({
   items,
   isLoading,
 }: {
-  items: OrderRow[];
+  items: Order[];
   isLoading: boolean;
 }) {
   /**
@@ -103,11 +103,10 @@ export default function OrderTable({
                 <td className="px-6 py-5 text-center">
                   <span
                     className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all
-                    ${
-                      order.status === "completed"
+                    ${order.status === "completed"
                         ? "bg-green-100 text-green-700 group-hover:bg-green-600 group-hover:text-white"
                         : "bg-blue-100 text-blue-700 group-hover:bg-blue-600 group-hover:text-white"
-                    }`}
+                      }`}
                   >
                     {order.status}
                   </span>

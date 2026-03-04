@@ -1,9 +1,9 @@
 import { EyeIcon } from "@heroicons/react/24/outline";
 import { formatDate, formatStatusLabel, getStatusBadgeClass } from "@/app/supply/_components/format";
-import { ShipmentRow } from "./delivery.types";
+import { Shipment } from "@/types/shipment";
 
 interface DeliveryTableProps {
-    shipments: ShipmentRow[];
+    shipments: Shipment[];
     rowStart: number;
     isLoading: boolean;
     isError: boolean;

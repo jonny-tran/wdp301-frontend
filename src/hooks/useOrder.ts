@@ -10,14 +10,14 @@ import { toast } from "sonner";
 
 export const useOrder = () => {
     const queryClient = useQueryClient();
-    const orderList = (query: QueryOrder, enabled: boolean = true) => {
+    const orderList = (query: QueryOrder) => {
         return useQuery({
             queryKey: QUERY_KEY.orders.list(query),
             queryFn: async () => {
                 const res = await orderRequest.getOrderList(query)
                 return res.data
             },
-            enabled: enabled
+            enabled: !!query
         })
     }
     const catalogList = (query: QueryCatelog) => {
@@ -65,7 +65,7 @@ export const useOrder = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Order created successfully')
+            toast.success('Tạo đơn hàng thành công')
             queryClient.invalidateQueries({ queryKey: KEY.orders })
         },
     })
@@ -76,7 +76,7 @@ export const useOrder = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Order approved successfully')
+            toast.success('Đơn hàng đã được duyệt')
             queryClient.invalidateQueries({ queryKey: KEY.orders })
         },
     })
@@ -87,9 +87,9 @@ export const useOrder = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Order rejected successfully')
+            toast.success('Đơn hàng đã bị từ chối')
             queryClient.invalidateQueries({ queryKey: KEY.orders })
-        },
+        }
     })
 
     const cancelOrder = useMutation({
@@ -98,7 +98,7 @@ export const useOrder = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Order cancelled successfully')
+            toast.success('Đơn hàng đã bị hủy')
             queryClient.invalidateQueries({ queryKey: KEY.orders })
         },
         onError: (error) => {

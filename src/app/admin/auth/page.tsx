@@ -1,5 +1,11 @@
+import { Metadata } from "next";
 import { RawSearchParams } from "@/app/kitchen/_components/query";
 import UserClient from "./_components/UserClient";
+
+export const metadata: Metadata = {
+  title: "User Management | VFC Admin",
+  description: "Manage system users and their permissions.",
+};
 
 export default async function UserManagementPage({
   searchParams,

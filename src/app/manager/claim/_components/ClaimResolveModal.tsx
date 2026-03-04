@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,19 @@ import {
 import { useClaim } from "@/hooks/useClaim";
 import { toast } from "sonner";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useForm } from "react-hook-form";
+import { Claim } from "@/types/claim";
+import { ResolveClaimBody, ResolveClaimBodyType } from "@/schemas/claim";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { handleErrorApi } from "@/lib/errors";
+
+interface ClaimResolveModalProps {
+  claimId: string | null;
+  isOpen: boolean;
+  onClose: () => void;
+  detailData: Claim | null;
+  isLoading: boolean;
+}
 
 export default function ClaimResolveModal({
   claimId,
@@ -17,30 +30,46 @@ export default function ClaimResolveModal({
   onClose,
   detailData,
   isLoading,
-}: any) {
+}: ClaimResolveModalProps) {
   const { resolveClaim } = useClaim();
-  const [note, setNote] = useState("");
 
-  // Reset note khi đóng modal
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<ResolveClaimBodyType>({
+    resolver: zodResolver(ResolveClaimBody) as any,
+    defaultValues: {
+      resolutionNote: "",
+    },
+  });
+
+  // Reset khi mở/đóng modal
   useEffect(() => {
-    if (!isOpen) setNote("");
-  }, [isOpen]);
+    if (isOpen) {
+      reset({ resolutionNote: "" });
+    }
+  }, [isOpen, reset]);
 
-  const handleResolve = async (status: "approved" | "rejected") => {
+  const onResolve = async (status: "approved" | "rejected", data: ResolveClaimBodyType) => {
     if (!claimId) return;
     try {
-      // Khớp đúng mutationFn: async ({ id, data })
       await resolveClaim.mutateAsync({
         id: claimId,
-        data: { status, resolutionNote: note },
+        data: { ...data, status },
       });
       onClose();
-    } catch (e) {
-      // toast.error đã được handle trong onSuccess/onError của hook (nếu có)
+    } catch (error) {
+      handleErrorApi({
+        error,
+        setError,
+      });
     }
   };
 
-  const claimInfo = detailData?.data || detailData; // Phòng thủ cấu trúc lồng nhau
+  const claimInfo = (detailData as any)?.data || detailData; // Phòng thủ cấu trúc lồng nhau
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -73,7 +102,7 @@ export default function ClaimResolveModal({
                         {item.productName}
                       </h4>
                       <span className="text-[9px] font-bold text-black/40 uppercase">
-                        SKU: {item.sku}
+                        Batch: {item.batchCode}
                       </span>
                     </div>
                     <div className="flex gap-4 mt-2">
@@ -98,9 +127,9 @@ export default function ClaimResolveModal({
                       "{item.reason}"
                     </p>
                   </div>
-                  {item.imageUrl && (
+                  {item.imageProofUrl && (
                     <img
-                      src={item.imageUrl}
+                      src={item.imageProofUrl}
                       alt="Evidence"
                       className="w-24 h-24 rounded-2xl object-cover shadow-md border-2 border-white group-hover:scale-105 transition-transform"
                     />
@@ -116,27 +145,29 @@ export default function ClaimResolveModal({
                   Ghi chú xử lý (Resolution Note)
                 </label>
                 <textarea
-                  className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-5 text-xs font-bold text-black focus:border-black outline-none transition-all placeholder:text-slate-300"
+                  {...register("resolutionNote")}
+                  className={`w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-5 text-xs font-bold text-black focus:border-black outline-none transition-all placeholder:text-slate-300 ${errors.resolutionNote ? "border-red-500 bg-red-50" : ""}`}
                   rows={3}
                   placeholder="Nhập lý do chấp nhận hoặc từ chối..."
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
                 />
+                {errors.resolutionNote && <p className="text-[10px] text-red-500 ml-2">{errors.resolutionNote.message}</p>}
               </div>
 
               <div className="flex gap-3">
                 <button
-                  disabled={resolveClaim.isPending}
-                  onClick={() => handleResolve("approved")}
-                  className="flex-1 py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={handleSubmit((data) => onResolve("approved", data))}
+                  className="flex-1 py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <CheckIcon className="h-4 w-4 stroke-[3px]" />
                   Chấp nhận
                 </button>
                 <button
-                  disabled={resolveClaim.isPending}
-                  onClick={() => handleResolve("rejected")}
-                  className="flex-1 py-4 bg-slate-100 text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={handleSubmit((data) => onResolve("rejected", data))}
+                  className="flex-1 py-4 bg-slate-100 text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-red-600 hover:text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   <XMarkIcon className="h-4 w-4 stroke-[3px]" />
                   Từ chối
@@ -149,3 +180,4 @@ export default function ClaimResolveModal({
     </Dialog>
   );
 }
+

@@ -6,10 +6,17 @@ import {
   CalendarIcon,
   PhotoIcon,
 } from "@heroicons/react/24/outline";
-import { BatchRow, BatchTableProps } from "./batch.types";
+import { Batch } from "@/types/product";
 import { format } from "date-fns";
 import { clsx } from "clsx";
 import Image from "next/image";
+
+interface BatchTableProps {
+  items: Batch[];
+  isLoading: boolean;
+  isError: boolean;
+  onEdit: (batch: Batch) => void;
+}
 
 export default function BatchTable({
   items,
@@ -82,7 +89,7 @@ export default function BatchTable({
               </td>
               <td className="px-6 py-6 text-center">
                 <span className="text-xl font-black text-slate-900 group-hover:text-indigo-400 transition-colors">
-                  {parseFloat(item.currentQuantity).toLocaleString()}
+                  {Number(item.currentQuantity).toLocaleString()}
                 </span>
               </td>
               <td className="px-6 py-6">

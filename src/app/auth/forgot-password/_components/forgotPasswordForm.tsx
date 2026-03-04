@@ -13,7 +13,6 @@ import { ForgotPasswordBody, ForgotPasswordBodyType } from "@/schemas/auth";
 
 export default function ForgotPasswordForm() {
     const { forgotPassword } = useAuth();
-    const [isLoading, setIsLoading] = useState(false);
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -28,7 +27,6 @@ export default function ForgotPasswordForm() {
 
     const onSubmit = async (data: ForgotPasswordBodyType) => {
         if (forgotPassword.isPending) return;
-        setIsLoading(true);
         setError(null);
         try {
             await forgotPassword.mutateAsync(data);
@@ -38,8 +36,6 @@ export default function ForgotPasswordForm() {
                 error: err,
                 setError: setErrorForm
             });
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -100,10 +96,10 @@ export default function ForgotPasswordForm() {
 
                 <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={forgotPassword.isPending}
                     className="w-full bg-primary text-white font-bold rounded-2xl py-4 shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all active:scale-[0.98] uppercase text-xs tracking-widest disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                    {isLoading ? (
+                    {forgotPassword.isPending ? (
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     ) : (
                         "Send Code"

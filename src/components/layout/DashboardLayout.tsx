@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import NavSidebar, { NavItem } from "./NavSidebar";
-import Header from "@/components/dashboard/ui/Header";
+import Header from "../dashboard/ui/Header";
 
 interface DashboardLayoutProps {
     children: React.ReactNode;

@@ -2,20 +2,20 @@
 
 import { useState, useMemo } from "react";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
-import { extractBaseUnitItems } from "./base-unit.mapper";
+import { BaseUnit } from "@/types/base-unit";
 import BaseUnitTable from "./BaseUnitTable";
 import BaseUnitCreateModal from "./BaseUnitCreateModal";
-import BaseUnitEditModal from "./BaseUnitEditModal"; 
+import BaseUnitEditModal from "./BaseUnitEditModal";
 import { toast } from "sonner";
 
 export default function BaseUnitClient() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingUnit, setEditingUnit] = useState<any>(null);
+  const [editingUnit, setEditingUnit] = useState<BaseUnit | null>(null);
 
   const { baseUnitList, deleteBaseUnit } = useBaseUnit(); // Gọi GET và DELETE endpoints
   const { data: rawData, isLoading, isError } = baseUnitList();
 
-  const items = useMemo(() => extractBaseUnitItems(rawData), [rawData]);
+  const items: BaseUnit[] = useMemo(() => (rawData as any)?.items || rawData || [], [rawData]);
 
   const handleDelete = async (id: number) => {
     if (
@@ -25,7 +25,6 @@ export default function BaseUnitClient() {
     ) {
       try {
         await deleteBaseUnit.mutateAsync(id); // Gọi DELETE /base-units/:id
-        toast.success("Đã xóa đơn vị tính");
       } catch (error) {
         console.error(error);
       }

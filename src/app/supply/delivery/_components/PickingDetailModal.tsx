@@ -1,12 +1,12 @@
 import { formatDate, formatStatusLabel } from "@/app/supply/_components/format";
-import { PickingDetail } from "./delivery.types";
+import { ShipmentPickingList } from "@/types/shipment";
 
 interface PickingDetailModalProps {
     shipmentNo?: number;
     onClose: () => void;
     isLoading: boolean;
     isError: boolean;
-    pickingData: PickingDetail;
+    pickingData: ShipmentPickingList;
 }
 
 export default function PickingDetailModal({

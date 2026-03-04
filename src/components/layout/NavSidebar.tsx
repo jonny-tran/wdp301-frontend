@@ -52,11 +52,11 @@ export default function NavSidebar({
         // check reffreshtoken
         const refreshToken = useSessionStore.getState().refreshToken;
         if (!refreshToken) {
-            toast.error("You are not logged in");
+            toast.error("Bạn đã đăng xuất");
             return;
         }
         await logout.mutateAsync({ refreshToken });
-       
+
     }
     return (
         <aside
@@ -70,7 +70,7 @@ export default function NavSidebar({
             <div className={`px-4 mb-10 flex items-center transition-all duration-300 ${isCollapsed ? "justify-center" : "justify-between"}`}>
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg overflow-hidden shrink-0">
-                        <Image src={logo} alt="Logo" width={28} height={28} className="object-contain" />
+                        <Image src={logo} alt="Logo" width={28} height={28} className="object-contain" style={{ height: 'auto' }} />
                     </div>
                     {!isCollapsed && (
                         <div className="flex flex-col overflow-hidden">

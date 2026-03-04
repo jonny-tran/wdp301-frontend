@@ -1,6 +1,7 @@
 import { BaseRequestPagination } from "./base";
 
 export type PickingTaskListItem = {
+    id?: string;
     orderId: string;
     storeName?: string;
     status?: string;
@@ -28,6 +29,7 @@ export type PickingTaskItem = {
 };
 
 export type PickingTaskDetail = {
+    id?: string;
     orderId: string;
     shipmentId?: string;
     storeName?: string;

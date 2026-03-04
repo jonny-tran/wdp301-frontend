@@ -1,4 +1,10 @@
-﻿import { Suspense } from "react";
+﻿import { Metadata } from "next";
+import { Suspense } from "react";
+
+export const metadata: Metadata = {
+    title: "Supply Coordinator Dashboard | VFC",
+    description: "Monitor supply chain status and order fulfillment.",
+};
 import SupplyDashboardClient from "./_components/SupplyDashboardClient";
 
 function SupplyDashboardFallback() {

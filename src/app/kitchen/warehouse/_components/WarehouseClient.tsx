@@ -7,9 +7,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
 import { BasePagination } from "@/components/layout/BasePagination";
 import { useWarehouse } from "@/hooks/useWarehouse";
+import { PickingTaskListItem } from "@/types/warehouse";
 import { handleErrorApi } from "@/lib/errors";
 import { createPaginationSearchParams, normalizeMeta, parseKitchenListQuery, RawSearchParams } from "@/app/kitchen/_components/query";
-import { extractTasks } from "./warehouse.mapper";
 import WarehouseTasksTable from "./WarehouseTasksTable";
 
 interface WarehouseClientProps {
@@ -37,9 +37,9 @@ export default function WarehouseClient({ searchParams }: WarehouseClientProps) 
         sortOrder: parsedQuery.sortOrder,
     });
 
-    const tasks = useMemo(() => extractTasks(listQuery.data), [listQuery.data]);
+    const tasks = listQuery.data?.items || [];
     const meta = useMemo(
-        () => normalizeMeta((listQuery.data as { meta?: unknown } | undefined)?.meta, parsedQuery.page, parsedQuery.limit, tasks.length),
+        () => normalizeMeta(listQuery.data?.meta, parsedQuery.page, parsedQuery.limit, tasks.length),
         [listQuery.data, parsedQuery.limit, parsedQuery.page, tasks.length],
     );
     const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
@@ -71,7 +71,7 @@ export default function WarehouseClient({ searchParams }: WarehouseClientProps) 
     ];
 
     const handlePageChange = (nextPage: number) => {
-        const query = createPaginationSearchParams(searchParamsHook, nextPage);
+        const query = createPaginationSearchParams(searchParamsHook, { page: nextPage });
         router.push(`${pathname}?${query}`);
     };
 

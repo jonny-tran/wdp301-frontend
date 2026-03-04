@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useClaim } from "@/hooks/useClaim";
-import { extractClaims, extractClaimAnalytics } from "./claims.mapper";
+import { Claim } from "@/types/claim";
 
 // Components
 import ClaimsTable from "./ClaimsTable";
@@ -13,15 +13,7 @@ export default function ClaimsClient() {
   const [activeTab, setActiveTab] = useState<
     "all" | "pending" | "approved" | "rejected text-red-500"
   >("all");
-  const [params, setParams] = useState<{
-    page: number;
-    limit: number;
-    sortOrder: "ASC" | "DESC";
-  }>({
-    page: 1,
-    limit: 10,
-    sortOrder: "DESC",
-  });
+  const [params, setParams] = useState<any>({ page: 1, limit: 10, sortOrder: "DESC" });
   const [modal, setModal] = useState<{
     isOpen: boolean;
     claimId: string | null;
@@ -39,14 +31,8 @@ export default function ClaimsClient() {
   const detailQuery = claimDetail(modal.claimId || "");
 
   // 3. Mapping dữ liệu phòng thủ
-  const allClaims = useMemo(
-    () => extractClaims(claimsQuery.data),
-    [claimsQuery.data],
-  );
-  const stats = useMemo(
-    () => extractClaimAnalytics(analyticsQuery.data),
-    [analyticsQuery.data],
-  );
+  const allClaims: Claim[] = useMemo(() => (claimsQuery.data as any)?.items || (claimsQuery.data as any)?.data?.items || [], [claimsQuery.data]);
+  const stats = useMemo(() => (analyticsQuery.data as any)?.data || analyticsQuery.data || null, [analyticsQuery.data]);
 
   // 4. Client Filter
   const filteredClaims = useMemo(() => {
@@ -98,7 +84,7 @@ export default function ClaimsClient() {
       <ClaimResolveModal
         isOpen={modal.isOpen}
         claimId={modal.claimId}
-        detailData={detailQuery.data} // Dữ liệu trả về từ claimDetail(id).data
+        detailData={detailQuery.data ?? null} // Dữ liệu trả về từ claimDetail(id).data
         isLoading={detailQuery.isLoading}
         onClose={() => setModal({ isOpen: false, claimId: null })}
       />

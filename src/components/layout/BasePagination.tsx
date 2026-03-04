@@ -9,6 +9,7 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@/components/ui/pagination';
+import { cn } from "@/lib/utils";
 
 interface BasePaginationProps {
     currentPage: number;
@@ -57,33 +58,43 @@ export function BasePagination({
     };
 
     return (
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border-t border-gray-100 px-6 py-4 bg-white/50 backdrop-blur-sm rounded-b-[2rem]">
             {/* Info text - Left side */}
             {totalItems !== undefined && itemsPerPage !== undefined && (
-                <p className="text-sm text-muted-foreground">
-                    Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)} - {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems}
+                <p className="text-xs font-bold uppercase tracking-widest text-slate-500">
+                    Showing <span className="text-slate-900">{Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)}</span> - <span className="text-slate-900">{Math.min(currentPage * itemsPerPage, totalItems)}</span> of <span className="text-slate-900">{totalItems}</span>
                 </p>
             )}
 
             {/* Pagination - Right side */}
             <Pagination className="mx-0 w-auto">
-                <PaginationContent>
+                <PaginationContent className="gap-2">
                     <PaginationItem>
                         <PaginationPrevious
                             onClick={() => currentPage > 1 && onPageChange(currentPage - 1)}
-                            className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            className={cn(
+                                "rounded-xl border transition-all px-4 py-2 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-primary/20",
+                                currentPage === 1
+                                    ? "pointer-events-none border-gray-100 text-gray-300 opacity-50"
+                                    : "cursor-pointer border-gray-200 bg-white text-slate-600 hover:border-primary/40 hover:text-primary hover:shadow-sm"
+                            )}
                         />
                     </PaginationItem>
 
                     {generatePageNumbers().map((page, index) => (
                         <PaginationItem key={index}>
                             {page === '...' ? (
-                                <PaginationEllipsis />
+                                <PaginationEllipsis className="text-slate-400" />
                             ) : (
                                 <PaginationLink
                                     onClick={() => onPageChange(page as number)}
                                     isActive={currentPage === page}
-                                    className="cursor-pointer"
+                                    className={cn(
+                                        "h-9 w-9 rounded-xl border text-[10px] font-black transition-all flex items-center justify-center",
+                                        currentPage === page
+                                            ? "border-primary bg-primary text-white shadow-lg shadow-primary/30"
+                                            : "cursor-pointer border-gray-100 bg-white text-slate-500 hover:border-primary/40 hover:text-primary"
+                                    )}
                                 >
                                     {page}
                                 </PaginationLink>
@@ -94,7 +105,12 @@ export function BasePagination({
                     <PaginationItem>
                         <PaginationNext
                             onClick={() => currentPage < totalPages && onPageChange(currentPage + 1)}
-                            className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                            className={cn(
+                                "rounded-xl border transition-all px-4 py-2 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-primary/20",
+                                currentPage === totalPages
+                                    ? "pointer-events-none border-gray-100 text-gray-300 opacity-50"
+                                    : "cursor-pointer border-gray-200 bg-white text-slate-600 hover:border-primary/40 hover:text-primary hover:shadow-sm"
+                            )}
                         />
                     </PaginationItem>
                 </PaginationContent>

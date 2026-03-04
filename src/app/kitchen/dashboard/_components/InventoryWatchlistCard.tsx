@@ -23,46 +23,13 @@ export default function InventoryWatchlistCard({
             ) : (
                 <div className="space-y-3">
                     {items
-                        .sort((a: any, b: any) => {
-                            const lowA = a.isLowStock ?? a.is_low_stock ?? (Number(a.availableQuantity ?? a.available_quantity ?? a.totalQuantity ?? 0) === 0);
-                            const lowB = b.isLowStock ?? b.is_low_stock ?? (Number(b.availableQuantity ?? b.available_quantity ?? b.totalQuantity ?? 0) === 0);
-                            return Number(lowB) - Number(lowA);
-                        })
+                        .sort((a, b) => Number(b.isLowStock) - Number(a.isLowStock))
                         .slice(0, 5)
-                        .map((item: any, index) => {
-                            // Defensive Mapping
-                            const productId = String(item.productId ?? item.product_id ?? item.id ?? "");
-                            const productName = String(
-                                item.productName ??
-                                item.product_name ??
-                                item.name ??
-                                item.product?.name ??
-                                "Product"
-                            );
-
-                            const availableQuantity = String(
-                                item.availableQuantity ??
-                                item.available_quantity ??
-                                item.totalQuantity ??
-                                item.quantity ??
-                                0
-                            );
-
-                            const unit = String(item.unit ?? item.product?.unit ?? "");
-
-                            // Status calculation
-                            let isLowStock = false;
-                            if (item.isLowStock !== undefined) isLowStock = Boolean(item.isLowStock);
-                            else if (item.is_low_stock !== undefined) isLowStock = Boolean(item.is_low_stock);
-                            else {
-                                const availNum = Number(availableQuantity);
-                                const minStock = Number(item.minStockLevel ?? item.min_stock_level ?? 0);
-                                if (minStock > 0) isLowStock = availNum <= minStock;
-                                else isLowStock = availNum === 0;
-                            }
+                        .map((item, index) => {
+                            const { productId, productName, availableQuantity, unit, isLowStock } = item;
 
                             return (
-                                <div key={`${productId}-${index}`} className="rounded-2xl border border-gray-100 p-3">
+                                <div key={productId || index} className="rounded-2xl border border-gray-100 p-3">
                                     <div className="flex items-center justify-between">
                                         <p className="text-sm font-semibold text-text-main">{productName}</p>
                                         <span

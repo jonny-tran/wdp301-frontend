@@ -1,8 +1,10 @@
+import { ShipmentLabel } from "@/types/warehouse";
+
 interface ShipmentLabelCardProps {
     shipmentId: string;
     isLoading: boolean;
     isError: boolean;
-    labelData: unknown;
+    labelData: ShipmentLabel | undefined;
 }
 
 export default function ShipmentLabelCard({
@@ -11,8 +13,7 @@ export default function ShipmentLabelCard({
     isError,
     labelData,
 }: ShipmentLabelCardProps) {
-    const data = (labelData ?? {}) as Record<string, unknown>;
-    const items = Array.isArray(data.items) ? data.items : [];
+    const items = labelData?.items || [];
 
     return (
         <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
@@ -22,14 +23,14 @@ export default function ShipmentLabelCard({
             ) : isLoading ? (
                 <p className="text-xs text-text-muted">Đang tải nhãn...</p>
             ) : isError ? (
-                <p className="text-xs text-red-500">Tải nhãn thất bại.</p>
-            ) : (
+                <p className="text-xs text-red-500">Failed to load label.</p>
+            ) : labelData ? (
                 <div className="space-y-2 text-xs">
-                    <p className="font-semibold text-text-main">Cửa hàng: {String(data.storeName ?? "-")}</p>
-                    <p className="text-text-muted">Mẫu: {String(data.templateType ?? "-")}</p>
-                    <p className="text-text-muted">Mặt hàng: {items.length}</p>
+                    <p className="font-semibold text-text-main">Store: {labelData.storeName}</p>
+                    <p className="text-text-muted">Template: {labelData.templateType || "-"}</p>
+                    <p className="text-text-muted">Items: {items.length}</p>
                 </div>
-            )}
+            ) : null}
         </div>
     );
 }

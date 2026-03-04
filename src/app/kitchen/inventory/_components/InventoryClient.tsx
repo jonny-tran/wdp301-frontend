@@ -5,10 +5,10 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
 import { BasePagination } from "@/components/layout/BasePagination";
 import { useInventory } from "@/hooks/useInventory";
+import { KitchSummary, KitchenDetail } from "@/types/inventory";
 import { createPaginationSearchParams, normalizeMeta, parseKitchenListQuery, RawSearchParams } from "@/app/kitchen/_components/query";
 import InventoryBatchDetails from "./InventoryBatchDetails";
 import InventoryBatchModal from "./InventoryBatchModal";
-import { extractBatchItems, extractSummaryItems } from "./inventory.mapper";
 import InventorySummaryTable from "./InventorySummaryTable";
 
 interface InventoryClientProps {
@@ -34,9 +34,9 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
         sortOrder: parsedQuery.sortOrder,
     });
 
-    const summaryItems = useMemo(() => extractSummaryItems(summaryQuery.data), [summaryQuery.data]);
+    const summaryItems = summaryQuery.data?.items || [];
     const meta = useMemo(
-        () => normalizeMeta((summaryQuery.data as { meta?: unknown } | undefined)?.meta, parsedQuery.page, parsedQuery.limit, summaryItems.length),
+        () => normalizeMeta(summaryQuery.data?.meta, parsedQuery.page, parsedQuery.limit, summaryItems.length),
         [parsedQuery.limit, parsedQuery.page, summaryItems.length, summaryQuery.data],
     );
 
@@ -44,11 +44,11 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
     const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
 
     const selectedProduct = useMemo(() => {
-        return summaryItems.find((item) => item.productId === selectedProductId);
+        return (summaryItems as KitchSummary[]).find((item) => item.productId === selectedProductId);
     }, [selectedProductId, summaryItems]);
 
     const detailsQuery = kitchenDetails(selectedProductId ?? 0);
-    const batches = useMemo(() => extractBatchItems(detailsQuery.data), [detailsQuery.data]);
+    const batches = (detailsQuery.data as KitchenDetail)?.batches || [];
 
     const filterConfig: FilterConfig[] = [
         {
@@ -72,7 +72,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
     ];
 
     const handlePageChange = (nextPage: number) => {
-        const query = createPaginationSearchParams(searchParamsHook, nextPage);
+        const query = createPaginationSearchParams(searchParamsHook, { page: nextPage });
         router.push(`${pathname}?${query}`);
     };
 

@@ -1,6 +1,7 @@
 import http from "@/lib/http";
-import { CreateUserBodyType, ForgotPasswordBodyType, LoginBodyType, LogoutBodyType, RefreshTokenBodyType, ResetPasswordBodyType } from "@/schemas/auth";
-import { AuthTokens, User } from "@/types/user";
+import { CreateUserBodyType, ForgotPasswordBodyType, LoginBodyType, LogoutBodyType, RefreshTokenBodyType, ResetPasswordBodyType, UpdateUserBodyType } from "@/schemas/auth";
+import { AuthTokens, QueryUser, User } from "@/types/user";
+import { BaseResponsePagination } from "@/types/base";
 import { ENDPOINT_CLIENT, ENDPOINT_SERVER } from "@/utils/endponit";
 
 
@@ -39,9 +40,8 @@ export const authRequest = {
   me: () => http.get<User>(ENDPOINT_CLIENT.PROFILE),
   createUser: (data: CreateUserBodyType) => http.post<User>(ENDPOINT_CLIENT.CREATE_USER, data),
   getRoles: () => http.get<{ value: string; label: string }[]>(ENDPOINT_CLIENT.ROLES),
-  getUsers: (query: any) => 
-    http.get<User>('/auth/users', { query }),
-
-updateUser: (id: string, data: { status: string; role: string; email: string; phone: string }) => 
-    http.patch<any>(`/auth/users/${id}`, data),
+  getUsers: (query: QueryUser) =>
+    http.get<BaseResponsePagination<User>>(ENDPOINT_CLIENT.USERS, { query }),
+  updateUser: (id: string, data: UpdateUserBodyType) =>
+    http.patch<any>(ENDPOINT_CLIENT.UPDATE_USER(id), data),
 };

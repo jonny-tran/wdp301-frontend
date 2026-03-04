@@ -1,11 +1,13 @@
 "use client";
 
+import { StoreReliabilityAnalytics } from "@/types/store";
 import {
   ShieldCheckIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 
-export default function StoreReliability({ stats }: { stats: any }) {
+export default function StoreReliability({ stats }: { stats: StoreReliabilityAnalytics | null }) {
+  if (!stats) return null;
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Chỉ số trung bình hệ thống */}
@@ -15,10 +17,10 @@ export default function StoreReliability({ stats }: { stats: any }) {
         </p>
         <div className="mt-4">
           <h3 className="text-6xl font-black text-white italic tracking-tighter leading-none">
-            {stats.systemAverage}%
+            {stats.systemAverage?.averageClaimRatePercentage}%
           </h3>
           <p className="text-[9px] font-bold text-white/30 uppercase mt-4 tracking-widest">
-            Dựa trên {stats.totalSystemShipments} đơn vận chuyển toàn quốc
+            Dựa trên {stats.systemAverage?.totalShipments} đơn vận chuyển toàn quốc
           </p>
         </div>
       </div>
@@ -38,16 +40,16 @@ export default function StoreReliability({ stats }: { stats: any }) {
         </div>
 
         <div className="space-y-3">
-          {stats.storeAnalysis.slice(0, 3).map((s: any) => (
+          {stats.storeAnalysis?.slice(0, 3).map((s) => (
             <div
-              key={s.id}
+              key={s.storeId}
               className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-black transition-all"
             >
               <div className="flex items-center gap-4">
                 <div
-                  className={`p-2 rounded-lg ${s.isWarning ? "bg-red-100 text-red-600" : "bg-black text-white"}`}
+                  className={`p-2 rounded-lg ${s.isFraudWarning ? "bg-red-100 text-red-600" : "bg-black text-white"}`}
                 >
-                  {s.isWarning ? (
+                  {s.isFraudWarning ? (
                     <ExclamationTriangleIcon className="h-4 w-4" />
                   ) : (
                     <ShieldCheckIcon className="h-4 w-4" />
@@ -55,18 +57,18 @@ export default function StoreReliability({ stats }: { stats: any }) {
                 </div>
                 <div>
                   <p className="text-[11px] font-black text-black uppercase italic">
-                    {s.name}
+                    {s.storeName}
                   </p>
                   <p className="text-[9px] font-bold text-black/30 uppercase tracking-tighter">
-                    Hỏng: {s.totalDamaged} đơn
+                    Hỏng: {s.totalDamagedQty} đơn
                   </p>
                 </div>
               </div>
               <div className="text-right">
                 <p
-                  className={`text-xl font-black italic tracking-tighter ${s.claimRate > stats.systemAverage ? "text-red-500" : "text-black"}`}
+                  className={`text-xl font-black italic tracking-tighter ${s.claimRatePercentage > (stats.systemAverage?.averageClaimRatePercentage || 0) ? "text-red-500" : "text-black"}`}
                 >
-                  {s.claimRate}%
+                  {s.claimRatePercentage}%
                 </p>
                 <p className="text-[8px] font-bold text-black/20 uppercase">
                   Claim Rate

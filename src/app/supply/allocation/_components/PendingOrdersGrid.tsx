@@ -1,9 +1,12 @@
 import { EyeIcon } from "@heroicons/react/24/outline";
 import { formatDateTime, formatStatusLabel, getStatusBadgeClass } from "@/app/supply/_components/format";
-import { OrderCard } from "./allocation.types";
+import { Order } from "@/types/order";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 interface PendingOrdersGridProps {
-    orders: OrderCard[];
+    orders: Order[];
     rowStart: number;
     isLoading: boolean;
     isError: boolean;
@@ -59,20 +62,24 @@ export default function PendingOrdersGrid({
                             <EyeIcon className="h-4 w-4" />
                             Xem xét
                         </button>
-                        <button
-                            onClick={() => onApprove(order.id)}
-                            disabled={isMutating}
-                            className="rounded-lg bg-green-600 px-2 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-60"
-                        >
-                            Duyệt
-                        </button>
-                        <button
-                            onClick={() => onReject(order.id)}
-                            disabled={isMutating}
-                            className="rounded-lg border border-red-200 bg-red-50 px-2 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 disabled:opacity-60"
-                        >
-                            Từ chối
-                        </button>
+                        <Can I={P.ORDER_APPROVE} on={Resource.ORDER}>
+                            <button
+                                onClick={() => onApprove(order.id)}
+                                disabled={isMutating}
+                                className="rounded-lg bg-green-600 px-2 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-60"
+                            >
+                                Approve
+                            </button>
+                        </Can>
+                        <Can I={P.ORDER_REJECT} on={Resource.ORDER}>
+                            <button
+                                onClick={() => onReject(order.id)}
+                                disabled={isMutating}
+                                className="rounded-lg border border-red-200 bg-red-50 px-2 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 disabled:opacity-60"
+                            >
+                                Reject
+                            </button>
+                        </Can>
                     </div>
                 </article>
             ))}

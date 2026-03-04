@@ -7,17 +7,20 @@ import {
   EyeIcon,
   CubeIcon,
 } from "@heroicons/react/24/outline";
-import { ProductRow } from "./product.types";
+import { Product } from "@/types/product";
 import { clsx } from "clsx";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 interface ProductTableProps {
-  items: ProductRow[];
+  items: Product[];
   isLoading: boolean;
   isError: boolean;
-  onEdit: (product: ProductRow) => void;
+  onEdit: (product: Product) => void;
   onDelete: (id: number) => void;
-  onRestore: (id: number) => void; // Thêm prop khôi phục
-  onViewDetail: (product: ProductRow) => void;
+  onRestore: (id: number) => void;
+  onViewDetail: (product: Product) => void;
 }
 
 export default function ProductTable({
@@ -79,8 +82,8 @@ export default function ProductTable({
                       alt={item.name}
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                       onError={(e) =>
-                        (e.currentTarget.src =
-                          "https://cdn.com/placeholder.jpg")
+                      (e.currentTarget.src =
+                        "https://cdn.com/placeholder.jpg")
                       }
                     />
                   </div>
@@ -103,11 +106,11 @@ export default function ProductTable({
                       {item.baseUnit}
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 italic">
-                      Hạn: {item.shelfLife} ngày
+                      Hạn: {item.shelfLifeDays} ngày
                     </span>
                   </div>
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                    Min Stock: {item.minStock}
+                    Min Stock: {item.minStockLevel}
                   </p>
                 </div>
               </td>
@@ -117,19 +120,19 @@ export default function ProductTable({
                 <span
                   className={clsx(
                     "inline-flex rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest",
-                    item.status === "ACTIVE"
+                    item.isActive
                       ? "bg-green-50 text-green-600 border border-green-100 shadow-sm shadow-green-50"
                       : "bg-slate-100 text-slate-400 border border-slate-200",
                   )}
                 >
-                  {item.status}
+                  {item.isActive ? 'ACTIVE' : 'INACTIVE'}
                 </span>
               </td>
 
               {/* CỘT 4: Hành động */}
               <td className="px-10 py-6">
                 <div className="flex items-center justify-end gap-2">
-                  {item.status === "ACTIVE" ? (
+                  {item.isActive ? (
                     <>
                       <button
                         onClick={() => onViewDetail(item)}
@@ -138,30 +141,34 @@ export default function ProductTable({
                       >
                         <EyeIcon className="h-4 w-4 stroke-[2.5px]" />
                       </button>
-                      <button
-                        onClick={() => onEdit(item)}
-                        className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-green-600 hover:shadow-lg transition-all active:scale-90"
-                        title="Chỉnh sửa"
-                      >
-                        <PencilSquareIcon className="h-4 w-4 stroke-[2.5px]" />
-                      </button>
-                      <button
-                        onClick={() => onDelete(item.id)}
-                        className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-red-500 hover:shadow-lg transition-all active:scale-90"
-                        title="Xóa sản phẩm"
-                      >
-                        <TrashIcon className="h-4 w-4 stroke-[2.5px]" />
-                      </button>
+                      <Can I={P.PRODUCT_UPDATE} on={Resource.PRODUCT}>
+                        <button
+                          onClick={() => onEdit(item)}
+                          className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-green-600 hover:shadow-lg transition-all active:scale-90"
+                          title="Chỉnh sửa"
+                        >
+                          <PencilSquareIcon className="h-4 w-4 stroke-[2.5px]" />
+                        </button>
+                        <button
+                          onClick={() => onDelete(item.id)}
+                          className="p-2.5 bg-white border border-slate-100 rounded-xl text-slate-400 hover:text-red-500 hover:shadow-lg transition-all active:scale-90"
+                          title="Xóa sản phẩm"
+                        >
+                          <TrashIcon className="h-4 w-4 stroke-[2.5px]" />
+                        </button>
+                      </Can>
                     </>
                   ) : (
                     // NÚT KHÔI PHỤC CHO SẢN PHẨM INACTIVE
-                    <button
-                      onClick={() => onRestore(item.id)}
-                      className="group flex items-center gap-2 rounded-full bg-slate-900 px-6 py-2.5 text-[10px] font-black text-white hover:bg-black transition-all active:scale-95 shadow-lg shadow-slate-200"
-                    >
-                      <ArrowPathIcon className="h-3.5 w-3.5 stroke-[3px] group-hover:rotate-180 transition-transform duration-500" />
-                      KHÔI PHỤC
-                    </button>
+                    <Can I={P.PRODUCT_UPDATE} on={Resource.PRODUCT}>
+                      <button
+                        onClick={() => onRestore(item.id)}
+                        className="group flex items-center gap-2 rounded-full bg-slate-900 px-6 py-2.5 text-[10px] font-black text-white hover:bg-black transition-all active:scale-95 shadow-lg shadow-slate-200"
+                      >
+                        <ArrowPathIcon className="h-3.5 w-3.5 stroke-[3px] group-hover:rotate-180 transition-transform duration-500" />
+                        KHÔI PHỤC
+                      </button>
+                    </Can>
                   )}
                 </div>
               </td>

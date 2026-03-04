@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useClaim } from "@/hooks/useClaim";
-import { extractClaims, extractClaimAnalytics } from "./claims.mapper";
+import { Claim, ClaimAnalyticsSummary, QueryClaim } from "@/types/claim";
 
 // Components
 import ClaimsTable from "./ClaimsTable";
@@ -14,7 +14,7 @@ export default function ClaimsClient() {
   const [activeTab, setActiveTab] = useState<
     "all" | "pending" | "approved" | "rejected text-red-500"
   >("all");
-  const [params, setParams] = useState({ page: 1, limit: 10 });
+  const [params, setParams] = useState<QueryClaim>({ page: 1, limit: 10, sortOrder: "DESC" });
   const [modal, setModal] = useState<{
     isOpen: boolean;
     claimId: string | null;
@@ -32,14 +32,8 @@ export default function ClaimsClient() {
   const detailQuery = claimDetail(modal.claimId || "");
 
   // 3. Mapping dữ liệu phòng thủ
-  const allClaims = useMemo(
-    () => extractClaims(claimsQuery.data),
-    [claimsQuery.data],
-  );
-  const stats = useMemo(
-    () => extractClaimAnalytics(analyticsQuery.data),
-    [analyticsQuery.data],
-  );
+  const allClaims: Claim[] = useMemo(() => (claimsQuery.data as any)?.items || (claimsQuery.data as any)?.data?.items || [], [claimsQuery.data]);
+  const stats = useMemo(() => (analyticsQuery.data as any)?.data || analyticsQuery.data || null, [analyticsQuery.data]);
 
   // 4. Client Filter
   const filteredClaims = useMemo(() => {
@@ -72,10 +66,9 @@ export default function ClaimsClient() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
             className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300
-              ${
-                activeTab === tab.id
-                  ? "bg-black text-white shadow-2xl scale-[1.05]"
-                  : "text-black/30 hover:text-black hover:bg-white"
+              ${activeTab === tab.id
+                ? "bg-black text-white shadow-2xl scale-[1.05]"
+                : "text-black/30 hover:text-black hover:bg-white"
               }`}
           >
             {tab.label}
@@ -94,7 +87,7 @@ export default function ClaimsClient() {
       <ClaimResolveModal
         isOpen={modal.isOpen}
         claimId={modal.claimId}
-        detailData={detailQuery.data} // Dữ liệu trả về từ claimDetail(id).data
+        detailData={detailQuery.data ?? null} // Dữ liệu trả về từ claimDetail(id).data
         isLoading={detailQuery.isLoading}
         onClose={() => setModal({ isOpen: false, claimId: null })}
       />

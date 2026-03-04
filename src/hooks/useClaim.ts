@@ -46,7 +46,7 @@ export const useClaim = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Claim created successfully')
+            toast.success('Đã tạo khiếu nại')
             queryClient.invalidateQueries({ queryKey: KEY.claims })
         }
     })
@@ -57,7 +57,7 @@ export const useClaim = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Claim resolved successfully')
+            toast.success('Đã giải quyết khiếu nại')
             queryClient.invalidateQueries({ queryKey: KEY.claims })
         },
     })
