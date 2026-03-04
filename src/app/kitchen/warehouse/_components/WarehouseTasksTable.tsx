@@ -54,8 +54,10 @@ export default function WarehouseTasksTable({
                             </td>
                         </tr>
                     ) : (
-                        tasks.map((task, index) => (
-                            <tr key={task.orderId || task.id || index} className="hover:bg-gray-50">
+                        tasks.map((task, index) => {
+                            const taskId = task.orderId || task.id || `task-${index}`;
+                            return (
+                            <tr key={taskId} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 font-bold text-text-main">#{rowStart + index + 1}</td>
                                 <td className="px-6 py-4 text-text-main">{task.storeName}</td>
                                 <td className="px-6 py-4 text-text-muted">
@@ -71,7 +73,7 @@ export default function WarehouseTasksTable({
                                     <div className="flex items-center justify-end gap-2">
                                         <Can I={P.WAREHOUSE_RESET_PICKING} on={Resource.WAREHOUSE}>
                                             <button
-                                                onClick={() => onReset(task.orderId || task.id || "")}
+                                                onClick={() => onReset(taskId)}
                                                 disabled={isResetting}
                                                 className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary disabled:opacity-50"
                                             >
@@ -79,7 +81,7 @@ export default function WarehouseTasksTable({
                                             </button>
                                         </Can>
                                         <Link
-                                            href={`/kitchen/warehouse/${task.orderId || task.id}`}
+                                            href={`/kitchen/warehouse/${taskId}`}
                                             className="rounded-lg bg-text-main px-3 py-1.5 text-xs font-bold text-white hover:bg-black"
                                         >
                                             Mở
@@ -87,7 +89,8 @@ export default function WarehouseTasksTable({
                                     </div>
                                 </td>
                             </tr>
-                        ))
+                            );
+                        })
                     )}
                 </tbody>
             </table>
