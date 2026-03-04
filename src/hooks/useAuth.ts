@@ -33,6 +33,7 @@ export const useAuth = () => {
             clearSession();
             toast.success("Đăng xuất thành công");
             queryClient.invalidateQueries({ queryKey: KEY.users });
+            queryClient.clear();
             router.replace("/auth/login")
         },
         onError: async (error) => {
