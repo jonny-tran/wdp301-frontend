@@ -83,12 +83,12 @@ export default function IssuesClient({ searchParams }: IssuesClientProps) {
 
     const detailQuery = claimDetail(detailTargetId);
     const detailClaimNo = useMemo(() => {
-        const index = claims.findIndex((claim) => claim.claimId === detailTargetId);
+        const index = claims.findIndex((claim) => (claim.id || claim.claimId) === detailTargetId);
         return index >= 0 ? rowStart + index + 1 : undefined;
     }, [claims, detailTargetId, rowStart]);
     const resolveClaimNo = useMemo(() => {
         if (!resolveTarget) return undefined;
-        const index = claims.findIndex((claim) => claim.claimId === resolveTarget.claimId);
+        const index = claims.findIndex((claim) => (claim.id || claim.claimId) === (resolveTarget.id || resolveTarget.claimId));
         return index >= 0 ? rowStart + index + 1 : undefined;
     }, [claims, resolveTarget, rowStart]);
 
@@ -161,7 +161,7 @@ export default function IssuesClient({ searchParams }: IssuesClientProps) {
 
         try {
             await resolveClaim.mutateAsync({
-                id: resolveTarget.claimId,
+                id: resolveTarget.id || resolveTarget.claimId,
                 data: {
                     status: resolveStatus,
                     resolutionNote: resolveNote.trim() || undefined,

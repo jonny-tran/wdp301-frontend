@@ -47,7 +47,7 @@ export default function IssuesTable({
                         </tr>
                     ) : (
                         claims.map((claim, index) => (
-                            <tr key={claim.claimId || index} className="hover:bg-gray-50">
+                            <tr key={claim.id || claim.claimId || index} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 font-bold text-text-main">#{rowStart + index + 1}</td>
                                 <td className="px-6 py-4 text-text-main">{claim.shipmentId ? "Có sẵn" : "-"}</td>
                                 <td className="px-6 py-4 text-text-muted">{formatDateTime(claim.createdAt)}</td>
@@ -59,7 +59,7 @@ export default function IssuesTable({
                                 <td className="px-6 py-4">
                                     <div className="flex items-center justify-end gap-2">
                                         <button
-                                            onClick={() => onOpenDetail(claim.claimId)}
+                                            onClick={() => onOpenDetail(claim.id || claim.claimId)}
                                             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary"
                                         >
                                             <EyeIcon className="h-4 w-4" />
