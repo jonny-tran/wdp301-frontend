@@ -4,32 +4,13 @@ import { useEffect } from "react";
 import { XMarkIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { useSupplier } from "@/hooks/useSupplier";
 import { toast } from "sonner";
-<<<<<<< HEAD
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-=======
 import { useForm } from "react-hook-form";
 import { CreateSupplierBody, CreateSupplierBodyType } from "@/schemas/supplier";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { handleErrorApi } from "@/lib/errors";
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 
-export default function SupplierCreateModal({
-  isOpen,
-  onClose,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-}) {
+export default function SupplierCreateModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const { createSupplier } = useSupplier();
-<<<<<<< HEAD
-  const [formData, setFormData] = useState({
-    name: "",
-    contactName: "",
-    phone: "",
-    address: "",
-    isActive: true,
-=======
 
   const {
     register,
@@ -42,7 +23,6 @@ export default function SupplierCreateModal({
     defaultValues: {
       isActive: true,
     },
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
   });
 
   useEffect(() => {
@@ -62,81 +42,22 @@ export default function SupplierCreateModal({
       await createSupplier.mutateAsync(data);
       onClose();
     } catch (error) {
-<<<<<<< HEAD
-      console.error(error);
-=======
       handleErrorApi({
         error,
         setError,
       });
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
     }
   };
 
   if (!isOpen) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-sm"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/20 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="relative w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
         <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-12">
           <div className="md:col-span-8 p-10 space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-2">
-<<<<<<< HEAD
-                <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
-                  Tên công ty / Đối tác
-                </label>
-                <Input
-                  required
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className="w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:border-blue-500 transition-all"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
-                  Người đại diện
-                </label>
-                <Input
-                  required
-                  value={formData.contactName}
-                  onChange={(e) =>
-                    setFormData({ ...formData, contactName: e.target.value })
-                  }
-                  className="w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:border-blue-500"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
-                  Số điện thoại
-                </label>
-                <Input
-                  required
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  className="w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:border-blue-500"
-                />
-              </div>
-              <div className="col-span-2 space-y-2">
-                <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
-                  Địa chỉ văn phòng
-                </label>
-                <Input
-                  required
-                  value={formData.address}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
-                  }
-                  className="w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:border-blue-500"
-                />
-=======
                 <label className="text-[9px] font-black uppercase text-slate-400 ml-4">Tên công ty / Đối tác</label>
                 <input
                   {...register("name")}
@@ -167,39 +88,11 @@ export default function SupplierCreateModal({
                   className={`w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:border-blue-500 ${errors.address ? "border-red-500 bg-red-50" : ""}`}
                 />
                 {errors.address && <p className="text-[10px] text-red-500 ml-4">{errors.address.message}</p>}
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
               </div>
             </div>
           </div>
           <div className="md:col-span-4 bg-slate-50/50 p-10 flex flex-col justify-between border-l border-slate-100">
             <div className="text-center relative">
-<<<<<<< HEAD
-              <Button
-                onClick={onClose}
-                className="absolute -top-6 -right-6 p-2 text-slate-400"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </Button>
-              <PlusIcon className="h-10 w-10 mx-auto text-slate-900 mb-4" />
-              <h3 className="text-xl font-black uppercase italic italic leading-tight">
-                Đối tác <br /> Mới
-              </h3>
-            </div>
-            <div className="space-y-3">
-              <button
-                onClick={handleSubmit}
-                disabled={createSupplier.isPending}
-                className="w-full py-4 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all"
-              >
-                Lưu hệ thống
-              </button>
-              <button
-                onClick={onClose}
-                className="w-full text-[9px] font-black text-red-500 uppercase tracking-widest"
-              >
-                Hủy thao tác
-              </button>
-=======
               <button type="button" onClick={onClose} className="absolute -top-6 -right-6 p-2 text-slate-400"><XMarkIcon className="h-5 w-5" /></button>
               <PlusIcon className="h-10 w-10 mx-auto text-slate-900 mb-4" />
               <h3 className="text-xl font-black uppercase italic italic leading-tight">Đối tác <br /> Mới</h3>
@@ -207,7 +100,6 @@ export default function SupplierCreateModal({
             <div className="space-y-3">
               <button type="submit" disabled={isSubmitting} className="w-full py-4 rounded-full bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-black transition-all">Lưu hệ thống</button>
               <button type="button" onClick={onClose} className="w-full text-[9px] font-black text-red-500 uppercase tracking-widest">Hủy thao tác</button>
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
             </div>
           </div>
         </form>

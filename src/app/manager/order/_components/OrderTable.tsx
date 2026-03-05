@@ -1,23 +1,5 @@
 "use client";
 
-<<<<<<< HEAD
-import { Button } from "@/components/ui/button";
-import { OrderRow } from "./order.types";
-import { OrderStatus } from "@/utils/enum";
-import {
-  EyeIcon,
-  ClockIcon,
-  TruckIcon,
-  CheckBadgeIcon,
-  XCircleIcon,
-} from "@heroicons/react/24/outline";
-import { clsx } from "clsx";
-
-interface Props {
-  data: OrderRow[];
-  rowStart: number;
-}
-=======
 import { EyeIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
 import { Order } from "@/types/order";
 import { format } from "date-fns";
@@ -41,64 +23,33 @@ export default function OrderTable({
     navigator.clipboard.writeText(text);
     toast.success(`Đã sao chép ${label} đầy đủ`); //
   };
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 
-const getStatusStyle = (status: OrderStatus) => {
-  switch (status) {
-    case OrderStatus.PENDING:
-      return "bg-amber-100 text-amber-600";
-    case OrderStatus.APPROVED:
-      return "bg-emerald-100 text-emerald-600";
-    case OrderStatus.REJECTED:
-      return "bg-red-100 text-red-600";
-    case OrderStatus.CANCELLED:
-      return "bg-slate-100 text-slate-500";
-    default:
-      return "bg-slate-100 text-slate-500";
-  }
-};
+  if (isLoading)
+    return (
+      <div className="p-20 text-center font-black text-slate-300 italic uppercase">
+        Đang đồng bộ...
+      </div>
+    );
 
-export default function OrderTable({ data, rowStart }: Props) {
   return (
-    <div className="w-full overflow-hidden">
-      <table className="w-full text-left border-collapse">
-        <thead className="bg-slate-50/50">
-          <tr className="border-b border-slate-100">
-            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              No.
+    <div className="w-full overflow-x-auto">
+      <table className="w-full text-left text-sm border-separate border-spacing-0">
+        <thead className="bg-slate-50/50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+          <tr>
+            <th className="px-6 py-4 border-b border-slate-100">
+              Định danh (Mã đơn / Cửa hàng)
             </th>
-            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              Mã Đơn / Cửa Hàng
+            <th className="px-6 py-4 border-b border-slate-100 text-center">
+              Ngày giao
             </th>
-            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">
-              Tổng Tiền
+            <th className="px-6 py-4 border-b border-slate-100 text-center">
+              Trạng thái
             </th>
-            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              Dự Kiến Giao
-            </th>
-            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              Trạng Thái
-            </th>
-            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">
-              Thao Tác
+            <th className="px-6 py-4 border-b border-slate-100 text-right">
+              Chi tiết
             </th>
           </tr>
         </thead>
-<<<<<<< HEAD
-        <tbody>
-          {data.map((order, index) => (
-            <tr
-              key={order.id}
-              className="group hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-0"
-            >
-              <td className="px-10 py-6 font-black italic text-slate-900">
-                #{rowStart + index + 1}
-              </td>
-              <td className="px-6 py-6">
-                <div className="flex flex-col">
-                  <span className="font-black text-slate-900 uppercase tracking-tighter italic">
-                    {order.id.split("-")[0]}
-=======
         <tbody className="divide-y divide-slate-50 bg-white">
           {items.map((order) => {
             const shortId = order.id.slice(0, 8).toUpperCase();
@@ -158,39 +109,17 @@ export default function OrderTable({ data, rowStart }: Props) {
                       }`}
                   >
                     {order.status}
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
                   </span>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                    ID: {order.storeId}
-                  </span>
-                </div>
-              </td>
-              <td className="px-6 py-6 text-right font-black italic text-indigo-600 text-lg">
-                {order.formattedAmount}
-              </td>
-              <td className="px-6 py-6">
-                <div className="flex items-center gap-2 text-slate-600 font-bold text-xs uppercase">
-                  <TruckIcon className="w-4 h-4 stroke-[2.5px] text-slate-400" />
-                  {order.deliveryDateFormatted}
-                </div>
-              </td>
-              <td className="px-6 py-6">
-                <span
-                  className={clsx(
-                    "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest",
-                    getStatusStyle(order.status),
-                  )}
-                >
-                  {order.status}
-                </span>
-              </td>
-              <td className="px-10 py-6 text-right">
-                <Button className="p-3 bg-white border border-slate-100 rounded-2xl shadow-sm hover:bg-black hover:text-white transition-all group/btn">
-                  <EyeIcon className="w-5 h-5 stroke-[2.5px]" />
-                </Button>
-              </td>
-            </tr>
-          ))}
+                </td>
+
+                <td className="px-6 py-5 text-right">
+                  <button className="p-3 bg-slate-50 group-hover:bg-white/10 text-slate-400 group-hover:text-white rounded-2xl transition-all">
+                    <EyeIcon className="h-5 w-5" />
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

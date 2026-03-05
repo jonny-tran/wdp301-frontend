@@ -1,7 +1,7 @@
 import ConfigClient from "./_components/ConfigClient";
 
 export const metadata = {
-  title: "Cấu hình hệ thống | Admin",
+  title: "Cấu hình hệ thống | Mengo Admin",
   description: "Quản lý tham số vận hành Global",
 };
 

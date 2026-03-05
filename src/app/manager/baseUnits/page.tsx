@@ -1,16 +1,9 @@
-import { Suspense } from "react";
 import BaseUnitClient from "./_components/BaseUnitClient";
 
-export default function BaseUnitPage() {
+export default function BaseUnitsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="p-20 text-center animate-pulse font-black italic text-slate-300 uppercase text-[10px] tracking-widest">
-          Đang khởi tạo danh mục đơn vị...
-        </div>
-      }
-    >
+    <main className="p-4 sm:p-8 bg-slate-50/50 min-h-screen">
       <BaseUnitClient />
-    </Suspense>
+    </main>
   );
 }
