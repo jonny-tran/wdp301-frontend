@@ -1,5 +1,6 @@
 "use client";
 
+<<<<<<< HEAD
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -32,12 +33,17 @@ const adminLinks = [
     icon: AdjustmentsHorizontalIcon,
   },
 ];
+=======
+import BaseLayout from "@/components/layout/BaseLayout";
+import { Role } from "@/utils/enum";
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+<<<<<<< HEAD
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // State cho Modal cảnh báo
@@ -183,5 +189,11 @@ export default function AdminLayout({
         </div>
       )}
     </div>
+=======
+  return (
+    <BaseLayout title="Admin Management">
+      {children}
+    </BaseLayout>
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
   );
 }

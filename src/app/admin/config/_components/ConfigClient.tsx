@@ -3,11 +3,23 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import http from "@/lib/http";
-import { SystemConfig } from "./config.types";
 import ConfigTable from "./ConfigTable";
 import ConfigEditModal from "./ConfigEditModal";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
+
+export interface SystemConfig {
+  id: number;
+  key: string;
+  value: string;
+  description: string;
+  updatedAt: string;
+}
+
+export interface UpdateConfigPayload {
+  value: string;
+  description: string;
+}
 
 export default function ConfigClient() {
   const queryClient = useQueryClient();
@@ -20,13 +32,16 @@ export default function ConfigClient() {
   const { data, isLoading } = useQuery({
     queryKey: ["system-configs"],
     queryFn: () =>
-      http.get<SystemConfig[]>("/system-configs").then((res) => res.data),
+      http.get<SystemConfig[]>("/system-configs").then((res) => {
+        const source = res.data as any;
+        return source?.data || source || [];
+      }),
   });
 
   // 2. Mutation cập nhật
   const updateMutation = useMutation({
     mutationFn: ({ key, payload }: { key: string; payload: any }) =>
-      http.patch(`/system-configs/${key}`, payload),
+      http.patch(`/ system - configs / ${key} `, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["system-configs"] });
       toast.success("Cấu hình hệ thống đã được cập nhật thành công!");

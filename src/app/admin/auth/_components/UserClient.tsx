@@ -4,10 +4,11 @@ import { useMemo, useState, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { authRequest } from "@/apiRequest/auth";
-import { extractUserItems, extractRoleOptions } from "./user.mapper";
+import { User, QueryUser } from "@/types/user";
 import {
   RawSearchParams,
   createPaginationSearchParams,
+  readValue,
 } from "@/app/kitchen/_components/query";
 import UserTable from "./UserTable";
 import UserCreateModal from "./UserCreateModal";
@@ -15,6 +16,9 @@ import UserEditModal from "./UserEditModal";
 import { BasePagination } from "@/components/layout/BasePagination";
 import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
 import { UserGroupIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 export default function UserClient({
   searchParams,
@@ -29,13 +33,13 @@ export default function UserClient({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<any>(null);
 
-  const queryParams = useMemo(
+  const queryParams: any = useMemo(
     () => ({
-      page: Number(searchParams.page) || 1,
-      limit: Number(searchParams.limit) || 10,
-      search: (searchParams.search as string) || undefined,
-      role: (searchParams.role as string) || undefined,
-      sortOrder: "DESC",
+      page: Number(readValue(searchParams.page)) || 1,
+      limit: Number(readValue(searchParams.limit)) || 10,
+      search: readValue(searchParams.search),
+      role: readValue(searchParams.role),
+      sortOrder: "DESC" as const,
     }),
     [searchParams],
   );
@@ -43,31 +47,41 @@ export default function UserClient({
   // Fetch danh sách User
   const userQuery = useQuery({
     queryKey: ["users", queryParams],
-    queryFn: () => authRequest.getUsers(queryParams).then((res) => res.data),
+    queryFn: () => authRequest.getUsers(queryParams).then((res: any) => res.data),
     placeholderData: (prev) => prev,
   });
 
   // Fetch danh sách Roles (để lấy label tiếng Việt)
   const rolesQuery = useQuery({
     queryKey: ["roles"],
-    queryFn: () => authRequest.getRoles().then((res) => res.data),
+    queryFn: () => authRequest.getRoles().then((res: any) => res.data),
   });
 
   // Mapping dữ liệu
-  const items = useMemo(
-    () => extractUserItems(userQuery.data),
+  const items: User[] = useMemo(
+    () => (userQuery.data as any)?.items || (userQuery.data as any)?.data?.items || [],
     [userQuery.data],
   );
 
-  // Quan trọng: Tạo mảng roleOptions chứa {value, label}
+  // Mapping roleOptions trực tiếp
   const roleOptions = useMemo(
-    () => extractRoleOptions(rolesQuery.data),
+    () => {
+      const roles: any = (rolesQuery.data as any)?.data || rolesQuery.data || [];
+      return Array.isArray(roles) ? roles.map((r: any) => ({
+        value: r.value ?? r.id ?? "",
+        label: r.label ?? r.name ?? "",
+      })) : [];
+    },
     [rolesQuery.data],
   );
 
   const meta = useMemo(() => {
+<<<<<<< HEAD
     const rawData = userQuery.data as any;
     const m = rawData?.data?.meta || rawData?.meta;
+=======
+    const m = (userQuery.data as any)?.meta || (userQuery.data as any)?.data?.meta;
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
     return {
       currentPage: m?.currentPage ?? 1,
       totalPages: m?.totalPages ?? 1,
@@ -93,14 +107,18 @@ export default function UserClient({
       label: "Tìm kiếm",
       type: "text",
       placeholder: "Tên hoặc email...",
+<<<<<<< HEAD
       defaultValue: (searchParams.search as string) ?? "",
+=======
+      defaultValue: readValue(searchParams.search) ?? "",
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
     },
     {
       key: "role",
       label: "Vai trò",
       type: "select",
       options: [{ label: "Tất cả vai trò", value: "" }, ...roleOptions],
-      defaultValue: (searchParams.role as string) ?? "",
+      defaultValue: readValue(searchParams.role) ?? "",
     },
   ];
 
@@ -120,12 +138,14 @@ export default function UserClient({
             Tổng cộng: {meta.totalItems} tài khoản
           </p>
         </div>
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-[11px] font-black text-white hover:bg-black transition-all shadow-xl"
-        >
-          <UserPlusIcon className="h-4 w-4 stroke-[3px]" /> THÊM NHÂN VIÊN
-        </button>
+        <Can I={P.USER_CREATE} on={Resource.USER}>
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-[11px] font-black text-white hover:bg-black transition-all shadow-xl"
+          >
+            <UserPlusIcon className="h-4 w-4 stroke-[3px]" /> THÊM NHÂN VIÊN
+          </button>
+        </Can>
       </div>
 
       <div className="rounded-[2.5rem] bg-white p-2 shadow-sm border border-slate-100">
@@ -156,13 +176,11 @@ export default function UserClient({
       <UserCreateModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        roleOptions={roleOptions}
       />
       <UserEditModal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         user={selectedUser}
-        roleOptions={roleOptions}
       />
     </div>
   );

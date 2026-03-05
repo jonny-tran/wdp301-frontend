@@ -13,6 +13,7 @@ export type ClaimItem = {
 };
 
 export type Claim = {
+    id: string;
     claimId: string;
     shipmentId: string;
     storeId?: string;

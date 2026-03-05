@@ -5,7 +5,7 @@ import {
   DocumentDuplicateIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
-import { ShipmentRow } from "./shipment.types";
+import { Shipment } from "@/types/shipment";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -13,7 +13,7 @@ export default function ShipmentTable({
   items = [],
   isLoading,
 }: {
-  items: ShipmentRow[];
+  items: Shipment[];
   isLoading: boolean;
 }) {
   const handleCopy = (e: React.MouseEvent, text: string, label: string) => {
@@ -134,13 +134,12 @@ export default function ShipmentTable({
                 <td className="px-4 py-5 text-center">
                   <span
                     className={`inline-block w-full py-1 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all duration-300
-                    ${
-                      ship.status === "completed"
+                    ${ship.status === "completed"
                         ? "bg-green-100 text-green-700 group-hover:bg-green-600 group-hover:text-white"
                         : ship.status === "preparing"
                           ? "bg-orange-100 text-orange-700 group-hover:bg-orange-600 group-hover:text-white"
                           : "bg-blue-100 text-blue-700 group-hover:bg-blue-600 group-hover:text-white"
-                    }`}
+                      }`}
                   >
                     {ship.status}
                   </span>

@@ -2,14 +2,11 @@ import { Suspense } from "react";
 import PickingClient from "./_components/PickingClient";
 import PickingSkeleton from "./_components/PickingSkeleton";
 
-type Props = {
-    params: { orderId: string };
-};
-
-export default function PickingPage(props: Props) {
+export default async function PickingPage(props: { params: Promise<{ orderId: string }> }) {
+    const { orderId } = await props.params;
     return (
         <Suspense fallback={<PickingSkeleton />}>
-            <PickingClient orderId={props.params.orderId} />
+            <PickingClient orderId={orderId} />
         </Suspense>
     );
 }

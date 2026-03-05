@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,22 +9,35 @@ import {
 } from "@/components/ui/dialog";
 import { useStore } from "@/hooks/useStore";
 import { toast } from "sonner";
+import { useForm } from "react-hook-form";
+import { Store } from "@/types/store";
+import { CreateStoreBody, CreateStoreBodyType, UpdateStoreBodyType } from "@/schemas/store";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { handleErrorApi } from "@/lib/errors";
 
-export default function StoreModal({ isOpen, onClose, editingStore }: any) {
+interface StoreModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  editingStore: Store | null;
+}
+
+export default function StoreModal({ isOpen, onClose, editingStore }: StoreModalProps) {
   const { createStore, updateStore } = useStore();
 
-  // Khởi tạo state với giá trị mặc định phòng thủ
-  const [formData, setFormData] = useState({
-    name: "",
-    address: "",
-    phone: "",
-    managerName: "",
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<CreateStoreBodyType>({
+    resolver: zodResolver(CreateStoreBody),
   });
 
   // Đổ dữ liệu vào form khi chế độ Edit được kích hoạt
   useEffect(() => {
-    if (editingStore) {
-      setFormData({
+    if (editingStore && isOpen) {
+      reset({
         name: editingStore.name || "",
         address: editingStore.address || "",
         phone: editingStore.phone || "",
@@ -33,35 +46,27 @@ export default function StoreModal({ isOpen, onClose, editingStore }: any) {
             ? ""
             : editingStore.managerName,
       });
-    } else {
-      setFormData({ name: "", address: "", phone: "", managerName: "" });
+    } else if (isOpen) {
+      reset({ name: "", address: "", phone: "", managerName: "" });
     }
-  }, [editingStore, isOpen]);
+  }, [editingStore, isOpen, reset]);
 
-  const handleSubmit = async () => {
-    if (!formData.name || !formData.phone) {
-      toast.error("Vui lòng nhập tên và số điện thoại!");
-      return;
-    }
-
+  const onSubmit = async (data: CreateStoreBodyType) => {
     try {
       if (editingStore) {
-        // Gọi PATCH /wdp301-api/v1/stores/{id}
         await updateStore.mutateAsync({
           id: editingStore.id,
-          data: formData,
+          data: data as UpdateStoreBodyType,
         });
-        toast.success("Cập nhật cửa hàng thành công!");
       } else {
-        // Gọi POST /wdp301-api/v1/stores
-        await createStore.mutateAsync(formData);
-        toast.success("Thêm cửa hàng mới thành công!");
+        await createStore.mutateAsync(data);
       }
       onClose();
     } catch (e: any) {
-      toast.error(
-        e?.response?.data?.message || "Đã xảy ra lỗi, vui lòng thử lại.",
-      );
+      handleErrorApi({
+        error: e,
+        setError,
+      });
     }
   };
 
@@ -79,20 +84,18 @@ export default function StoreModal({ isOpen, onClose, editingStore }: any) {
           </p>
         </DialogHeader>
 
-        <div className="mt-8 space-y-5">
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
           {/* Tên Store */}
           <div className="space-y-1.5">
             <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.2em] ml-2">
               Tên chi nhánh
             </label>
             <input
-              value={formData.name}
-              onChange={(e) =>
-                setFormData({ ...formData, name: e.target.value })
-              }
-              className="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4 text-xs font-bold text-black focus:border-black focus:bg-white transition-all outline-none"
+              {...register("name")}
+              className={`w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4 text-xs font-bold text-black focus:border-black focus:bg-white transition-all outline-none ${errors.name ? "border-red-500 bg-red-50" : ""}`}
               placeholder="VD: KFC Quận 1..."
             />
+            {errors.name && <p className="text-[10px] text-red-500 ml-2">{errors.name.message}</p>}
           </div>
 
           {/* Quản lý */}
@@ -101,13 +104,11 @@ export default function StoreModal({ isOpen, onClose, editingStore }: any) {
               Người quản lý
             </label>
             <input
-              value={formData.managerName}
-              onChange={(e) =>
-                setFormData({ ...formData, managerName: e.target.value })
-              }
-              className="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4 text-xs font-bold text-black focus:border-black focus:bg-white transition-all outline-none"
+              {...register("managerName")}
+              className={`w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4 text-xs font-bold text-black focus:border-black focus:bg-white transition-all outline-none ${errors.managerName ? "border-red-500 bg-red-50" : ""}`}
               placeholder="Họ và tên..."
             />
+            {errors.managerName && <p className="text-[10px] text-red-500 ml-2">{errors.managerName.message}</p>}
           </div>
 
           {/* Phone & Address */}
@@ -117,40 +118,37 @@ export default function StoreModal({ isOpen, onClose, editingStore }: any) {
                 Hotline
               </label>
               <input
-                value={formData.phone}
-                onChange={(e) =>
-                  setFormData({ ...formData, phone: e.target.value })
-                }
-                className="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4 text-xs font-bold text-black focus:border-black focus:bg-white transition-all outline-none"
+                {...register("phone")}
+                className={`w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4 text-xs font-bold text-black focus:border-black focus:bg-white transition-all outline-none ${errors.phone ? "border-red-500 bg-red-50" : ""}`}
               />
+              {errors.phone && <p className="text-[10px] text-red-500 ml-2">{errors.phone.message}</p>}
             </div>
             <div className="space-y-1.5">
               <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.2em] ml-2">
                 Địa chỉ
               </label>
               <input
-                value={formData.address}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-                className="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4 text-xs font-bold text-black focus:border-black focus:bg-white transition-all outline-none"
+                {...register("address")}
+                className={`w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4 text-xs font-bold text-black focus:border-black focus:bg-white transition-all outline-none ${errors.address ? "border-red-500 bg-red-50" : ""}`}
               />
+              {errors.address && <p className="text-[10px] text-red-500 ml-2">{errors.address.message}</p>}
             </div>
           </div>
 
           <button
-            onClick={handleSubmit}
-            disabled={createStore.isPending || updateStore.isPending}
+            type="submit"
+            disabled={isSubmitting}
             className="w-full py-5 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:bg-slate-200"
           >
-            {createStore.isPending || updateStore.isPending
+            {isSubmitting
               ? "Đang xử lý..."
               : editingStore
                 ? "Cập nhật ngay"
                 : "Xác nhận tạo"}
           </button>
-        </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
 }
+

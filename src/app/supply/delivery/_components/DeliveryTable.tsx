@@ -1,9 +1,9 @@
 import { EyeIcon } from "@heroicons/react/24/outline";
 import { formatDate, formatStatusLabel, getStatusBadgeClass } from "@/app/supply/_components/format";
-import { ShipmentRow } from "./delivery.types";
+import { Shipment } from "@/types/shipment";
 
 interface DeliveryTableProps {
-    shipments: ShipmentRow[];
+    shipments: Shipment[];
     rowStart: number;
     isLoading: boolean;
     isError: boolean;
@@ -22,32 +22,32 @@ export default function DeliveryTable({
             <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50/70 text-xs uppercase tracking-wide text-text-muted">
                     <tr>
-                        <th className="px-6 py-3">No.</th>
-                        <th className="px-6 py-3">Store</th>
-                        <th className="px-6 py-3">Ship Date</th>
-                        <th className="px-6 py-3 text-center">Status</th>
-                        <th className="px-6 py-3 text-right">Action</th>
+                        <th className="px-6 py-3">STT</th>
+                        <th className="px-6 py-3">Cửa hàng</th>
+                        <th className="px-6 py-3">Ngày giao</th>
+                        <th className="px-6 py-3 text-center">Trạng thái</th>
+                        <th className="px-6 py-3 text-right">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                     {isLoading ? (
                         <tr>
-                            <td colSpan={5} className="px-6 py-8 text-sm text-text-muted">Loading shipments...</td>
+                            <td colSpan={5} className="px-6 py-8 text-sm text-text-muted">Đang tải giao hàng...</td>
                         </tr>
                     ) : isError ? (
                         <tr>
-                            <td colSpan={5} className="px-6 py-8 text-sm text-red-500">Failed to load shipment list.</td>
+                            <td colSpan={5} className="px-6 py-8 text-sm text-red-500">Tải danh sách giao hàng thất bại.</td>
                         </tr>
                     ) : shipments.length === 0 ? (
                         <tr>
-                            <td colSpan={5} className="px-6 py-8 text-sm text-text-muted">No shipments match the current filters.</td>
+                            <td colSpan={5} className="px-6 py-8 text-sm text-text-muted">Không có giao hàng nào khớp với bộ lọc hiện tại.</td>
                         </tr>
                     ) : (
                         shipments.map((shipment, index) => (
                             <tr key={shipment.id} className="hover:bg-gray-50">
                                 <td className="px-6 py-4">
                                     <p className="font-bold text-text-main">#{rowStart + index + 1}</p>
-                                    <p className="text-xs text-text-muted">{shipment.orderId ? "Linked order available" : "No linked order"}</p>
+                                    <p className="text-xs text-text-muted">{shipment.orderId ? "Đơn hàng liên kết có sẵn" : "Không có đơn hàng liên kết"}</p>
                                 </td>
                                 <td className="px-6 py-4 text-text-muted">{shipment.storeName ?? "-"}</td>
                                 <td className="px-6 py-4 text-text-muted">{formatDate(shipment.shipDate)}</td>
@@ -63,7 +63,7 @@ export default function DeliveryTable({
                                             className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary"
                                         >
                                             <EyeIcon className="h-4 w-4" />
-                                            Picking
+                                            Lấy hàng
                                         </button>
                                     </div>
                                 </td>

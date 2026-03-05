@@ -1,13 +1,13 @@
 import http from "@/lib/http";
 import { ReceiveShipmentBodyType } from "@/schemas/shipment";
-import { BaseResponePagination } from "@/types/base";
+import { BaseResponsePagination } from "@/types/base";
 import { QueryShipment, Shipment, ShipmentPickingList } from "@/types/shipment";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
 export const shipmentRequest = {
 
     // GET /shipments
-    getShipments: (query: QueryShipment) => http.get<BaseResponePagination<Shipment[]>>(ENDPOINT_CLIENT.SHIPMENTS, { query }),
+    getShipments: (query: QueryShipment) => http.get<BaseResponsePagination<Shipment>>(ENDPOINT_CLIENT.SHIPMENTS, { query }),
 
     // GET /shipments/store/my
     getMyStoreShipments: (query: QueryShipment) => http.get<Shipment[]>(ENDPOINT_CLIENT.SHIPMENTS_MY_STORE, { query }),

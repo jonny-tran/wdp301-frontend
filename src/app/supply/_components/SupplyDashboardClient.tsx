@@ -7,7 +7,6 @@ import { useClaim } from "@/hooks/useClaim";
 import { ClaimStatus, OrderStatus, ShipmentStatus } from "@/utils/enum";
 import DashboardKpiCard from "./DashboardKpiCard";
 import DashboardQueueCard from "./DashboardQueueCard";
-import { extractItems } from "./dashboard.mapper";
 
 const QUERY = {
     page: 1,
@@ -24,9 +23,9 @@ export default function SupplyDashboardClient() {
     const inTransitShipmentsQuery = shipmentList({ ...QUERY, status: ShipmentStatus.IN_TRANSIT });
     const pendingClaimsQuery = claimList({ ...QUERY, status: ClaimStatus.PENDING });
 
-    const pendingOrders = extractItems(pendingOrdersQuery.data);
-    const inTransitShipments = extractItems(inTransitShipmentsQuery.data);
-    const pendingClaims = extractItems(pendingClaimsQuery.data);
+    const pendingOrders = pendingOrdersQuery.data?.items || [];
+    const inTransitShipments = inTransitShipmentsQuery.data?.items || [];
+    const pendingClaims = pendingClaimsQuery.data?.items || [];
 
     const handleRefresh = () => {
         pendingOrdersQuery.refetch();
@@ -71,7 +70,7 @@ export default function SupplyDashboardClient() {
                         loadingMessage="Loading..."
                         errorMessage="Failed to load order list."
                         emptyMessage="No pending orders."
-                        items={pendingOrders}
+                        items={pendingOrders as any[]}
                         renderSecondaryLine={(item) => `Store: ${String(item.storeName ?? item.storeId ?? "-")}`}
                         renderDateLine={() => "Delivery date"}
                         dateKey="deliveryDate"
@@ -86,7 +85,7 @@ export default function SupplyDashboardClient() {
                         loadingMessage="Loading..."
                         errorMessage="Failed to load shipment list."
                         emptyMessage="No in-transit shipments."
-                        items={inTransitShipments}
+                        items={inTransitShipments as any[]}
                         renderSecondaryLine={() => "Delivery in progress"}
                         renderDateLine={() => "Ship date"}
                         dateKey="shipDate"
@@ -101,7 +100,7 @@ export default function SupplyDashboardClient() {
                         loadingMessage="Loading..."
                         errorMessage="Failed to load claim list."
                         emptyMessage="No pending claims."
-                        items={pendingClaims}
+                        items={pendingClaims as any[]}
                         renderSecondaryLine={() => "Pending resolution"}
                         renderDateLine={() => "Created at"}
                         dateKey="createdAt"

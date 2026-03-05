@@ -1,5 +1,6 @@
 "use client";
 
+<<<<<<< HEAD
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -33,12 +34,17 @@ const sidebarLinks = [
   { name: "Khiếu nại", href: "/manager/claim", icon: ShieldExclamationIcon },
   { name: "Cửa hàng", href: "/manager/store", icon: BuildingStorefrontIcon },
 ];
+=======
+import BaseLayout from "@/components/layout/BaseLayout";
+import { Role } from "@/utils/enum";
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 
 export default function ManagerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+<<<<<<< HEAD
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // Quản lý modal cảnh báo
@@ -188,5 +194,11 @@ export default function ManagerLayout({
         </div>
       )}
     </div>
+=======
+  return (
+    <BaseLayout title="Manager Control Center">
+      {children}
+    </BaseLayout>
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
   );
 }

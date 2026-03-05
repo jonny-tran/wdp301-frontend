@@ -11,12 +11,15 @@ import { handleErrorApi } from "@/lib/errors";
 import { OrderStatus } from "@/utils/enum";
 import { createPaginationSearchParams, normalizeMeta, parseListQuery, RawSearchParams } from "@/app/supply/_components/query";
 import { formatStatusLabel, getHttpErrorMessage, isForceApproveError } from "@/app/supply/_components/format";
+import { KEY, QUERY_KEY } from "@/utils/constant";
+import { Order, OrderReview } from "@/types/order";
 import ForceApproveModal from "./ForceApproveModal";
 import OrderDetailModal from "./OrderDetailModal";
 import OrdersTable from "./OrdersTable";
 import RejectOrderModal from "./RejectOrderModal";
-import { normalizeOrders, normalizeReview } from "./orders.mapper";
-import { OrderRow } from "./orders.types";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 interface OrdersClientProps {
     searchParams: RawSearchParams;
@@ -46,9 +49,9 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         toDate: parsedQuery.toDate,
     });
 
-    const orders = useMemo(() => normalizeOrders(listQuery.data), [listQuery.data]);
+    const orders: Order[] = listQuery.data?.items || [];
     const meta = useMemo(
-        () => normalizeMeta((listQuery.data as { meta?: unknown } | undefined)?.meta, parsedQuery.page, parsedQuery.limit, orders.length),
+        () => normalizeMeta(listQuery.data?.meta, parsedQuery.page, parsedQuery.limit, orders.length),
         [listQuery.data, orders.length, parsedQuery.limit, parsedQuery.page],
     );
     const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
@@ -78,9 +81,9 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
     }, [orders]);
 
     const [detailTargetId, setDetailTargetId] = useState("");
-    const [rejectTarget, setRejectTarget] = useState<OrderRow | null>(null);
+    const [rejectTarget, setRejectTarget] = useState<Order | null>(null);
     const [rejectReason, setRejectReason] = useState("");
-    const [forceTarget, setForceTarget] = useState<OrderRow | null>(null);
+    const [forceTarget, setForceTarget] = useState<Order | null>(null);
     const [forceMessage, setForceMessage] = useState("");
 
     const detailQuery = orderDetail(detailTargetId);
@@ -93,14 +96,14 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
     const filterConfig: FilterConfig[] = [
         {
             key: "search",
-            label: "Search",
+            label: "Tìm kiếm",
             type: "text",
-            placeholder: "Order ID...",
+            placeholder: "Mã đơn hàng...",
             className: "md:col-span-2",
         },
         {
             key: "status",
-            label: "Status",
+            label: "Trạng thái",
             type: "select",
             options: Object.values(OrderStatus).map((status) => ({
                 label: formatStatusLabel(status),
@@ -109,7 +112,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         },
         {
             key: "limit",
-            label: "Rows",
+            label: "Số dòng",
             type: "select",
             defaultValue: String(parsedQuery.limit),
             options: [
@@ -120,22 +123,22 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         },
         {
             key: "sortOrder",
-            label: "Sort",
+            label: "Sắp xếp",
             type: "select",
             defaultValue: parsedQuery.sortOrder,
             options: [
-                { label: "Newest", value: "DESC" },
-                { label: "Oldest", value: "ASC" },
+                { label: "Mới nhất", value: "DESC" },
+                { label: "Cũ nhất", value: "ASC" },
             ],
         },
         {
             key: "fromDate",
-            label: "From",
+            label: "Từ ngày",
             type: "date",
         },
         {
             key: "toDate",
-            label: "To",
+            label: "Đến ngày",
             type: "date",
         },
     ];
@@ -155,13 +158,13 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
 
     const invalidateOrderData = async (orderId: string) => {
         await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ["order-list"] }),
-            queryClient.invalidateQueries({ queryKey: ["order-detail", orderId] }),
-            queryClient.invalidateQueries({ queryKey: ["review-order", orderId] }),
+            queryClient.invalidateQueries({ queryKey: KEY.orders }),
+            queryClient.invalidateQueries({ queryKey: QUERY_KEY.orders.detail(orderId) }),
+            queryClient.invalidateQueries({ queryKey: QUERY_KEY.orders.review(orderId) }),
         ]);
     };
 
-    const handleApprove = async (order: OrderRow, force = false) => {
+    const handleApprove = async (order: Order, force = false) => {
         try {
             await approveOrder.mutateAsync({
                 id: order.id,
@@ -169,6 +172,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
             });
 
             await invalidateOrderData(order.id);
+            refreshData();
             setForceTarget(null);
             setForceMessage("");
             if (detailTargetId === order.id) {
@@ -197,6 +201,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
             });
 
             await invalidateOrderData(rejectTarget.id);
+            refreshData();
 
             if (detailTargetId === rejectTarget.id) {
                 setDetailTargetId("");
@@ -208,10 +213,10 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         }
     };
 
-    const detailData = (detailQuery.data ?? {}) as Record<string, unknown>;
+    const detailData = (detailQuery.data ?? {}) as any;
     const detailItems = Array.isArray(detailData.items) ? detailData.items : [];
     const detailStore = detailData.store as Record<string, unknown> | undefined;
-    const reviewData = normalizeReview(reviewQuery.data);
+    const reviewData = (reviewQuery.data ?? {}) as OrderReview;
 
     const isMutating = approveOrder.isPending || rejectOrder.isPending;
 
@@ -219,25 +224,25 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         <div className="space-y-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                    <h1 className="text-2xl font-black text-text-main">Order Management</h1>
-                    <p className="text-sm text-text-muted">Approve, reject, and track order status for the supply coordinator role.</p>
+                    <h1 className="text-2xl font-black text-text-main">Quản lý Đơn hàng</h1>
+                    <p className="text-sm text-text-muted">Phê duyệt, từ chối và theo dõi trạng thái đơn hàng cho vai trò điều phối viên.</p>
                 </div>
                 <button
                     onClick={refreshData}
                     className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-text-main hover:border-primary/50 hover:text-primary"
                 >
                     <ArrowPathIcon className="h-4 w-4" />
-                    Refresh
+                    Làm mới
                 </button>
             </div>
 
             <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
                 <div className="grid grid-cols-2 gap-3 text-xs md:grid-cols-5">
-                    <SummaryItem label="Total Records" value={meta.totalItems} tone="default" />
-                    <SummaryItem label="Pending" value={statusSummary.pending} tone="amber" />
-                    <SummaryItem label="Approved" value={statusSummary.approved} tone="green" />
-                    <SummaryItem label="Rejected" value={statusSummary.rejected} tone="red" />
-                    <SummaryItem label="Other" value={statusSummary.other} tone="default" />
+                    <SummaryItem label="Tổng số bản ghi" value={meta.totalItems} tone="default" />
+                    <SummaryItem label="Chờ xử lý" value={statusSummary.pending} tone="amber" />
+                    <SummaryItem label="Đã duyệt" value={statusSummary.approved} tone="green" />
+                    <SummaryItem label="Đã từ chối" value={statusSummary.rejected} tone="red" />
+                    <SummaryItem label="Khác" value={statusSummary.other} tone="default" />
                 </div>
             </div>
 

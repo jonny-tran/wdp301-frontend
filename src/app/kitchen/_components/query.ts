@@ -10,7 +10,7 @@ export type ParsedKitchenListQuery = {
     date?: string;
 };
 
-function readValue(value: string | string[] | undefined): string | undefined {
+export function readValue(value: string | string[] | undefined): string | undefined {
     if (Array.isArray(value)) {
         return value[0];
     }
@@ -78,8 +78,20 @@ export function normalizeMeta(rawMeta: unknown, page: number, limit: number, fal
     };
 }
 
-export function createPaginationSearchParams(current: URLSearchParams, nextPage: number) {
+export function createPaginationSearchParams(current: URLSearchParams | any, nextParams: Record<string, any>) {
     const params = new URLSearchParams(current.toString());
-    params.set("page", String(nextPage));
-    return params.toString();
+    Object.entries(nextParams).forEach(([key, value]) => {
+        if (value === undefined || value === null || (typeof value === "string" && value === "")) {
+            params.delete(key);
+        } else {
+            params.set(key, String(value));
+        }
+    });
+
+    // Reset page to 1 if sorting or filtering changes (optional but usually good)
+    if (!nextParams.page && (nextParams.search !== undefined || nextParams.isActive !== undefined)) {
+        params.set("page", "1");
+    }
+
+    return params;
 }

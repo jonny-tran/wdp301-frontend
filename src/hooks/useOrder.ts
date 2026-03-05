@@ -4,21 +4,22 @@ import { handleErrorApi } from "@/lib/errors";
 import { OrderFillRateQueryType, OrderSLAQueryType } from "@/schemas/analytics";
 import { ApproveOrderBodyType, CreateOrderBodyType, RejectOrderBodyType } from "@/schemas/order";
 import { QueryCatelog, QueryOrder } from "@/types/order";
-import { QUERY_KEY } from "@/utils/constant";
+import { KEY, QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export const useOrder = () => {
     const queryClient = useQueryClient();
-const orderList = (query: QueryOrder, enabled: boolean = true) => {
-    return useQuery({
-        queryKey: QUERY_KEY.orders.list(query),
-        queryFn: async () => {
-            const res = await orderRequest.getOrderList(query)
-            return res.data
-        },
-        enabled: enabled 
-    })
-}
+    const orderList = (query: QueryOrder) => {
+        return useQuery({
+            queryKey: QUERY_KEY.orders.list(query),
+            queryFn: async () => {
+                const res = await orderRequest.getOrderList(query)
+                return res.data
+            },
+            enabled: !!query
+        })
+    }
     const catalogList = (query: QueryCatelog) => {
         return useQuery({
             queryKey: QUERY_KEY.orders.catalog(query),
@@ -65,7 +66,7 @@ const orderList = (query: QueryOrder, enabled: boolean = true) => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Order created successfully')
+            toast.success('Tạo đơn hàng thành công')
             queryClient.invalidateQueries({ queryKey: KEY.orders })
         },
     })
@@ -76,7 +77,7 @@ const orderList = (query: QueryOrder, enabled: boolean = true) => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Order approved successfully')
+            toast.success('Đơn hàng đã được duyệt')
             queryClient.invalidateQueries({ queryKey: KEY.orders })
         },
     })
@@ -87,9 +88,9 @@ const orderList = (query: QueryOrder, enabled: boolean = true) => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Order rejected successfully')
+            toast.success('Đơn hàng đã bị từ chối')
             queryClient.invalidateQueries({ queryKey: KEY.orders })
-        },
+        }
     })
 
     const cancelOrder = useMutation({
@@ -98,7 +99,7 @@ const orderList = (query: QueryOrder, enabled: boolean = true) => {
             return res.data
         },
         onSuccess: () => {
-            toast.success('Order cancelled successfully')
+            toast.success('Đơn hàng đã bị hủy')
             queryClient.invalidateQueries({ queryKey: KEY.orders })
         },
         onError: (error) => {

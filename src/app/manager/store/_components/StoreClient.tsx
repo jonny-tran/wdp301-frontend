@@ -2,17 +2,16 @@
 
 import { useMemo, useState } from "react";
 import { useStore } from "@/hooks/useStore";
-import {
-  extractStores,
-  extractStoreReliability,
-  extractDemandPattern,
-} from "./store.mapper";
+import { Store, StoreReliabilityAnalytics, StoreDemandPatternAnalytics } from "@/types/store";
 
 // Components
 import StoreTable from "./StoreTable";
 import StoreModal from "./StoreModal";
 import StoreReliability from "./StoreReliability";
 import DemandPattern from "./DemandPattern";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 // Icons
 import {
@@ -55,18 +54,18 @@ export default function StoreClient() {
       productId: demandProductId,
     });
 
-  // 3. Sử dụng Mapper phòng thủ (Extract dữ liệu an toàn)
-  const stores = useMemo(() => extractStores(listData), [listData]);
-  const reliabilityStats = useMemo(
-    () => extractStoreReliability(reliabilityRaw),
+  // 3. Sử dụng Raw data trực tiếp
+  const stores: Store[] = useMemo(() => (listData as any)?.items || listData?.items || [], [listData]);
+  const reliabilityStats: StoreReliabilityAnalytics = useMemo(
+    () => (reliabilityRaw as any)?.data || reliabilityRaw || [],
     [reliabilityRaw],
   );
-  const demandPattern = useMemo(
-    () => extractDemandPattern(demandRaw),
+  const demandPattern: StoreDemandPatternAnalytics = useMemo(
+    () => (demandRaw as any)?.data || demandRaw || [],
     [demandRaw],
   );
 
-  const meta = listData?.data?.meta || {
+  const meta = (listData as any)?.meta || (listData as any)?.data?.meta || {
     currentPage: 1,
     totalPages: 1,
     totalItems: 0,
@@ -97,13 +96,15 @@ export default function StoreClient() {
           </p>
         </div>
 
-        <button
-          onClick={() => setModal({ isOpen: true, editingStore: null })}
-          className="flex items-center gap-2 px-8 py-4 bg-black text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl active:scale-95"
-        >
-          <PlusIcon className="h-4 w-4 stroke-[3px]" />
-          Add Store
-        </button>
+        <Can I={P.STORE_CREATE} on={Resource.STORE}>
+          <button
+            onClick={() => setModal({ isOpen: true, editingStore: null })}
+            className="flex items-center gap-2 px-8 py-4 bg-black text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl active:scale-95"
+          >
+            <PlusIcon className="h-4 w-4 stroke-[3px]" />
+            Add Store
+          </button>
+        </Can>
       </div>
 
       {/* ANALYTICS SECTION */}
@@ -201,11 +202,10 @@ export default function StoreClient() {
                 <button
                   key={i + 1}
                   onClick={() => handlePageChange(i + 1)}
-                  className={`w-11 h-11 rounded-xl text-[10px] font-black transition-all ${
-                    params.page === i + 1
-                      ? "bg-black text-white shadow-xl"
-                      : "bg-slate-50 text-black/40 hover:bg-slate-100"
-                  }`}
+                  className={`w-11 h-11 rounded-xl text-[10px] font-black transition-all ${params.page === i + 1
+                    ? "bg-black text-white shadow-xl"
+                    : "bg-slate-50 text-black/40 hover:bg-slate-100"
+                    }`}
                 >
                   {i + 1}
                 </button>

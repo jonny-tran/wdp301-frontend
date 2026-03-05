@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   XMarkIcon,
   CheckIcon,
@@ -8,23 +8,40 @@ import {
 } from "@heroicons/react/24/outline";
 import { useSupplier } from "@/hooks/useSupplier";
 import { toast } from "sonner";
+<<<<<<< HEAD
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+=======
+import { useForm } from "react-hook-form";
+import { Supplier } from "@/types/supplier";
+import { UpdateSupplierBody, UpdateSupplierBodyType } from "@/schemas/supplier";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { handleErrorApi } from "@/lib/errors";
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 
-export default function SupplierEditModal({ isOpen, onClose, data }: any) {
+interface SupplierEditModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  data: Supplier | null;
+}
+
+export default function SupplierEditModal({ isOpen, onClose, data }: SupplierEditModalProps) {
   const { updateSupplier } = useSupplier();
-  const [formData, setFormData] = useState({
-    name: "",
-    contactName: "",
-    phone: "",
-    address: "",
-    isActive: true,
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<UpdateSupplierBodyType>({
+    resolver: zodResolver(UpdateSupplierBody),
   });
 
   // Prefill dữ liệu khi mở modal
   useEffect(() => {
     if (data && isOpen) {
-      setFormData({
+      reset({
         name: data.name || "",
         contactName: data.contactName || "",
         phone: data.phone || "",
@@ -32,17 +49,18 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
         isActive: data.isActive,
       });
     }
-  }, [data, isOpen]);
+  }, [data, isOpen, reset]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (formData: UpdateSupplierBodyType) => {
     if (!data?.id) return;
     try {
-      await updateSupplier.mutateAsync({ id: data.id, data: formData });
-      toast.success("Cập nhật thành công!");
+      await updateSupplier.mutateAsync({ id: String(data.id), data: formData });
       onClose();
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      handleErrorApi({
+        error,
+        setError,
+      });
     }
   };
 
@@ -57,13 +75,14 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
         className="relative w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="grid grid-cols-1 md:grid-cols-12">
+        <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-12">
           <div className="md:col-span-8 p-10 space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-1">
                 <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
                   Tên công ty
                 </label>
+<<<<<<< HEAD
                 <Input
                   required
                   value={formData.name}
@@ -71,12 +90,19 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   className="w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 transition-all shadow-inner"
+=======
+                <input
+                  {...register("name")}
+                  className={`w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 transition-all shadow-inner ${errors.name ? "border-red-500 bg-red-50" : ""}`}
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
                 />
+                {errors.name && <p className="text-[10px] text-red-500 ml-4">{errors.name.message}</p>}
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
                   Đại diện
                 </label>
+<<<<<<< HEAD
                 <Input
                   required
                   value={formData.contactName}
@@ -84,12 +110,19 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
                     setFormData({ ...formData, contactName: e.target.value })
                   }
                   className="w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:border-blue-500"
+=======
+                <input
+                  {...register("contactName")}
+                  className={`w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 ${errors.contactName ? "border-red-500 bg-red-50" : ""}`}
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
                 />
+                {errors.contactName && <p className="text-[10px] text-red-500 ml-4">{errors.contactName.message}</p>}
               </div>
               <div className="space-y-1">
                 <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
                   Phone
                 </label>
+<<<<<<< HEAD
                 <Input
                   required
                   value={formData.phone}
@@ -97,12 +130,19 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
                     setFormData({ ...formData, phone: e.target.value })
                   }
                   className="w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:border-blue-500"
+=======
+                <input
+                  {...register("phone")}
+                  className={`w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 ${errors.phone ? "border-red-500 bg-red-50" : ""}`}
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
                 />
+                {errors.phone && <p className="text-[10px] text-red-500 ml-4">{errors.phone.message}</p>}
               </div>
               <div className="col-span-2 space-y-1">
                 <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
                   Địa chỉ
                 </label>
+<<<<<<< HEAD
                 <Input
                   required
                   value={formData.address}
@@ -110,31 +150,25 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
                     setFormData({ ...formData, address: e.target.value })
                   }
                   className="w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:border-blue-500"
+=======
+                <input
+                  {...register("address")}
+                  className={`w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 ${errors.address ? "border-red-500 bg-red-50" : ""}`}
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
                 />
-              </div>
-              <div className="col-span-2 flex items-center gap-2 px-4 py-2">
-                {/* <input
-                  type="checkbox"
-                  id="editActive"
-                  checked={formData.isActive}
-                  onChange={(e) =>
-                    setFormData({ ...formData, isActive: e.target.checked })
-                  }
-                  className="h-4 w-4 rounded-full border-slate-300 text-blue-600 focus:ring-blue-500"
-                />
-                <label
-                  htmlFor="editActive"
-                  className="text-[10px] font-black uppercase text-slate-500 cursor-pointer"
-                >
-                  Kích hoạt hoạt động
-                </label> */}
+                {errors.address && <p className="text-[10px] text-red-500 ml-4">{errors.address.message}</p>}
               </div>
             </div>
           </div>
 
           <div className="md:col-span-4 bg-slate-50/50 p-10 flex flex-col justify-between border-l border-slate-100">
             <div className="text-center relative">
+<<<<<<< HEAD
               <Button
+=======
+              <button
+                type="button"
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
                 onClick={onClose}
                 className="absolute -top-6 -right-6 p-2 text-slate-300 hover:text-red-500"
               >
@@ -149,12 +183,12 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
             </div>
             <div className="space-y-3">
               <button
-                onClick={handleSubmit}
-                disabled={updateSupplier.isPending}
+                type="submit"
+                disabled={isSubmitting}
                 className={`w-full py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95 flex items-center justify-center gap-2
-                  ${updateSupplier.isPending ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-slate-900 text-white hover:bg-black"}`}
+                  ${isSubmitting ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-slate-900 text-white hover:bg-black"}`}
               >
-                {updateSupplier.isPending ? (
+                {isSubmitting ? (
                   <ArrowPathIcon className="h-4 w-4 animate-spin" />
                 ) : (
                   <CheckIcon className="h-4 w-4" />
@@ -162,6 +196,7 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
                 Xác nhận sửa
               </button>
               <button
+                type="button"
                 onClick={onClose}
                 className="w-full text-[9px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest"
               >
@@ -169,8 +204,9 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
               </button>
             </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
 }
+

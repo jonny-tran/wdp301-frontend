@@ -1,4 +1,7 @@
 import { Role } from "@/utils/enum";
+import { BaseRequestPagination } from "./base";
+
+
 
 export type AuthTokens = {
     accessToken: string;
@@ -11,6 +14,13 @@ export type User = {
     email: string;
     role: Role;
     storeId?: string;
+    phone?: string;
+    isActive?: boolean;
     createdAt: string;
 };
 
+export type QueryUser = BaseRequestPagination & {
+    role: Role;
+    status: 'ACTIVE' | 'INACTIVE';
+    search?: string;
+}

@@ -17,7 +17,6 @@ export default function LoginForm() {
     const { login } = useAuth();
     const { setTokenFromContext } = useAuthContext();
     const [showPassword, setShowPassword] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const {
         register,
@@ -30,18 +29,15 @@ export default function LoginForm() {
 
     const onSubmit = async (data: LoginBodyType) => {
         if (login.isPending) return;
-        setIsLoading(true);
         setError(null);
         try {
             const result = await login.mutateAsync(data);
             setTokenFromContext(result.accessToken, result.refreshToken);
-        } catch (err: any) {
+        } catch (err) {
             handleErrorApi({
                 error: err,
                 setError: setErrorForm
             });
-        } finally {
-            setIsLoading(false);
         }
     };
 
@@ -100,10 +96,10 @@ export default function LoginForm() {
 
                 <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={login.isPending}
                     className="w-full bg-primary text-white font-bold rounded-2xl py-4 shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all active:scale-[0.98] uppercase text-xs tracking-widest disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                    {isLoading ? (
+                    {login.isPending ? (
                         <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
                     ) : (
                         "LOGIN"

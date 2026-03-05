@@ -1,4 +1,10 @@
-﻿import { Suspense } from "react";
+﻿import { Metadata } from "next";
+import { Suspense } from "react";
+
+export const metadata: Metadata = {
+    title: "Order Allocation | Supply Coordinator",
+    description: "Review and allocate stock for pending orders.",
+};
 import type { RawSearchParams } from "@/app/supply/_components/query";
 import AllocationClient from "./_components/AllocationClient";
 import AllocationSkeleton from "./_components/AllocationSkeleton";

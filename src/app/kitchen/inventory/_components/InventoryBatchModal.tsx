@@ -1,14 +1,14 @@
 "use client";
 
 import { XMarkIcon } from "@heroicons/react/24/outline";
-import { KitchenBatchRow } from "./inventory.types";
+import { KitchenDetail } from "@/types/inventory";
 import InventoryBatchDetails from "./InventoryBatchDetails";
 
 interface InventoryBatchModalProps {
     isOpen: boolean;
     onClose: () => void;
     productName: string;
-    batches: KitchenBatchRow[];
+    batches: KitchenDetail["batches"];
     isLoading: boolean;
     isError: boolean;
 }
@@ -29,7 +29,7 @@ export default function InventoryBatchModal({
                 <div className="flex items-center justify-between border-b border-gray-100 px-10 py-8 bg-white">
                     <div className="min-w-0 flex-1 pr-4">
                         <h3 className="text-2xl font-black text-text-main tracking-tight truncate">{productName}</h3>
-                        <p className="text-sm text-text-muted font-medium">Batch quantities & expiry details</p>
+                        <p className="text-sm text-text-muted font-medium">Số lượng lô hàng & chi tiết hạn dùng</p>
                     </div>
                     <button
                         onClick={onClose}
@@ -53,7 +53,7 @@ export default function InventoryBatchModal({
                         onClick={onClose}
                         className="rounded-2xl bg-text-main px-8 py-3 text-sm font-bold text-white transition-all hover:bg-black active:scale-95 shadow-lg shadow-black/10"
                     >
-                        Close
+                        Đóng
                     </button>
                 </div>
             </div>

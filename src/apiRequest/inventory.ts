@@ -1,19 +1,19 @@
 import http from "@/lib/http";
 import { FinancialLossQueryType, InventoryAgingQueryType, InventoryWasteQueryType } from "@/schemas/analytics";
 import { InventoryAdjustBodyType } from "@/schemas/inventory";
-import { BaseResponePagination } from "@/types/base";
+import { BaseResponsePagination } from "@/types/base";
 import { FinancialLossImpact, InventoryAgingReport, InventoryAnalyticsSummary, InventoryStoreItem, InventorySummaryItem, InventoryTransaction, InventoryWasteReport, KitchenDetail, KitchSummary, LowStockItem, QueryInventory, QueryInventorySummary, QueryInventoryTransaction, QueryKitchen, StoreInventoryTransaction } from "@/types/inventory";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
 export const inventoryRequest = {
     // GET /inventory/store
-    getInventoryStore: (query: QueryInventory) => http.get<BaseResponePagination<InventoryStoreItem[]>>(ENDPOINT_CLIENT.INVENTORY_STORE, { query }),
+    getInventoryStore: (query: QueryInventory) => http.get<BaseResponsePagination<InventoryStoreItem>>(ENDPOINT_CLIENT.INVENTORY_STORE, { query }),
 
     // GET /inventory/store/transactions
     getInventoryStoreTransaction: (query: QueryInventoryTransaction) => http.get(ENDPOINT_CLIENT.INVENTORY_STORE_TRANSACTION, { query }),
 
     // GET /inventory/summary
-    getInventorySummary: (query: QueryInventorySummary) => http.get<BaseResponePagination<InventorySummaryItem[]>>(ENDPOINT_CLIENT.INVENTORY_SUMMARY, { query }),
+    getInventorySummary: (query: QueryInventorySummary) => http.get<BaseResponsePagination<InventorySummaryItem>>(ENDPOINT_CLIENT.INVENTORY_SUMMARY, { query }),
 
 
     // GET /inventory/low-stock
@@ -24,7 +24,7 @@ export const inventoryRequest = {
 
 
     // GET /inventory/kitchen/summary
-    getKitchenSummary: (query: QueryKitchen) => http.get<BaseResponePagination<KitchSummary>>(ENDPOINT_CLIENT.INVENTORY_KITCHEN_SUMMARY, { query }),
+    getKitchenSummary: (query: QueryKitchen) => http.get<BaseResponsePagination<KitchSummary>>(ENDPOINT_CLIENT.INVENTORY_KITCHEN_SUMMARY, { query }),
     // GET /inventory/kitchen/details?product_id=
     getKitchenDetails: (productId: number) => http.get<KitchenDetail>(ENDPOINT_CLIENT.INVENTORY_KITCHEN_DETAILS, { query: { product_id: productId } }),
 

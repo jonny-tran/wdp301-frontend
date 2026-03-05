@@ -14,9 +14,9 @@ export default function ForceApproveModal({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
             <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-xl">
-                <h3 className="text-lg font-bold text-text-main">Force Approve Order</h3>
+                <h3 className="text-lg font-bold text-text-main">Phê duyệt Bắt buộc</h3>
                 <p className="mt-2 text-sm text-text-muted">
-                    {message || "Fulfillment rate is low. Are you sure you want to approve this order?"}
+                    {message || "Tỷ lệ đáp ứng thấp. Bạn có chắc chắn muốn phê duyệt đơn hàng này không?"}
                 </p>
 
                 <div className="mt-5 flex items-center justify-end gap-2">
@@ -33,7 +33,7 @@ export default function ForceApproveModal({
                         disabled={isPending}
                         className="rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white hover:bg-primary-dark disabled:opacity-60"
                     >
-                        {isPending ? "Processing..." : "Confirm approval"}
+                        {isPending ? "Đang xử lý..." : "Xác nhận phê duyệt"}
                     </button>
                 </div>
             </div>

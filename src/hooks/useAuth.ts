@@ -5,14 +5,14 @@ import { handleErrorApi } from "@/lib/errors";
 import { CreateUserBodyType, LoginBodyType, ForgotPasswordBodyType, ResetPasswordBodyType, LogoutBodyType } from "@/schemas/auth";
 import { useSessionStore } from "@/stores/sesionStore";
 import { KEY } from "@/utils/constant";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"; 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export const useAuth = () => {
     const router = useRouter();
-    const queryClient = useQueryClient(); 
-    
+    const queryClient = useQueryClient();
+
     const login = useMutation({
         mutationFn: async (data: LoginBodyType) => {
             const res = await authRequest.loginClient(data)
@@ -20,9 +20,7 @@ export const useAuth = () => {
         },
         onSuccess: async (data) => {
             await authRequest.loginServer(data)
-        },
-        onError: (error) => {
-            handleErrorApi({ error })
+            toast.success("Đăng nhập thành công");
         }
     })
     const clearSession = useSessionStore((state) => state.clearSession);
@@ -33,7 +31,8 @@ export const useAuth = () => {
         onSuccess: async () => {
             await authRequest.logoutServer();
             clearSession();
-            toast.success("Logout successfully");
+            toast.success("Đăng xuất thành công");
+            queryClient.clear();
             router.replace("/auth/login")
         },
         onError: async (error) => {
@@ -48,18 +47,12 @@ export const useAuth = () => {
         mutationFn: async (data: ForgotPasswordBodyType) => {
             const res = await authRequest.forgotPassword(data)
             return res.data
-        },
-        onError: (error) => {
-            handleErrorApi({ error })
         }
     })
     const resetPassword = useMutation({
         mutationFn: async (data: ResetPasswordBodyType) => {
             const res = await authRequest.resetPassword(data)
             return res.data
-        },
-        onError: (error) => {
-            handleErrorApi({ error })
         }
     })
 
@@ -69,12 +62,8 @@ export const useAuth = () => {
             return res.data
         },
         onSuccess: () => {
-            toast.success("User created successfully");
-            // Tự động làm mới danh sách users sau khi tạo thành công
-            queryClient.invalidateQueries({ queryKey: ['users'] });
-        },
-        onError: (error) => {
-            handleErrorApi({ error })
+            toast.success("Tạo user thành công");
+            queryClient.invalidateQueries({ queryKey: KEY.users });
         }
     })
     const updateUser = useMutation({
@@ -83,11 +72,10 @@ export const useAuth = () => {
             return res.data
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['users'] });
-        },
-        onError: (error) => handleErrorApi({ error })
+            toast.success("Cập nhật user thành công");
+            queryClient.invalidateQueries({ queryKey: KEY.users });
+        }
     })
-
     const accessToken = useSessionStore((state) => state.accessToken);
     const profile = useQuery({
         queryKey: KEY.me,
@@ -97,53 +85,23 @@ export const useAuth = () => {
         },
         enabled: !!accessToken,
     })
-
-    // --- CÁC HÀM BỔ SUNG CHO ADMIN ---
-
-    // 1. Lấy danh sách Users có phân trang
-    const getUsers = (query: any) => {
-        return useQuery({
-            queryKey: ['users', query],
-            queryFn: async () => {
-                // Giả định authRequest đã có getUsers, nếu chưa hãy thêm vào apiRequest/auth.ts
-                const res = await authRequest.getUsers(query); 
-                return res.data;
-            }
-        });
-    }
-
-    // 2. Lấy danh sách Roles để hiển thị trong Select
     const getRoles = () => {
         return useQuery({
-            queryKey: ['roles'],
+            queryKey: KEY.roles,
             queryFn: async () => {
                 const res = await authRequest.getRoles();
                 return res.data;
             }
         });
     }
-
-    // 3. Lấy danh sách Stores để liên kết nhân viên
-    const getStores = (query: any = { limit: 100 }) => {
-        return useQuery({
-            queryKey: ['stores', query],
-            queryFn: async () => {
-                const res = await storeRequest.getStores(query);
-                return res.data;
-            }
-        });
-    }
-
-    return { 
-        login, 
-        logout, 
-        forgotPassword, 
-        resetPassword, 
-        createUser, 
+    return {
+        login,
+        logout,
+        forgotPassword,
+        resetPassword,
+        createUser,
+        updateUser,
         profile,
-        updateUser, // Bổ sung
-        getUsers, // Bổ sung
-        getRoles, // Bổ sung
-        getStores // Bổ sung
+        getRoles
     }
 }

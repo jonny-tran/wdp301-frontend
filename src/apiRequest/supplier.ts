@@ -1,6 +1,6 @@
 import http from "@/lib/http";
 import { CreateSupplierBodyType, UpdateSupplierBodyType } from "@/schemas/supplier";
-import { BaseResponePagination } from "@/types/base";
+import { BaseResponsePagination } from "@/types/base";
 import { QuerySupplier, Supplier } from "@/types/supplier";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
@@ -18,5 +18,5 @@ export const supplierRequest = {
     deleteSupplier: (id: string) => http.delete(ENDPOINT_CLIENT.SUPPLIER_DETAIL(id)),
 
     // GET /suppliers
-    getSuppliers: (query: QuerySupplier) => http.get<BaseResponePagination<Supplier[]>>(ENDPOINT_CLIENT.SUPPLIERS, { query }),
+    getSuppliers: (query: QuerySupplier) => http.get<BaseResponsePagination<Supplier>>(ENDPOINT_CLIENT.SUPPLIERS, { query }),
 };

@@ -1,17 +1,44 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { SyntheticEvent, useEffect, useMemo, useState } from "react";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWarehouse } from "@/hooks/useWarehouse";
 import { handleErrorApi } from "@/lib/errors";
-import { buildPickRows } from "./picking.mapper";
-import { PickFormRow } from "./picking.types";
+import { PickingTaskItem } from "@/types/warehouse";
+import { toast } from "sonner";
 import ReportIssueCard from "./ReportIssueCard";
 import ScanCheckCard from "./ScanCheckCard";
 import ShipmentLabelCard from "./ShipmentLabelCard";
 import SuggestedPicksPanel from "./SuggestedPicksPanel";
+
+export interface PickFormRow {
+    key: string;
+    productName: string;
+    batchCode: string;
+    batchId: string;
+    quantity: string;
+    expiry?: string;
+}
+
+function buildPickRows(detailItems: PickingTaskItem[]): PickFormRow[] {
+    const rows: PickFormRow[] = [];
+    detailItems.forEach((item, itemIdx) => {
+        const suggested = item.suggestedBatches || [];
+        suggested.forEach((batch, batchIdx) => {
+            rows.push({
+                key: `${item.productId || itemIdx}-${batch.batchCode || batch.batchId || batchIdx}`,
+                productName: item.productName || "Product",
+                batchCode: batch.batchCode || "-",
+                batchId: batch.batchId ? String(batch.batchId) : "",
+                quantity: String(batch.qtyToPick || 0),
+                expiry: batch.expiryDate || batch.expiry,
+            });
+        });
+    });
+    return rows;
+}
 
 interface PickingClientProps {
     orderId: string;
@@ -29,13 +56,7 @@ export default function PickingClient({ orderId }: PickingClientProps) {
     } = useWarehouse();
 
     const detailQuery = getPickingTaskDetail(orderId);
-    const detail = (detailQuery.data ?? {}) as Record<string, unknown>;
-    const detailItems = useMemo(
-        () => (Array.isArray(detail.items) ? detail.items : []),
-        [detail.items],
-    );
-    const shipmentId = typeof detail.shipmentId === "string" ? detail.shipmentId : "";
-
+    const shipmentId = detailQuery.data?.shipmentId || "";
     const labelQuery = shipmentLabel(shipmentId || "");
 
     const [scanInput, setScanInput] = useState("");
@@ -48,8 +69,24 @@ export default function PickingClient({ orderId }: PickingClientProps) {
     const [pickRows, setPickRows] = useState<PickFormRow[]>([]);
 
     useEffect(() => {
-        setPickRows(buildPickRows(detailItems));
-    }, [detailItems]);
+        if (detailQuery.data?.items) {
+            setPickRows(buildPickRows(detailQuery.data.items));
+        }
+    }, [detailQuery.data?.items]);
+
+    // Tự động điền ID lô hàng khi quét thành công
+    useEffect(() => {
+        if (scanQuery.data && scanQuery.data.batchId) {
+            const scannedData = scanQuery.data;
+            setPickRows((prev) =>
+                prev.map((row) =>
+                    row.batchCode === scannedData.batchCode
+                        ? { ...row, batchId: String(scannedData.batchId) }
+                        : row
+                )
+            );
+        }
+    }, [scanQuery.data]);
 
     const completionPercent = useMemo(() => {
         if (pickRows.length === 0) return 0;
@@ -57,13 +94,13 @@ export default function PickingClient({ orderId }: PickingClientProps) {
         return Math.round((validCount / pickRows.length) * 100);
     }, [pickRows]);
 
-    const handleScanSubmit = (event: FormEvent) => {
+    const handleScanSubmit = (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
         if (!scanInput.trim()) return;
         setScanCode(scanInput.trim());
     };
 
-    const handleReportIssue = async (event: FormEvent) => {
+    const handleReportIssue = async (event: SyntheticEvent<HTMLFormElement>) => {
         event.preventDefault();
         const batchId = Number(issueBatchId);
         if (!Number.isFinite(batchId) || batchId <= 0 || !issueReason.trim()) {
@@ -86,9 +123,15 @@ export default function PickingClient({ orderId }: PickingClientProps) {
                 batchId: Number(row.batchId),
                 quantity: Number(row.quantity),
             }))
-            .filter((row) => Number.isFinite(row.batchId) && row.batchId > 0 && Number.isFinite(row.quantity) && row.quantity > 0);
+            .filter((row) =>
+                Number.isFinite(row.batchId) &&
+                row.batchId > 0 &&
+                Number.isFinite(row.quantity) &&
+                row.quantity > 0
+            );
 
         if (pickedItems.length === 0) {
+            toast.error("Vui lòng nhập ID lô hàng (dạng số) và số lượng hợp lệ cho ít nhất một mặt hàng.");
             return;
         }
 
@@ -112,7 +155,7 @@ export default function PickingClient({ orderId }: PickingClientProps) {
     if (detailQuery.isLoading) {
         return (
             <div className="rounded-3xl border border-gray-100 bg-white p-6 text-sm text-text-muted shadow-sm">
-                Loading picking detail...
+                Đang tải chi tiết lấy hàng...
             </div>
         );
     }
@@ -120,7 +163,7 @@ export default function PickingClient({ orderId }: PickingClientProps) {
     if (detailQuery.isError) {
         return (
             <div className="rounded-3xl border border-red-100 bg-red-50 p-6 text-sm text-red-600 shadow-sm">
-                Failed to load picking detail.
+                Tải chi tiết lấy hàng thất bại.
             </div>
         );
     }
@@ -133,13 +176,13 @@ export default function PickingClient({ orderId }: PickingClientProps) {
                         <ArrowLeftIcon className="h-5 w-5 text-text-main" />
                     </Link>
                     <div>
-                        <h1 className="text-2xl font-black text-text-main">Picking Task Detail</h1>
-                        <p className="text-sm text-text-muted">Prepare picked items and finalize shipment export.</p>
+                        <h1 className="text-2xl font-black text-text-main">Chi tiết tác vụ lấy hàng</h1>
+                        <p className="text-sm text-text-muted">Chuẩn bị các mặt hàng đã chọn và hoàn tất xuất kho.</p>
                     </div>
                 </div>
                 <div className="rounded-2xl bg-primary/10 px-4 py-2 text-right">
                     <p className="text-2xl font-black text-primary">{completionPercent}%</p>
-                    <p className="text-xs font-semibold uppercase text-primary/80">Ready to finalize</p>
+                    <p className="text-xs font-semibold uppercase text-primary/80">Sẵn sàng hoàn tất</p>
                 </div>
             </div>
 

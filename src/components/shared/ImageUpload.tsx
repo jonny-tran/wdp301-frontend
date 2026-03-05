@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import {
-  PhotoIcon,
+  PlusIcon,
   ArrowPathIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
@@ -67,20 +67,26 @@ export default function ImageUpload({ value, onChange }: ImageUploadProps) {
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onChange("");
-              }}
-              className="p-4 bg-white rounded-full text-red-500 shadow-2xl hover:scale-110 active:scale-90 transition-all"
-            >
-              <XMarkIcon className="h-6 w-6 stroke-[3px]" />
-            </button>
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onChange("");
+                }}
+                className="p-4 bg-white rounded-full text-red-500 shadow-2xl hover:scale-110 active:scale-90 transition-all group/btn"
+              >
+                <XMarkIcon className="h-6 w-6 stroke-[3px]" />
+              </button>
+              <div className="p-4 bg-white/20 rounded-full text-white backdrop-blur-md border border-white/30 hover:scale-110 transition-all">
+                <PlusIcon className="h-6 w-6 stroke-[3px]" />
+              </div>
+            </div>
           </div>
         </div>
       ) : (
-        <div className="flex h-full flex-col items-center justify-center space-y-3 text-slate-300 group-hover:text-blue-400 transition-colors">
-          <PhotoIcon className="h-12 w-12" />
+        <div className="flex h-full flex-col items-center justify-center space-y-3 text-slate-300 transition-all duration-300">
+          <PlusIcon className="h-12 w-12 transition-transform duration-300 group-hover:scale-125 group-hover:text-blue-400 group-hover:rotate-90" />
           <p className="text-[10px] font-black uppercase tracking-[0.2em]">
             Nhấp để tải ảnh gà
           </p>

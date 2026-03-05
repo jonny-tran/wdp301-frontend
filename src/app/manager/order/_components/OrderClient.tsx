@@ -2,7 +2,11 @@
 
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useOrder } from "@/hooks/useOrder";
+<<<<<<< HEAD
 import { extractOrders } from "./order.mapper";
+=======
+import { Order, QueryOrder, FillRateAnalytics, SLAPerformanceLeadTime } from "@/types/order";
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 import OrderTable from "./OrderTable";
 import {
   MagnifyingGlassIcon,
@@ -73,6 +77,7 @@ export default function OrderClient() {
     });
     keysToDelete.forEach((k) => params.delete(k));
 
+<<<<<<< HEAD
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -95,6 +100,29 @@ export default function OrderClient() {
             Hệ thống cung ứng • {meta?.totalItems || 0} bản ghi
           </p>
         </div>
+=======
+  // 5. Mapping
+  const items: Order[] = useMemo(() => (rawOrders as any)?.items || rawOrders?.items || [], [rawOrders]);
+  const stats = useMemo(
+    () => ({
+      fillRate: (rawFill as any)?.data || rawFill,
+      leadTime: (rawLead as any)?.data || rawLead,
+    }),
+    [rawFill, rawLead],
+  );
+
+  return (
+    <div className="flex flex-col gap-6 animate-in fade-in duration-500">
+      <div className="px-1 space-y-1">
+        <h1 className="text-2xl font-black uppercase italic tracking-tighter text-slate-950">
+          Order Management
+        </h1>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          {isLoading
+            ? "Đang đồng bộ..."
+            : `Hệ thống tìm thấy ${rawOrders?.meta?.totalItems || 0} đơn hàng`}
+        </p>
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
       </div>
 
       <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden relative">

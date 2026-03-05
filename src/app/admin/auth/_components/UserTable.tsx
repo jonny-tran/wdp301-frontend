@@ -5,15 +5,31 @@ import {
   UserCircleIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { UserRow, RoleOption } from "./user.types";
+import { User } from "@/types/user";
 import { clsx } from "clsx";
+<<<<<<< HEAD
 import { Button } from "@/components/ui/button";
+=======
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
+
+export type RoleOption = {
+  value: string;
+  label: string;
+};
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 
 interface UserTableProps {
-  items: UserRow[];
+  items: User[];
   isLoading: boolean;
+<<<<<<< HEAD
   roleOptions: RoleOption[];
   onEdit: (user: UserRow) => void;
+=======
+  roleOptions: RoleOption[]; // Nhận danh sách nhãn tiếng Việt từ Client
+  onEdit: (user: User) => void;
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 }
 
 export default function UserTable({
@@ -134,6 +150,7 @@ export default function UserTable({
                   </div>
                 </td>
 
+<<<<<<< HEAD
                 {/* 4. ACTIONS COLUMN: Sửa lỗi icon bị trắng */}
                 <td className="px-10 py-7 text-right">
                   <Button
@@ -142,6 +159,18 @@ export default function UserTable({
                   >
                     <PencilSquareIcon className="h-5 w-5 stroke-[2.5px]" />
                   </Button>
+=======
+                {/* 4. Nút thao tác (Hiện khi hover dòng) */}
+                <td className="px-10 py-6 text-right">
+                  <Can I={P.USER_UPDATE} on={Resource.USER}>
+                    <button
+                      onClick={() => onEdit(user)}
+                      className="p-3 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-indigo-600 hover:shadow-xl hover:border-indigo-100 transition-all active:scale-90 opacity-0 group-hover:opacity-100"
+                    >
+                      <PencilSquareIcon className="h-4 w-4 stroke-[2.5px]" />
+                    </button>
+                  </Can>
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
                 </td>
               </tr>
             );

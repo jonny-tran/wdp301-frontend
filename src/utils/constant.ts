@@ -9,40 +9,64 @@ import { QueryCatelog, QueryOrder } from "@/types/order";
 import { QueryPickingTask } from "@/types/warehouse";
 import { ClaimAnalyticsQueryType, FinancialLossQueryType, InventoryAgingQueryType, InventoryWasteQueryType, OrderFillRateQueryType, OrderSLAQueryType, StoreDemandPatternQueryType } from "@/schemas/analytics";
 
-// Define Actions
+// ACTIONS
+// Mở rộng từ spec WDP301 để cover đủ permission matrix
+// ---------------------------------------------------------------------------
 export const Action = {
-    CREATE: 'create',
-    READ: 'read',
-    UPDATE: 'update',
-    DELETE: 'delete',
-    CONFIRM: 'confirm',
-    PLAN: 'plan',
-    PROCESS: 'process',
-    MANAGE: 'manage',
-    SCHEDULE: 'schedule',
-    TRACK: 'track',
-    AGGREGATE: 'aggregate',
-    CONFIGURE: 'configure',
+    // CRUD cơ bản
+    CREATE:     'create',
+    READ:       'read',
+    UPDATE:     'update',
+    DELETE:     'delete',
+
+    // Workflow actions
+    CONFIRM:    'confirm',      // Store xác nhận nhận hàng
+    CANCEL:     'cancel',       // Store hủy đơn PENDING
+    APPROVE:    'approve',      // Coordinator duyệt đơn
+    REJECT:     'reject',       // Coordinator từ chối đơn
+    RESOLVE:    'resolve',      // Coordinator đóng claim
+    COMPLETE:   'complete',     // Chốt phiếu nhập / hoàn tất shipment
+
+    // Planning & Operations
+    PLAN:       'plan',         // Lập kế hoạch
+    PROCESS:    'process',      // Xử lý đơn
+    SCHEDULE:   'schedule',     // Lập lịch giao hàng
+    TRACK:      'track',        // Theo dõi tiến độ / trạng thái
+    AGGREGATE:  'aggregate',    // Tổng hợp đơn (Coordinator)
+
+    // Management
+    MANAGE:     'manage',       // Quản lý tổng thể (Manager/Admin)
+    CONFIGURE:  'configure',    // Cấu hình hệ thống (Admin)
 } as const;
 
-export const Scope = {
-    INCOMING: 'incoming',
-    OUTGOING: 'outgoing',
-    ALL: 'all',
-} as const;
-
-// Define Resources
+// ---------------------------------------------------------------------------
+// RESOURCES
+// Thêm INBOUND, WAREHOUSE, SHIPMENT, CLAIM, SUPPLIER so với file cũ
+// ---------------------------------------------------------------------------
 export const Resource = {
-    ORDER: 'order',
-    INVENTORY: 'inventory',
+    // Data management
+    USER:       'user',
+    STORE:      'store',
+    PRODUCT:    'product',
+    SUPPLIER:   'supplier',     // NEW – Nhà cung cấp nguyên liệu
+
+    // Core workflow
+    ORDER:      'order',
+    INBOUND:    'inbound',      // NEW – Phiếu nhập kho + Batch management
+    WAREHOUSE:  'warehouse',    // NEW – Picking tasks + Shipment tại Bếp
+    SHIPMENT:   'shipment',     // NEW – Vận chuyển đến Store (Store-side view)
+    CLAIM:      'claim',        // NEW – Khiếu nại sai lệch
+
+    // Supporting
+    INVENTORY:  'inventory',
+    DELIVERY:   'delivery',
+    SYSTEM:     'system',
+    REPORT:     'report',
+
+    // (Deprecated – giữ lại để không break code cũ, nên migrate sang INBOUND/WAREHOUSE)
     PRODUCTION: 'production',
-    DELIVERY: 'delivery',
-    PRODUCT: 'product',
-    USER: 'user',
-    SYSTEM: 'system',
-    REPORT: 'report',
-    STORE: 'store',
 } as const;
+
 
 
 export const KEY = {
@@ -62,6 +86,8 @@ export const KEY = {
     warehouse: ['warehouse'],
     analytics: ['analytics'],
     baseUnits: ['base-units'],
+    users: ['users'],
+    roles: ['roles'],
 } as const;
 
 export const QUERY_KEY = {

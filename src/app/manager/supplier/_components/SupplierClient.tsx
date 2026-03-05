@@ -2,27 +2,29 @@
 
 import { useState, useMemo } from "react";
 import { useSupplier } from "@/hooks/useSupplier";
-import { extractSupplierItems } from "./supplier.mapper";
+import { Supplier } from "@/types/supplier";
 import SupplierTable from "./SupplierTable";
 import SupplierCreateModal from "./SupplierCreateModal";
 import SupplierEditModal from "./SupplierEditModal"; // Import component mới
 import { toast } from "sonner";
+import Can from "@/components/shared/Can";
+import { P } from "@/lib/authz";
+import { Resource } from "@/utils/constant";
 
 export default function SupplierClient() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingSupplier, setEditingSupplier] = useState<any>(null); // Quản lý đối tác đang được sửa
+  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
 
   const { supplierList, deleteSupplier } = useSupplier();
-  const { data: rawData, isLoading, isError } = supplierList();
+  const { data: rawData, isLoading, isError } = supplierList({ page: 1, limit: 100, sortOrder: "DESC" });
 
   // Mapping dữ liệu an toàn
-  const items = useMemo(() => extractSupplierItems(rawData), [rawData]);
+  const items: Supplier[] = useMemo(() => (rawData as any)?.items || rawData?.items || [], [rawData]);
 
   const handleDelete = async (id: number) => {
     if (confirm("Xác nhận xóa nhà cung cấp này?")) {
       try {
-        await deleteSupplier.mutateAsync(id);
-        toast.success("Đã xóa nhà cung cấp thành công!");
+        await deleteSupplier.mutateAsync(String(id));
       } catch (e) {
         console.error("Lỗi xóa:", e);
       }
@@ -43,12 +45,14 @@ export default function SupplierClient() {
               : `${items.length} Đối tác hiện có`}
           </p>
         </div>
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="px-6 py-3 bg-slate-950 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg"
-        >
-          + Add Supplier
-        </button>
+        <Can I={P.SUPPLIER_CREATE} on={Resource.SUPPLIER}>
+          <button
+            onClick={() => setIsCreateOpen(true)}
+            className="px-6 py-3 bg-slate-950 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg"
+          >
+            + Add Supplier
+          </button>
+        </Can>
       </div>
 
       {/* Container chứa Table */}

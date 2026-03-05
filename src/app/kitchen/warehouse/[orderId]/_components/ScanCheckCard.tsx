@@ -1,14 +1,15 @@
-import { FormEvent } from "react";
+import { SyntheticEvent } from "react";
 import { QrCodeIcon } from "@heroicons/react/24/outline";
+import { ScanCheckResult } from "@/types/warehouse";
 
 interface ScanCheckCardProps {
     scanInput: string;
     scanCode: string;
-    scanData: unknown;
+    scanData: ScanCheckResult | undefined;
     isLoading: boolean;
     isError: boolean;
     onChangeInput: (value: string) => void;
-    onSubmit: (event: FormEvent) => void;
+    onSubmit: (event: SyntheticEvent<HTMLFormElement>) => void;
 }
 
 export default function ScanCheckCard({
@@ -20,44 +21,44 @@ export default function ScanCheckCard({
     onChangeInput,
     onSubmit,
 }: ScanCheckCardProps) {
-    const data = (scanData ?? {}) as Record<string, unknown>;
-
     return (
         <div className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
-            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-text-muted">Scan Check</h3>
+            <h3 className="mb-3 text-sm font-bold uppercase tracking-wide text-slate-500">Kiểm tra quét</h3>
             <form onSubmit={onSubmit} className="space-y-3">
                 <input
                     value={scanInput}
                     onChange={(event) => onChangeInput(event.target.value)}
-                    placeholder="Enter batch code"
-                    className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
+                    placeholder="Nhập mã lô hàng"
+                    className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-sm font-semibold text-slate-900 outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 placeholder:text-slate-400"
                 />
                 <button
                     type="submit"
-                    className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-text-main hover:border-primary/40 hover:text-primary"
+                    className="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:border-primary/40 hover:text-primary hover:shadow-sm transition-all"
                 >
-                    <QrCodeIcon className="h-4 w-4" />
-                    Check batch
+                    <QrCodeIcon className="h-4 w-4 text-primary" />
+                    Kiểm tra lô
                 </button>
             </form>
 
             {scanCode && (
                 <div className="mt-4 rounded-2xl border border-gray-100 p-3 text-xs">
                     {isLoading ? (
-                        <p className="text-text-muted">Scanning...</p>
+                        <p className="text-slate-500 animate-pulse">Đang quét...</p>
                     ) : isError ? (
-                        <p className="text-red-500">Batch not found or inaccessible.</p>
-                    ) : (
-                        <>
+                        <p className="text-red-600 font-semibold">Không tìm thấy lô hàng hoặc lỗi hệ thống.</p>
+                    ) : scanData ? (
+                        <div className="space-y-1.5 shadow-sm bg-slate-50/50 p-2 rounded-xl">
                             <div className="flex items-center justify-between mb-1">
-                                <p className="font-semibold text-text-main">{String(data.productName ?? "-")}</p>
-                                <span className="text-[10px] font-bold bg-primary/10 text-primary px-1.5 rounded uppercase">ID: {String(data.batchId ?? "-")}</span>
+                                <p className="font-bold text-slate-800">{scanData.productName || "-"}</p>
+                                <span className="text-[10px] font-black bg-primary text-white border border-primary px-2 py-0.5 rounded-lg uppercase shadow-sm">ID: {scanData.batchId || "-"}</span>
                             </div>
-                            <p className="text-text-muted">Code: {String(data.batchCode ?? "-")}</p>
-                            <p className="text-text-muted">Quantity: {Number(data.quantityPhysical ?? data.currentQuantity ?? 0)}</p>
-                            <p className="text-text-muted">Status: {String(data.status ?? "-")}</p>
-                        </>
-                    )}
+                            <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                <p className="text-slate-600 font-medium">Code: <span className="text-slate-900 font-bold">{scanData.batchCode || "-"}</span></p>
+                                <p className="text-slate-600 font-medium">Số lượng: <span className="text-slate-900 font-bold">{scanData.quantityPhysical ?? scanData.currentQuantity ?? 0}</span></p>
+                                <p className="text-slate-600 font-medium">Trạng thái: <span className="text-slate-900 font-bold uppercase">{scanData.status || "-"}</span></p>
+                            </div>
+                        </div>
+                    ) : null}
                 </div>
             )}
         </div>

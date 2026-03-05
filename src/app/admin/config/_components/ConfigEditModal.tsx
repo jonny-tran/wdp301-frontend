@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { SystemConfig } from "./config.types";
+import { SystemConfig } from "./ConfigClient";
 import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 interface Props {

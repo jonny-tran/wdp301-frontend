@@ -7,6 +7,7 @@ export type Product = {
     baseUnit: string;
     baseUnitId: number;
     shelfLifeDays: number;
+    minStockLevel: number;
     imageUrl: string;
     isActive: boolean;
     createdAt?: string;
@@ -23,6 +24,7 @@ export type Batch = {
     currentQuantity: number;
     expiryDate: string;
     imageUrl?: string;
+    status?: string;
     createdAt: string;
     updatedAt?: string;
 };
