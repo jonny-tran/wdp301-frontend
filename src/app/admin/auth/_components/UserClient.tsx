@@ -76,7 +76,12 @@ export default function UserClient({
   );
 
   const meta = useMemo(() => {
+<<<<<<< HEAD
+    const rawData = userQuery.data as any;
+    const m = rawData?.data?.meta || rawData?.meta;
+=======
     const m = (userQuery.data as any)?.meta || (userQuery.data as any)?.data?.meta;
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
     return {
       currentPage: m?.currentPage ?? 1,
       totalPages: m?.totalPages ?? 1,
@@ -89,7 +94,7 @@ export default function UserClient({
     (params: Record<string, any>) => {
       const newSearchParams = createPaginationSearchParams(
         searchParamsHook,
-        params,
+        params.page,
       );
       router.push(`${pathname}?${newSearchParams.toString()}`);
     },
@@ -102,7 +107,11 @@ export default function UserClient({
       label: "Tìm kiếm",
       type: "text",
       placeholder: "Tên hoặc email...",
+<<<<<<< HEAD
+      defaultValue: (searchParams.search as string) ?? "",
+=======
       defaultValue: readValue(searchParams.search) ?? "",
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
     },
     {
       key: "role",

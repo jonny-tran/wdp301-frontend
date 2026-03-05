@@ -1,17 +1,13 @@
+import { Suspense } from "react";
 import InventoryClient from "./_components/InventoryClient";
+import InventorySkeleton from "./_components/InventorySkeleton";
 
-// 1. Cấu hình Metadata cho trang
-export const metadata = {
-  title: "Quản lý Tồn kho | Manager Portal",
-  description:
-    "Hệ thống theo dõi tồn thực tế, hàng sắp hết hạn và điều chỉnh kho vận",
-};
-
-
-export default function InventoryPage() {
+export default async function InventoryPage() {
   return (
-    <main className="p-4 lg:p-6 min-h-screen bg-slate-50/20">
-      <InventoryClient />
+    <main className="min-h-screen bg-slate-50/30 px-10 py-12">
+      <Suspense fallback={<InventorySkeleton />}>
+        <InventoryClient />
+      </Suspense>
     </main>
   );
 }

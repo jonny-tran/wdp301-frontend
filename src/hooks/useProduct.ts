@@ -26,7 +26,11 @@ export const useProduct = () => {
       return res.data
     },
     onSuccess: () => {
+<<<<<<< HEAD
+      toast.success('Hệ thống đã cập nhật sản phẩm!')
+=======
       toast.success('Sản phẩm đã được cập nhật')
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
       queryClient.invalidateQueries({ queryKey: KEY.products })
     },
   })
@@ -37,7 +41,11 @@ export const useProduct = () => {
       return res.data
     },
     onSuccess: () => {
+<<<<<<< HEAD
+      toast.success('Sản phẩm đã được xóa thành công')
+=======
       toast.success('Sản phẩm đã được xóa')
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
       queryClient.invalidateQueries({ queryKey: KEY.products })
     },
     onError: (error) => {
@@ -51,7 +59,11 @@ export const useProduct = () => {
       return res.data
     },
     onSuccess: () => {
+<<<<<<< HEAD
+      toast.success('Sản phẩm đã được phục hồi')
+=======
       toast.success('Sản phẩm đã được khôi phục')
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
       queryClient.invalidateQueries({ queryKey: KEY.products })
     },
     onError: (error) => {
@@ -65,7 +77,11 @@ export const useProduct = () => {
       return res.data
     },
     onSuccess: () => {
+<<<<<<< HEAD
+      toast.success('Thành công cập nhật lô hàng')
+=======
       toast.success('Cập nhật lô hàng thành công')
+>>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
       queryClient.invalidateQueries({ queryKey: KEY.products })
     },
 

@@ -1,14 +1,16 @@
-import ClaimsClient from "./_components/ClaimsClient";
+import { Suspense } from "react";
+import ClaimClient from "./_components/ClaimsClient";
 
-export const metadata = {
-  title: "Quản lý khiếu nại | Manager",
-  description: "Hệ thống xử lý khiếu nại và thất thoát hàng hóa",
-};
-
-export default function ClaimsPage() {
+export default function ClaimPage() {
   return (
-    <main className="p-4 md:p-10">
-      <ClaimsClient />
-    </main>
+    <Suspense
+      fallback={
+        <div className="p-20 text-center animate-pulse font-black italic text-slate-300 uppercase text-[10px] tracking-widest">
+          Khởi tạo module khiếu nại...
+        </div>
+      }
+    >
+      <ClaimClient />
+    </Suspense>
   );
 }
