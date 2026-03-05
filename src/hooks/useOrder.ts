@@ -37,6 +37,7 @@ const orderList = (query: QueryOrder, enabled: boolean = true) => {
             }
         })
     }
+    
     const orderDetail = (id: string) => {
         return useQuery({
             queryKey: QUERY_KEY.orders.detail(id),

@@ -1,134 +1,125 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   XMarkIcon,
   CheckIcon,
   ArrowPathIcon,
   PencilSquareIcon,
-  ArchiveBoxIcon,
 } from "@heroicons/react/24/outline";
 import { useProduct } from "@/hooks/useProduct";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
-import { extractBaseUnitOptions } from "./product.mapper";
+import { extractBaseUnitOptions, UnitOption } from "./product.mapper";
 import ImageUpload from "@/components/shared/ImageUpload";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ProductRow } from "./product.types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface ProductEditModalProps {
+  product: ProductRow | null;
   isOpen: boolean;
   onClose: () => void;
-  product: any; // Dữ liệu sản phẩm từ Table truyền sang
 }
 
 export default function ProductEditModal({
+  product,
   isOpen,
   onClose,
-  product,
 }: ProductEditModalProps) {
   const { updateProduct } = useProduct();
   const { baseUnitList } = useBaseUnit();
 
-  // 1. Fetch và Map danh sách đơn vị tính
+  // 1. Gọi API và lấy biến isLoading
   const { data: rawBaseUnits, isLoading: isUnitsLoading } = baseUnitList();
-  const unitOptions = useMemo(
+
+  const unitOptions = useMemo<UnitOption[]>(
     () => extractBaseUnitOptions(rawBaseUnits),
     [rawBaseUnits],
   );
 
-  const [formData, setFormData] = useState({
-    name: "",
-    baseUnitId: 0,
-    shelfLifeDays: 0,
-    imageUrl: "",
+  // 2. Khởi tạo State trực tiếp (Xóa bỏ hoàn toàn useEffect để tránh lỗi render lặp)
+  const [formData, setFormData] = useState(() => {
+    // Tìm ID từ tên đơn vị (ví dụ: "Miếng" -> ID 5)
+    const matchedUnit = unitOptions.find(
+      (opt) => opt.label === product?.baseUnitName,
+    );
+    return {
+      name: product?.name || "",
+      baseUnitId: matchedUnit ? matchedUnit.value : product?.baseUnitId || 0,
+      shelfLifeDays: product?.shelfLifeDays || 0,
+      imageUrl: product?.imageUrl || "",
+    };
   });
-
-  // 2. KHỞI TẠO DỮ LIỆU CŨ (Fix lỗi UI không đổi)
-  // Lắng nghe sự thay đổi của 'product' để cập nhật Form state ngay lập tức
-  useEffect(() => {
-    if (isOpen && product) {
-      setFormData({
-        name: product.name || "",
-        // Đảm bảo baseUnitId là số để khớp với Select
-        baseUnitId: Number(product.baseUnitId) || 0,
-        // Map linh hoạt giữa các tên trường shelfLife
-        shelfLifeDays: Number(product.shelfLife || product.shelfLifeDays || 0),
-        imageUrl: product.imageUrl || "",
-      });
-    }
-  }, [isOpen, product]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (formData.baseUnitId === 0) {
-      toast.error("Vui lòng chọn đơn vị tính");
-      return;
-    }
+    if (!product) return;
+    if (formData.baseUnitId === 0)
+      return toast.error("Vui lòng chọn đơn vị tính!");
 
     try {
-      // 3. Gửi PATCH request với ID và body mới
       await updateProduct.mutateAsync({
         id: product.id,
-        ...formData,
+        data: formData,
       });
-      // Logic invalidateQueries trong useProduct hook sẽ tự động làm mới UI
-      toast.success("Cập nhật catalog thành công!");
       onClose();
     } catch (error) {
-      console.error("Lỗi cập nhật sản phẩm:", error);
+      console.error(error);
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !product) return null;
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300 cursor-pointer"
+      className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
-        className="relative w-full max-w-4xl bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in duration-300 cursor-default"
+        className="relative w-full max-w-4xl bg-white rounded-[3.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="grid grid-cols-1 md:grid-cols-12">
-          {/* CỘT TRÁI: Nhập liệu chính */}
-          <div className="md:col-span-8 p-10 space-y-8 bg-white border-r border-slate-50">
-            <div className="space-y-3">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">
-                Hình ảnh sản phẩm (Cloudinary)
+          {/* CỘT TRÁI: Hình ảnh & Thông tin */}
+          <div className="md:col-span-7 p-10 md:p-14 space-y-10 bg-white border-r border-slate-50">
+            <div className="space-y-4 px-2">
+              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-black">
+                Hình ảnh sản phẩm
               </label>
-              <div className="rounded-[2.5rem] overflow-hidden border border-slate-100 bg-slate-50/50 p-1 shadow-sm">
-                <ImageUpload
-                  value={formData.imageUrl}
-                  onChange={(url) =>
-                    setFormData({ ...formData, imageUrl: url })
-                  }
-                />
-              </div>
+              <ImageUpload
+                value={formData.imageUrl}
+                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+              />
             </div>
 
-            <div className="space-y-6">
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">
+            <div className="space-y-8">
+              <div className="space-y-3 px-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-black">
                   Tên sản phẩm
                 </label>
-                <input
-                  required
+                <Input
+                  type="text"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
-                  className="w-full rounded-full border border-slate-200 bg-slate-50 px-8 py-5 text-sm font-bold text-slate-900 focus:bg-white outline-none transition-all shadow-inner"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-8 py-5 text-sm font-bold text-black focus:bg-white h-auto"
                 />
               </div>
-
-              <div className="space-y-3">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-2">
-                  Hạn dùng (Ngày)
+              <div className="space-y-3 px-2">
+                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-black">
+                  Hạn bảo quản (Ngày)
                 </label>
-                <input
+                <Input
                   type="number"
-                  required
                   value={formData.shelfLifeDays || ""}
                   onChange={(e) =>
                     setFormData({
@@ -136,86 +127,96 @@ export default function ProductEditModal({
                       shelfLifeDays: Number(e.target.value),
                     })
                   }
-                  className="w-full rounded-full border border-slate-200 bg-slate-50 px-8 py-5 text-sm font-bold text-slate-900 focus:bg-white outline-none transition-all shadow-inner"
+                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-8 py-5 text-sm font-bold text-black focus:bg-white h-auto"
                 />
               </div>
             </div>
           </div>
 
-          {/* CỘT PHẢI: Select & Actions */}
-          <div className="md:col-span-4 flex flex-col justify-between p-10 bg-slate-50/50">
-            <div className="relative p-8 rounded-[2rem] bg-white border border-slate-200 text-center shadow-sm">
-              <div className="h-12 w-12 bg-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <PencilSquareIcon className="h-6 w-6" />
+          {/* CỘT PHẢI: Logistics */}
+          <div className="md:col-span-5 flex flex-col justify-between p-10 md:p-14 bg-slate-50/80">
+            <div className="relative p-10 rounded-[2.5rem] bg-white border border-slate-200 text-center shadow-xl mb-6">
+              <div className="h-16 w-16 bg-black text-white rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-lg -rotate-3">
+                <PencilSquareIcon className="h-8 w-8 stroke-[3px]" />
               </div>
-              <h3 className="text-2xl font-black text-slate-900 uppercase italic leading-tight">
-                Chỉnh sửa <br /> Catalog
+              <h3 className="text-3xl font-black text-black uppercase italic tracking-tighter leading-tight">
+                Chỉnh <span className="text-indigo-600">Sửa</span>
               </h3>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2 italic">
-                SKU: {product?.sku || "N/A"}
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">
+                SKU: {product.sku}
               </p>
-              <button
+              <Button
+                variant="ghost"
                 onClick={onClose}
-                className="absolute -top-3 -right-3 p-3 bg-white border border-slate-200 text-slate-400 rounded-full hover:bg-slate-50 shadow-md transition-all active:scale-90"
+                className="absolute -top-4 -right-4 h-12 w-12 bg-white border border-slate-200 text-black rounded-full hover:bg-black hover:text-white shadow-xl p-0"
               >
-                <XMarkIcon className="h-5 w-5" />
-              </button>
+                <XMarkIcon className="h-5 w-5 stroke-[2.5px]" />
+              </Button>
             </div>
 
-            <div className="space-y-8">
-              <div className="space-y-3">
-                <label className="text-[10px] font-bold uppercase text-slate-500 ml-2 tracking-widest">
+            <div className="space-y-10">
+              <div className="space-y-4 px-2">
+                <label className="text-[10px] font-black uppercase text-black tracking-[0.2em]">
                   Đơn vị tính
                 </label>
-                <div className="relative">
-                  <select
-                    required
-                    value={formData.baseUnitId}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        baseUnitId: Number(e.target.value),
-                      })
-                    }
-                    disabled={isUnitsLoading}
-                    className="w-full rounded-[1.5rem] bg-white border border-slate-200 px-6 py-5 text-sm font-bold text-slate-900 outline-none cursor-pointer appearance-none shadow-sm disabled:opacity-50"
+                <Select
+                  value={
+                    formData.baseUnitId > 0 ? String(formData.baseUnitId) : ""
+                  }
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, baseUnitId: Number(val) })
+                  }
+                >
+                  <SelectTrigger className="w-full rounded-2xl bg-white border border-slate-200 px-8 py-5 text-sm font-black text-black h-auto">
+                    <SelectValue placeholder="CHỌN ĐƠN VỊ" />
+                  </SelectTrigger>
+                  <SelectContent
+                    position="popper"
+                    className="z-150 rounded-2xl border-slate-200 shadow-2xl bg-white"
                   >
-                    <option value={0} disabled>
-                      Chọn đơn vị...
-                    </option>
-                    {unitOptions.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </option>
-                    ))}
-                  </select>
-                  <ArchiveBoxIcon className="h-5 w-5 absolute right-4 top-1/2 -translate-y-1/2 text-slate-300 pointer-events-none" />
-                </div>
+                    {isUnitsLoading ? (
+                      <div className="p-4 text-[10px] font-black text-black animate-pulse text-center uppercase">
+                        Đang tải...
+                      </div>
+                    ) : (
+                      unitOptions.map((opt: UnitOption) => (
+                        <SelectItem
+                          key={opt.value}
+                          value={String(opt.value)}
+                          className="font-black uppercase text-[10px] py-4 text-black cursor-pointer"
+                        >
+                          {opt.label}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="flex flex-col gap-4">
-                <button
+                <Button
                   type="submit"
                   onClick={handleSubmit}
                   disabled={updateProduct.isPending}
-                  className="flex items-center justify-center gap-3 rounded-full py-5 text-xs font-black text-white transition-all bg-blue-600 hover:bg-blue-700 shadow-lg active:scale-95 disabled:bg-slate-300"
+                  className="w-full flex items-center justify-center gap-4 rounded-full py-8 text-xs font-black text-white bg-black hover:bg-slate-800 shadow-2xl h-auto border-none"
                 >
                   {updateProduct.isPending ? (
-                    <ArrowPathIcon className="h-4 w-4 animate-spin" />
+                    <ArrowPathIcon className="h-5 w-5 animate-spin" />
                   ) : (
-                    <CheckIcon className="h-4 w-4 stroke-[3px]" />
+                    <CheckIcon className="h-5 w-5 stroke-[3px]" />
                   )}
-                  <span className="uppercase tracking-widest text-[10px]">
-                    Lưu thay đổi
+                  <span className="uppercase tracking-[0.2em]">
+                    Cập nhật dữ liệu
                   </span>
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
                   type="button"
                   onClick={onClose}
-                  className="w-full py-2 text-xs font-black text-slate-400 hover:text-red-500 transition-colors uppercase tracking-[0.3em]"
+                  className="w-full text-[10px] font-black text-black hover:text-red-600 uppercase tracking-[0.3em] h-auto"
                 >
                   Hủy bỏ
-                </button>
+                </Button>
               </div>
             </div>
           </div>

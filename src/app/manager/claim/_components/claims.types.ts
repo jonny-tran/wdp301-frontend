@@ -1,28 +1,9 @@
-export type ClaimStatus = "pending" | "approved" | "rejected";
-
-export interface ClaimItemDetail {
-  productName: string;
-  sku: string;
-  quantityMissing: number;
-  quantityDamaged: number;
-  reason: string;
-  imageUrl?: string;
-}
-
 export interface ClaimRow {
-  id: string;
+  no: string;
+  claimId: string;
   shipmentId: string;
-  status: ClaimStatus;
-  createdBy: string;
+  status: string;
+  totalIssues: number;
   createdAt: string;
-  resolvedAt?: string;
-}
-
-export interface ClaimAnalytics {
-  damageRate: number;
-  missingRate: number;
-  bottleneck?: {
-    productName: string;
-    totalIssues: number;
-  };
+  description: string;
 }

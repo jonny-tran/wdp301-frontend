@@ -1,25 +1,19 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { BaseUnitRow } from "./base-unit.types";
 
-export function extractBaseUnitItems(raw: any): BaseUnitRow[] {
-    // Debug để Hàn kiểm tra chính xác cấu trúc trong Console
-    console.log("Dữ liệu thô từ API BaseUnits:", raw);
+export const extractBaseUnits = (response: any, rowStart: number = 0): BaseUnitRow[] => {
+    // Truy cập đúng vào response.data.items dựa trên JSON mới
+    const rawItems = response?.items || []; 
+    
+    if (!Array.isArray(rawItems)) return [];
 
-    // Kiểm tra tất cả các trường hợp có thể xảy ra của API
-    const items = 
-        raw?.data?.items || // Trường hợp: { data: { items: [] } }
-        raw?.items ||       // Trường hợp: { items: [] }
-        raw?.data ||        // Trường hợp: { data: [] }
-        (Array.isArray(raw) ? raw : []); // Trường hợp: []
-
-    if (!Array.isArray(items)) {
-        console.warn("Mapper không tìm thấy mảng dữ liệu hợp lệ.");
-        return [];
-    }
-
-    return items.map((item: any) => ({
-        id: item.id ?? 0,
-        name: item.name ?? "Không tên",
-        description: item.description ?? "Chưa có mô tả",
-        createdAt: item.createdAt ?? new Date().toISOString(),
-    }));
-}
+    // Bước quan trọng: Chỉ lấy các đơn vị đang hoạt động (isActive: true)
+    return rawItems
+        .filter((item: any) => item.isActive === true) 
+        .map((item: any, index: number) => ({
+            no: `#${String(rowStart + index + 1).padStart(2, "0")}`,
+            id: item.id,
+            name: item.name,
+            description: item.description ?? "Không có mô tả",
+        }));
+};

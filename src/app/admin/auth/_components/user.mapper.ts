@@ -1,44 +1,44 @@
-import { UserRow, RoleOption, StoreOption } from "./user.types";
+import { UserRow, RoleOption } from "./user.types";
 
-/**
- * Map danh sách người dùng từ API GET /v1/auth/users
- */
-export function extractUserItems(raw: any): UserRow[] {
-  const source = raw?.data?.items || raw?.items || [];
+export const extractStoreOptions = (data: unknown): { value: string; label: string }[] => {
+  // Bóc tách items từ data.items theo đúng cấu trúc JSON bạn gửi
+  const response = data as { items?: Array<{ id: string; name: string }> } | undefined;
+  const rawItems = response?.items || [];
   
-  if (!Array.isArray(source)) return [];
+  if (!Array.isArray(rawItems)) return [];
 
-  return source.map((u: any) => ({
-    id: u.id,
-    username: u.username || "N/A",
-    email: u.email || "N/A",
-    role: u.role || "staff",
-    storeId: u.storeId || null,
-    // Chuyển đổi status chuỗi sang boolean phòng thủ
-    isActive: u.status === "active", 
-    createdAt: u.createdAt
+  return rawItems.map((store) => ({
+    value: store.id,
+    label: store.name,
   }));
-}
+};
 
 /**
- * Map danh sách Role cho Select
+ * Mapper xử lý danh sách Roles từ API
  */
-export function extractRoleOptions(raw: any): RoleOption[] {
-  // API Roles trả về mảng trực tiếp trong data
-  const source = raw?.data || [];
+export const extractRoleOptions = (data: unknown): RoleOption[] => {
+  const res = data as Array<{ value: string; label: string }> | undefined;
+  if (!Array.isArray(res)) return [];
   
-  if (!Array.isArray(source)) return [];
-
-  return source.map((r: any) => ({
-    value: r.value || "",
-    label: r.label || r.value || "N/A" // Lấy nhãn tiếng Việt (ví dụ: "Quản lý khu vực")
+  return res.map((role) => ({
+    value: role.value,
+    label: role.label,
   }));
-}
-/**
- * Map danh sách Cửa hàng cho Select
- */
-export function extractStoreOptions(raw: any): StoreOption[] {
-  const source = raw?.data?.items || raw?.data || [];
-  if (!Array.isArray(source)) return [];
-  return source.map((s: any) => ({ value: s.id, label: s.name || `Cửa hàng ${s.id}` }));
-}
+};
+
+export const extractUserItems = (data: unknown): UserRow[] => {
+  // Bóc tách từ cấu trúc { data: { items: [...] } } hoặc { items: [...] }
+  const response = data as any;
+  const rawItems = response?.items || response?.data?.items || [];
+  
+  if (!Array.isArray(rawItems)) return [];
+
+  return rawItems.map((item: any) => ({
+    id: item.id,
+    username: item.username,
+    email: item.email,
+    role: item.role,
+    isActive: item.status === 'active' || item.isActive === true, // Đồng bộ trạng thái
+    createdAt: item.createdAt
+  }));
+};

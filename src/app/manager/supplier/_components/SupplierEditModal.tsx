@@ -8,6 +8,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { useSupplier } from "@/hooks/useSupplier";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 export default function SupplierEditModal({ isOpen, onClose, data }: any) {
   const { updateSupplier } = useSupplier();
@@ -62,7 +64,7 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
                 <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
                   Tên công ty
                 </label>
-                <input
+                <Input
                   required
                   value={formData.name}
                   onChange={(e) =>
@@ -75,7 +77,7 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
                 <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
                   Đại diện
                 </label>
-                <input
+                <Input
                   required
                   value={formData.contactName}
                   onChange={(e) =>
@@ -88,7 +90,7 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
                 <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
                   Phone
                 </label>
-                <input
+                <Input
                   required
                   value={formData.phone}
                   onChange={(e) =>
@@ -101,7 +103,7 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
                 <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
                   Địa chỉ
                 </label>
-                <input
+                <Input
                   required
                   value={formData.address}
                   onChange={(e) =>
@@ -132,12 +134,12 @@ export default function SupplierEditModal({ isOpen, onClose, data }: any) {
 
           <div className="md:col-span-4 bg-slate-50/50 p-10 flex flex-col justify-between border-l border-slate-100">
             <div className="text-center relative">
-              <button
+              <Button
                 onClick={onClose}
                 className="absolute -top-6 -right-6 p-2 text-slate-300 hover:text-red-500"
               >
                 <XMarkIcon className="h-5 w-5" />
-              </button>
+              </Button>
               <h3 className="text-xl font-black uppercase italic leading-tight">
                 Edit <br /> Supplier
               </h3>

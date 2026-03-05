@@ -1,7 +1,7 @@
 import BatchClient from "./_components/BatchClient";
 
 export const metadata = {
-  title: "Quản lý Lô hàng | Mengo Manager",
+  title: "Quản lý Lô hàng",
   description: "Theo dõi tồn kho theo đợt nhập và hạn sử dụng sản phẩm",
 };
 
