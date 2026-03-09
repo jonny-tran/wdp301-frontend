@@ -4,7 +4,7 @@ import { useMemo, useState, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { authRequest } from "@/apiRequest/auth";
-import { User, QueryUser } from "@/types/user";
+import { extractUserItems, extractRoleOptions } from "./user.mapper";
 import {
   RawSearchParams,
   createPaginationSearchParams,
@@ -19,6 +19,7 @@ import { UserGroupIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import Can from "@/components/shared/Can";
 import { P } from "@/lib/authz";
 import { Resource } from "@/utils/constant";
+import { UserRow, RoleOption } from "./user.types";
 
 export default function UserClient({
   searchParams,
@@ -31,9 +32,10 @@ export default function UserClient({
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
 
-  const queryParams: any = useMemo(
+  // 1. Chuẩn hóa Query Params
+  const queryParams = useMemo(
     () => ({
       page: Number(readValue(searchParams.page)) || 1,
       limit: Number(readValue(searchParams.limit)) || 10,
@@ -44,44 +46,33 @@ export default function UserClient({
     [searchParams],
   );
 
-  // Fetch danh sách User
+  // 2. Fetch dữ liệu
   const userQuery = useQuery({
     queryKey: ["users", queryParams],
-    queryFn: () => authRequest.getUsers(queryParams).then((res: any) => res.data),
+    queryFn: () => authRequest.getUsers(queryParams).then((res) => res.data),
     placeholderData: (prev) => prev,
   });
 
-  // Fetch danh sách Roles (để lấy label tiếng Việt)
   const rolesQuery = useQuery({
     queryKey: ["roles"],
-    queryFn: () => authRequest.getRoles().then((res: any) => res.data),
+    queryFn: () => authRequest.getRoles().then((res) => res.data),
   });
 
-  // Mapping dữ liệu
-  const items: User[] = useMemo(
-    () => (userQuery.data as any)?.items || (userQuery.data as any)?.data?.items || [],
+  // 3. Sử dụng Mapper để làm sạch dữ liệu (Loại bỏ logic mapping rườm rà)
+  const items = useMemo(
+    () => extractUserItems(userQuery.data),
     [userQuery.data],
   );
 
-  // Mapping roleOptions trực tiếp
   const roleOptions = useMemo(
-    () => {
-      const roles: any = (rolesQuery.data as any)?.data || rolesQuery.data || [];
-      return Array.isArray(roles) ? roles.map((r: any) => ({
-        value: r.value ?? r.id ?? "",
-        label: r.label ?? r.name ?? "",
-      })) : [];
-    },
+    () => extractRoleOptions(rolesQuery.data),
     [rolesQuery.data],
   );
 
+  // 4. Bóc tách Metadata phân trang an toàn
   const meta = useMemo(() => {
-<<<<<<< HEAD
     const rawData = userQuery.data as any;
     const m = rawData?.data?.meta || rawData?.meta;
-=======
-    const m = (userQuery.data as any)?.meta || (userQuery.data as any)?.data?.meta;
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
     return {
       currentPage: m?.currentPage ?? 1,
       totalPages: m?.totalPages ?? 1,
@@ -96,9 +87,13 @@ export default function UserClient({
         searchParamsHook,
         params.page,
       );
+      // Đảm bảo giữ lại các filter hiện tại khi chuyển trang
+      if (queryParams.search) newSearchParams.set("search", queryParams.search);
+      if (queryParams.role) newSearchParams.set("role", queryParams.role);
+
       router.push(`${pathname}?${newSearchParams.toString()}`);
     },
-    [pathname, router, searchParamsHook],
+    [pathname, router, searchParamsHook, queryParams],
   );
 
   const filters: FilterConfig[] = [
@@ -107,11 +102,7 @@ export default function UserClient({
       label: "Tìm kiếm",
       type: "text",
       placeholder: "Tên hoặc email...",
-<<<<<<< HEAD
       defaultValue: (searchParams.search as string) ?? "",
-=======
-      defaultValue: readValue(searchParams.search) ?? "",
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
     },
     {
       key: "role",
@@ -124,39 +115,42 @@ export default function UserClient({
 
   return (
     <div className="flex flex-col gap-8 pb-20 animate-in fade-in duration-500">
+      {/* HEADER */}
       <div className="flex justify-between items-end px-1">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-100">
               <UserGroupIcon className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter">
-              Nhân sự hệ thống
+            <h1 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter leading-none">
+              Nhân sự <span className="text-indigo-600">Hệ thống</span>
             </h1>
           </div>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1">
-            Tổng cộng: {meta.totalItems} tài khoản
+            {meta.totalItems} tài khoản hoạt động
           </p>
         </div>
         <Can I={P.USER_CREATE} on={Resource.USER}>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-[11px] font-black text-white hover:bg-black transition-all shadow-xl"
+            className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-[11px] font-black text-white hover:bg-indigo-600 transition-all shadow-xl active:scale-95 italic"
           >
             <UserPlusIcon className="h-4 w-4 stroke-[3px]" /> THÊM NHÂN VIÊN
           </button>
         </Can>
       </div>
 
+      {/* FILTERS */}
       <div className="rounded-[2.5rem] bg-white p-2 shadow-sm border border-slate-100">
         <BaseFilter filters={filters} />
       </div>
 
+      {/* TABLE */}
       <div className="rounded-[3rem] border border-slate-100 bg-white shadow-2xl overflow-hidden flex flex-col min-h-[600px]">
         <UserTable
           items={items}
           isLoading={userQuery.isLoading}
-          roleOptions={roleOptions} // Truyền xuống để Table hiển thị được label
+          roleOptions={roleOptions}
           onEdit={(user) => {
             setSelectedUser(user);
             setIsEditModalOpen(true);
@@ -173,14 +167,19 @@ export default function UserClient({
         </div>
       </div>
 
+      {/* MODALS */}
       <UserCreateModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
       <UserEditModal
         isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setSelectedUser(null);
+        }}
         user={selectedUser}
+        roleOptions={roleOptions}
       />
     </div>
   );

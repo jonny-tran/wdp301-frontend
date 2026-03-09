@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
-<<<<<<< HEAD
 import { extractBaseUnits } from "./base-unit.mapper";
 import BaseUnitTable from "./BaseUnitTable";
 import {
@@ -24,24 +23,12 @@ export default function BaseUnitClient() {
   // Quản lý trạng thái Modal (Add/Edit)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUnit, setEditingUnit] = useState<any>(null);
-=======
-import { BaseUnit } from "@/types/base-unit";
-import BaseUnitTable from "./BaseUnitTable";
-import BaseUnitCreateModal from "./BaseUnitCreateModal";
-import BaseUnitEditModal from "./BaseUnitEditModal";
-import { toast } from "sonner";
-
-export default function BaseUnitClient() {
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [editingUnit, setEditingUnit] = useState<BaseUnit | null>(null);
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 
   const allActiveUnits = extractBaseUnits(response);
   const filteredData = allActiveUnits.filter((unit) =>
     unit.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-<<<<<<< HEAD
   const handleOpenAdd = () => {
     setEditingUnit(null);
     setIsModalOpen(true);
@@ -51,22 +38,6 @@ export default function BaseUnitClient() {
     const unit = allActiveUnits.find((u) => u.id === id);
     setEditingUnit(unit);
     setIsModalOpen(true);
-=======
-  const items: BaseUnit[] = useMemo(() => (rawData as any)?.items || rawData || [], [rawData]);
-
-  const handleDelete = async (id: number) => {
-    if (
-      confirm(
-        "Xóa đơn vị này có thể ảnh hưởng đến sản phẩm liên quan. Tiếp tục?",
-      )
-    ) {
-      try {
-        await deleteBaseUnit.mutateAsync(id); // Gọi DELETE /base-units/:id
-      } catch (error) {
-        console.error(error);
-      }
-    }
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
   };
 
   return (

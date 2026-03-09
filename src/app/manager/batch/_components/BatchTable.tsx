@@ -5,11 +5,13 @@ import {
   InboxStackIcon,
   CalendarIcon,
   PhotoIcon,
+  ArchiveBoxIcon,
 } from "@heroicons/react/24/outline";
 import { Batch } from "@/types/product";
 import { format } from "date-fns";
 import { clsx } from "clsx";
 import Image from "next/image";
+import { Button } from "@/components/ui/button";
 
 interface BatchTableProps {
   items: Batch[];
@@ -66,15 +68,22 @@ export default function BatchTable({
               <td className="px-10 py-6">
                 <div className="flex items-center gap-4">
                   <div className="relative h-14 w-14 rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center border border-slate-100 group-hover:border-slate-700 transition-all shadow-sm">
-                    {item.imageUrl ? (
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.batchCode}
+                    {item.imageUrl && item.imageUrl.trim() !== "" ? (
+                      <img
+                        src={item.imageUrl || "batch-image"}
+                        alt={item.batchCode || "batch-image"}
                         fill
                         className="object-cover"
+                        sizes="56px"
                       />
                     ) : (
-                      <PhotoIcon className="h-6 w-6 text-slate-300" />
+                      /* 2. Hiển thị Icon hoặc ảnh Placeholder nếu src trống */
+                      <div className="flex flex-col items-center justify-center bg-slate-100 w-full h-full">
+                        <ArchiveBoxIcon className="h-6 w-6 text-slate-300" />
+                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-tighter mt-1">
+                          No Image
+                        </span>
+                      </div>
                     )}
                   </div>
                   <div className="flex flex-col">
@@ -118,12 +127,12 @@ export default function BatchTable({
                 </span>
               </td>
               <td className="px-10 py-6 text-right">
-                <button
+                <Button
                   onClick={() => onEdit(item)}
                   className="p-3 bg-slate-50 group-hover:bg-white/10 text-slate-400 group-hover:text-white rounded-2xl transition-all active:scale-90"
                 >
                   <PencilSquareIcon className="h-5 w-5 stroke-[2.5px]" />
-                </button>
+                </Button>
               </td>
             </tr>
           ))}

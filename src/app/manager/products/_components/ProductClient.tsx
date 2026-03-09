@@ -2,25 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-<<<<<<< HEAD
 import { useProduct } from "@/hooks/useProduct";
-=======
-
-import { useAuth } from "@/hooks/useAuth";
-import { useProduct } from "@/hooks/useProduct";
-import { Product, QueryProduct } from "@/types/product";
-import { BaseResponsePagination } from "@/types/base";
-
-// Helpers
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 import {
   normalizeMeta,
   createPaginationSearchParams,
-<<<<<<< HEAD
   RawSearchParams,
-=======
-  readValue,
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 } from "@/app/kitchen/_components/query";
 import { extractProducts } from "./product.mapper";
 import ProductTable from "./ProductTable";
@@ -28,21 +14,8 @@ import ProductCreateModal from "./ProductCreateModal";
 import ProductEditModal from "./ProductEditModal";
 import { BasePagination } from "@/components/layout/BasePagination";
 import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
-<<<<<<< HEAD
 import { PlusIcon, CubeIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { ProductRow } from "./product.types";
-=======
-import { toast } from "sonner";
-import {
-  PlusIcon,
-  CubeIcon,
-  MagnifyingGlassIcon,
-  SparklesIcon,
-} from "@heroicons/react/24/outline";
-import Can from "@/components/shared/Can";
-import { P } from "@/lib/authz";
-import { Resource } from "@/utils/constant";
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 
 export default function ProductClient({
   searchParams,
@@ -64,7 +37,6 @@ export default function ProductClient({
 
   const { productList, deleteProduct, restoreProduct } = useProduct();
 
-<<<<<<< HEAD
   const listQuery = productList({
     page,
     limit,
@@ -94,21 +66,6 @@ export default function ProductClient({
     const rawMeta = responseData?.data?.meta || responseData?.meta;
     return normalizeMeta(rawMeta, page, limit, items.length);
   }, [listQuery.data, page, limit, items.length]);
-=======
-  const items: Product[] = useMemo(
-    () => productQuery.data?.items || [],
-    [productQuery.data],
-  );
-
-  const meta = useMemo(() => {
-    return {
-      currentPage: productQuery.data?.meta?.currentPage ?? 1,
-      totalPages: productQuery.data?.meta?.totalPages ?? 1,
-      totalItems: productQuery.data?.meta?.totalItems ?? 0,
-      itemsPerPage: productQuery.data?.meta?.itemsPerPage ?? 10,
-    };
-  }, [productQuery.data]);
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 
   const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
 
@@ -117,46 +74,13 @@ export default function ProductClient({
     router.push(`${pathname}?${query}`);
   };
 
-<<<<<<< HEAD
   const filterConfig: FilterConfig[] = [
-=======
-  const handleOpenBatches = (product: any) => {
-    setSelectedProduct(product);
-    setIsBatchModalOpen(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    if (confirm("Xác nhận ngừng hoạt động sản phẩm này?")) {
-      try {
-        await deleteProduct.mutateAsync(id);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  };
-
-  const handleRestore = async (id: number) => {
-    try {
-      await restoreProduct.mutateAsync(id);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  // --- 5. CẤU HÌNH BỘ LỌC (FILTER) ---
-  const filters: FilterConfig[] = [
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
     {
       key: "search",
       label: "Tìm kiếm",
       type: "text",
-<<<<<<< HEAD
       placeholder: "Tên hoặc SKU...",
       className: "lg:col-span-2",
-=======
-      placeholder: "Nhập mã SKU hoặc tên...",
-      defaultValue: readValue(searchParams.search) ?? "",
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
     },
     {
       key: "isActive",
@@ -203,7 +127,6 @@ export default function ProductClient({
           </div>
         </div>
 
-<<<<<<< HEAD
         <button
           onClick={() => setIsCreateModalOpen(true)}
           className="group flex items-center gap-4 rounded-full bg-slate-900 px-10 py-5 text-xs font-black text-white hover:bg-black transition-all active:scale-95 shadow-2xl border-b-4 border-slate-700"
@@ -211,17 +134,6 @@ export default function ProductClient({
           <PlusIcon className="h-5 w-5 stroke-[3px]" />
           THÊM SẢN PHẨM MỚI
         </button>
-=======
-        <Can I={P.PRODUCT_CREATE} on={Resource.PRODUCT}>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="group flex items-center gap-3 rounded-full bg-slate-900 px-10 py-5 text-xs font-black text-white hover:bg-black transition-all active:scale-95 shadow-2xl shadow-slate-200"
-          >
-            <PlusIcon className="h-4 w-4 stroke-[3px]" />
-            THÊM SẢN PHẨM MỚI
-          </button>
-        </Can>
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
       </div>
 
       <BaseFilter filters={filterConfig} />

@@ -30,6 +30,11 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
         pathname: '/dmhjgnymn/image/upload/central-kitchen/**',
+      },
+            {
+        protocol: 'https',
+        hostname: '',
+        pathname: 'file.hstatic.net',
       }
     ],
   },

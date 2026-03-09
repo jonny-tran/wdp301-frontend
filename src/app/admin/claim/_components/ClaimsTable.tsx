@@ -10,6 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Claim } from "@/types/claim";
+import { Button } from "@/components/ui/button";
 
 export default function ClaimsTable({
   items = [],
@@ -100,13 +101,13 @@ export default function ClaimsTable({
               </td>
 
               <td className="px-6 py-6 text-right">
-                <button
+                <Button
                   onClick={() => onViewDetail(claim.claimId)}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all active:scale-95"
                 >
                   <EyeIcon className="h-3.5 w-3.5 stroke-[3px]" />
                   Xem
-                </button>
+                </Button>
               </td>
             </tr>
           ))}

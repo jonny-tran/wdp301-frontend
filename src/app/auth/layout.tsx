@@ -25,7 +25,6 @@ export default function AuthLayout({
     }
   }, [user]);
 
-<<<<<<< HEAD
   // Nếu đang có user → không render login form
   if (user) return null;
   return (
@@ -38,26 +37,6 @@ export default function AuthLayout({
           <div className="absolute inset-0 opacity-10 pointer-events-none">
             <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"></div>
           </div>
-=======
-    const roleRedirects: Record<string, string> = {
-        [Role.ADMIN]: "/admin/auth",
-        [Role.MANAGER]: "/manager/products",
-        [Role.SUPPLY_COORDINATOR]: "/supply",
-        [Role.CENTRAL_KITCHEN_STAFF]: "/kitchen/dashboard",
-        [Role.FRANCHISE_STORE_STAFF]: "/", // Default to landing page for now
-    };
-    useEffect(() => {
-        if (user) {
-            const redirectPath = roleRedirects[user.role as Role];
-            if (redirectPath) {
-                router.push(redirectPath);
-            } else {
-                console.warn(`No redirect path defined for role: ${user.role}`);
-                router.push("/"); // Fallback to landing page
-            }
-        }
-    }, [user, router]);
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 
           <div className="relative z-10 mt-4">
             <h2 className="text-4xl font-extrabold mb-4 leading-[1.1] tracking-tight">

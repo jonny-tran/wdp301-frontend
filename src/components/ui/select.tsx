@@ -139,6 +139,7 @@ function SelectSeparator({
     />
   )
 }
+const SelectPortal = SelectPrimitive.Portal; // Thêm dòng này
 
 function SelectScrollUpButton({
   className,
@@ -187,4 +188,5 @@ export {
   SelectSeparator,
   SelectTrigger,
   SelectValue,
+  SelectPortal,
 }

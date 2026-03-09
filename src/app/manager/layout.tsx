@@ -1,6 +1,5 @@
 "use client";
 
-<<<<<<< HEAD
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -20,6 +19,7 @@ import {
   BuildingStorefrontIcon,
   ExclamationTriangleIcon, // Icon cho modal cảnh báo
 } from "@heroicons/react/24/outline";
+import { Button } from "@/components/ui/button";
 
 // Danh sách Menu chuẩn cho Manager
 const sidebarLinks = [
@@ -34,17 +34,12 @@ const sidebarLinks = [
   { name: "Khiếu nại", href: "/manager/claim", icon: ShieldExclamationIcon },
   { name: "Cửa hàng", href: "/manager/store", icon: BuildingStorefrontIcon },
 ];
-=======
-import BaseLayout from "@/components/layout/BaseLayout";
-import { Role } from "@/utils/enum";
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 
 export default function ManagerLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-<<<<<<< HEAD
   const pathname = usePathname();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false); // Quản lý modal cảnh báo
@@ -85,12 +80,12 @@ export default function ManagerLayout({
             <h2 className="text-base font-black text-slate-950 uppercase italic tracking-tighter leading-none">
               Manager <span className="text-blue-600">Portal</span>
             </h2>
-            <button
+            <Button
               onClick={() => setIsMobileOpen(false)}
               className="lg:hidden text-slate-400 p-1"
             >
               <XMarkIcon className="h-5 w-5" />
-            </button>
+            </Button>
           </div>
 
           <nav className="space-y-1 mt-4">
@@ -142,12 +137,12 @@ export default function ManagerLayout({
           <span className="text-[10px] font-black uppercase italic">
             Manager Console
           </span>
-          <button
+          <Button
             onClick={() => setIsMobileOpen(true)}
             className="p-1 text-slate-900"
           >
             <Bars3Icon className="h-5 w-5" />
-          </button>
+          </Button>
         </header>
 
         <main className="p-2 md:p-4 lg:p-5 w-full min-h-screen">
@@ -194,11 +189,5 @@ export default function ManagerLayout({
         </div>
       )}
     </div>
-=======
-  return (
-    <BaseLayout title="Manager Control Center">
-      {children}
-    </BaseLayout>
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
   );
 }

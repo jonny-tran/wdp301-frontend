@@ -1,10 +1,16 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ProductRow } from "./product.types";
 
+/**
+ * Định nghĩa kiểu dữ liệu cho Select Option
+ */
 export interface UnitOption {
   label: string;
   value: number;
 }
+
+/**
+ * Chuyển đổi dữ liệu Sản phẩm từ API sang hàng trong bảng
+ */
 export function normalizeProduct(p: Record<string, any>): ProductRow {
   return {
     id: p.id,
@@ -18,22 +24,30 @@ export function normalizeProduct(p: Record<string, any>): ProductRow {
   };
 }
 
-
-
+/**
+ * Trích xuất danh sách sản phẩm từ Response
+ */
 export function extractProducts(raw: any): ProductRow[] {
   const items = raw?.data?.items || raw?.items || raw?.data || [];
   return Array.isArray(items) ? items.map(normalizeProduct) : [];
 }
 
-
+/**
+ * Trích xuất danh sách Đơn vị tính cho Select
+ * Sửa lỗi "Trống dữ liệu đơn vị" bằng cách quét đa tầng
+ */
 export function extractBaseUnitOptions(raw: any): UnitOption[] {
-  const units = raw?.items || raw?.data?.items || (Array.isArray(raw) ? raw : []);
+  // Tìm mảng dữ liệu trong res.data hoặc res.data.items
+  const units = Array.isArray(raw) 
+    ? raw 
+    : Array.isArray(raw?.data) 
+      ? raw.data 
+      : Array.isArray(raw?.data?.items) 
+        ? raw.data.items 
+        : [];
 
-  return units
-    .filter((u: any) => u.isActive === true) 
-    .map((u: any): UnitOption => ({
-      label: String(u.name || "N/A"),
-      value: Number(u.id || 0)
-    }))
-    .filter((opt: UnitOption) => opt.value !== 0);
+  return units.map((u: any) => ({
+    label: String(u.name || "N/A"),
+    value: Number(u.id || 0)
+  })).filter(opt => opt.value !== 0);
 }

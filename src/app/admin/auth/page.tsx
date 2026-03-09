@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { Suspense } from "react";
 import { RawSearchParams } from "@/app/kitchen/_components/query";
 import UserClient from "./_components/UserClient";
@@ -9,15 +8,6 @@ import UserClient from "./_components/UserClient";
 export const metadata = {
   title: "Quản lý nhân sự ",
   description: "Hệ thống quản lý tài khoản và phân quyền nhân viên",
-=======
-import { Metadata } from "next";
-import { RawSearchParams } from "@/app/kitchen/_components/query";
-import UserClient from "./_components/UserClient";
-
-export const metadata: Metadata = {
-  title: "User Management | VFC Admin",
-  description: "Manage system users and their permissions.",
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
 };
 
 export default async function UserManagementPage({

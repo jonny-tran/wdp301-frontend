@@ -18,7 +18,6 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-<<<<<<< HEAD
 interface Props {
   data: ClaimRow[];
   onSelect: (id: string) => void;
@@ -33,37 +32,10 @@ export default function ClaimTable({ data, onSelect, onResolve }: Props) {
         <p className="font-black text-slate-300 italic uppercase text-[10px] tracking-[0.3em]">
           Hệ thống chưa ghi nhận khiếu nại nào
         </p>
-=======
-import { Claim } from "@/types/claim";
-
-export default function ClaimsTable({
-  items = [],
-  isLoading,
-  onViewDetail,
-}: {
-  items: Claim[];
-  isLoading: boolean;
-  onViewDetail: (id: string) => void;
-}) {
-  if (isLoading)
-    return (
-      <div className="p-32 text-center flex flex-col items-center gap-4 text-slate-200 uppercase italic font-black text-[10px] tracking-[0.3em]">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-slate-950 mb-4"></div>
-        Đang tải...
-      </div>
-    );
-
-  if (items.length === 0)
-    return (
-      <div className="p-32 text-center flex flex-col items-center gap-4 text-slate-200 uppercase italic font-black text-[10px] tracking-[0.3em]">
-        <InboxIcon className="h-10 w-10 opacity-20" />
-        Không tìm thấy khiếu nại nào
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
       </div>
     );
 
   return (
-<<<<<<< HEAD
     <Table>
       <TableHeader className="bg-slate-50/50">
         <TableRow className="border-none">
@@ -90,31 +62,6 @@ export default function ClaimsTable({
             <TableRow
               key={row.claimId}
               className="border-slate-50 hover:bg-indigo-50/10 transition-all group"
-=======
-    <div className="w-full overflow-hidden">
-      <table className="w-full text-left text-sm border-separate border-spacing-0">
-        <thead className="bg-slate-50/80 text-[10px] font-black uppercase tracking-[0.2em] text-black/40">
-          <tr>
-            <th className="px-6 py-5 border-b border-slate-100 w-[22%]">
-              Ngày nhận
-            </th>
-            <th className="px-6 py-5 border-b border-slate-100 w-[38%]">
-              Shipment ID
-            </th>
-            <th className="px-6 py-5 border-b border-slate-100 text-center w-[20%]">
-              Trạng thái
-            </th>
-            <th className="px-6 py-5 border-b border-slate-100 text-right w-[20%]">
-              Hành động
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-50 bg-white">
-          {items.map((claim) => (
-            <tr
-              key={claim.claimId}
-              className="group hover:bg-black transition-all duration-300"
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
             >
               <TableCell className="pl-10 py-8 font-black italic text-slate-300">
                 {row.no}
@@ -128,7 +75,6 @@ export default function ClaimsTable({
                     Shipment: {row.shipmentId.slice(0, 8)}...
                   </span>
                 </div>
-<<<<<<< HEAD
               </TableCell>
               <TableCell className="text-center py-8">
                 <Badge
@@ -140,36 +86,6 @@ export default function ClaimsTable({
                         ? "bg-red-100 text-red-600"
                         : "bg-slate-100 text-slate-400",
                   )}
-=======
-              </td>
-
-              <td className="px-6 py-6">
-                <span className="font-black text-black group-hover:text-white uppercase tracking-tighter text-[11px] line-clamp-1">
-                  {claim.shipmentId}
-                </span>
-              </td>
-
-              <td className="px-6 py-6 text-center">
-                <div className="flex justify-center">
-                  <span
-                    className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all
-                    ${claim.status === "approved"
-                        ? "bg-green-50 text-green-700 group-hover:bg-green-600 group-hover:text-white"
-                        : claim.status === "pending"
-                          ? "bg-orange-50 text-orange-700 group-hover:bg-orange-600 group-hover:text-white"
-                          : "bg-red-50 text-red-700 group-hover:bg-red-600 group-hover:text-white"
-                      }`}
-                  >
-                    {claim.status}
-                  </span>
-                </div>
-              </td>
-
-              <td className="px-6 py-6 text-right">
-                <button
-                  onClick={() => onViewDetail(claim.claimId)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all active:scale-95"
->>>>>>> 0da73fcc42b54874fcaea53673fda727cc87773c
                 >
                   {row.status}
                 </Badge>
