@@ -144,15 +144,15 @@ export default function ProductCreateModal({
           {/* CỘT PHẢI: Logistics & Actions */}
           <div className="md:col-span-5 flex flex-col justify-between p-10 md:p-14 bg-slate-50/50">
             <div className="relative p-10 rounded-[2.5rem] bg-white border border-slate-200 text-center shadow-xl mb-10">
-              <div className="h-16 w-16 bg-slate-900 text-white rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3">
+              <div className="h-16 w-16 bg-primary text-white rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3">
                 <PlusIcon className="h-8 w-8 stroke-[3px]" />
               </div>
-              <h3 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter leading-tight">
-                Tạo <span className="text-blue-600">Sản phẩm</span>
+              <h3 className="text-3xl font-black text-text-main font-display tracking-wider uppercase leading-tight">
+                Tạo <span className="text-primary">Sản phẩm</span>
               </h3>
               <Button
                 onClick={onClose}
-                className="absolute -top-4 -right-4 p-4 bg-white border border-slate-100 text-slate-400 rounded-full hover:bg-slate-900 hover:text-white transition-all shadow-xl active:scale-90"
+                className="absolute -top-4 -right-4 p-4 bg-white border border-slate-100 text-slate-400 rounded-full hover:bg-primary hover:text-white transition-all shadow-xl active:scale-90"
               >
                 <XMarkIcon className="h-5 w-5 stroke-[2.5px]" />
               </Button>
@@ -193,7 +193,7 @@ export default function ProductCreateModal({
                         <SelectItem
                           key={opt.value}
                           value={String(opt.value)}
-                          className="font-bold uppercase text-[10px] tracking-widest py-4 cursor-pointer focus:bg-slate-900 focus:text-white"
+                          className="font-bold uppercase text-[10px] tracking-widest py-4 cursor-pointer focus:bg-primary focus:text-white"
                         >
                           {opt.label}
                         </SelectItem>
@@ -208,7 +208,7 @@ export default function ProductCreateModal({
                   type="submit"
                   onClick={handleSubmit}
                   disabled={createProduct.isPending}
-                  className="flex items-center justify-center gap-4 rounded-full py-6 text-xs font-black text-white transition-all bg-slate-900 hover:bg-black disabled:bg-slate-300 shadow-lg active:scale-95"
+                  className="flex items-center justify-center gap-4 rounded-full py-6 text-xs font-black text-white transition-all bg-primary hover:bg-primary-dark disabled:bg-slate-300 shadow-lg active:scale-95"
                 >
                   {createProduct.isPending ? (
                     <ArrowPathIcon className="h-5 w-5 animate-spin" />

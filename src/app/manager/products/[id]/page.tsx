@@ -53,7 +53,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           <ArchiveBoxIcon className="h-12 w-12 stroke-[1.5px]" />
         </div>
         <div className="space-y-2">
-          <h2 className="text-xl font-black uppercase italic tracking-tighter text-slate-900">
+          <h2 className="text-xl font-black font-display tracking-wider uppercase text-text-main">
             Sản phẩm không tồn tại
           </h2>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest max-w-[250px] mx-auto leading-relaxed italic">

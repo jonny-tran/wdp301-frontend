@@ -20,7 +20,7 @@ export type User = {
 };
 
 export type QueryUser = BaseRequestPagination & {
-    role: Role;
-    status: 'ACTIVE' | 'INACTIVE';
+    role?: Role;
+    status?: 'ACTIVE' | 'INACTIVE';
     search?: string;
 }

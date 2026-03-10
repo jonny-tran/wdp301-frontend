@@ -29,7 +29,7 @@ export default function FillRateAnalytics() {
     to,
   });
 
-  const shortfallData = analyticsRes?.data?.shortfallAnalysis || [];
+  const shortfallData = (analyticsRes as any)?.data?.shortfallAnalysis || (analyticsRes as any)?.shortfallAnalysis || [];
 
   return (
     <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in duration-500">
@@ -37,7 +37,7 @@ export default function FillRateAnalytics() {
       <div className="bg-slate-50/50 px-10 py-6 border-b border-slate-100 flex items-center gap-3">
         <ExclamationTriangleIcon className="w-6 h-6 text-red-500 stroke-[2.5px]" />
         <div>
-          <h3 className="text-lg font-black uppercase italic tracking-tighter text-slate-900">
+          <h3 className="text-lg font-black font-display tracking-wider uppercase text-text-main">
             Phân tích <span className="text-red-500">Thiếu hụt hàng hóa</span>
           </h3>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
@@ -75,7 +75,7 @@ export default function FillRateAnalytics() {
                   className="border-slate-50 hover:bg-slate-50/50 transition-colors group"
                 >
                   <TableCell className="pl-10 py-6">
-                    <span className="text-[11px] font-bold text-slate-700 uppercase italic group-hover:text-indigo-600 transition-colors">
+                    <span className="text-[11px] font-bold text-slate-700 uppercase italic group-hover:text-primary transition-colors">
                       {item.reason}
                     </span>
                   </TableCell>

@@ -43,10 +43,10 @@ export default function ClaimsClient() {
   return (
     <div className="flex flex-col gap-8 animate-in fade-in duration-700">
       <div className="px-1 space-y-1">
-        <h1 className="text-3xl font-black uppercase italic tracking-tighter text-black leading-none">
+        <h1 className="text-3xl font-black font-display tracking-wider uppercase text-text-main leading-none">
           Quản lý Khiếu nại
         </h1>
-        <p className="text-[10px] font-black text-black/40 uppercase tracking-[0.2em] italic">
+        <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] italic">
           Hệ thống phê duyệt khiếu nại & Thất thoát hàng hóa
         </p>
       </div>
@@ -64,8 +64,8 @@ export default function ClaimsClient() {
             onClick={() => setActiveTab(tab.id as any)}
             className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300
               ${activeTab === tab.id
-                ? "bg-black text-white shadow-2xl scale-[1.05]"
-                : "text-black/30 hover:text-black hover:bg-white"
+                ? "bg-primary text-white shadow-2xl scale-[1.05]"
+                : "text-text-muted hover:text-black hover:bg-white"
               }`}
           >
             {tab.label}

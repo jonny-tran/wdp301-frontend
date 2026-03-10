@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import {
   AdjustmentsHorizontalIcon,
@@ -32,11 +32,11 @@ export default function ConfigTable({ configs, onEdit }: Props) {
           {configs.map((cfg) => (
             <tr
               key={cfg.id}
-              className="group hover:bg-indigo-50/30 transition-colors"
+              className="group hover:bg-primary/10/30 transition-colors"
             >
               <td className="px-10 py-6">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 transition-colors shadow-sm">
+                  <div className="h-9 w-9 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-primary transition-colors shadow-sm">
                     <AdjustmentsHorizontalIcon className="h-5 w-5" />
                   </div>
                   <span className="text-sm font-black text-slate-900 tracking-tight">
@@ -45,7 +45,7 @@ export default function ConfigTable({ configs, onEdit }: Props) {
                 </div>
               </td>
               <td className="px-6 py-6">
-                <span className="px-3 py-1.5 rounded-lg bg-slate-900 text-white text-[11px] font-black shadow-lg">
+                <span className="px-3 py-1.5 rounded-lg bg-primary text-white text-[11px] font-black shadow-lg">
                   {cfg.value}
                 </span>
               </td>

@@ -45,6 +45,7 @@ export default function UserCreateModal({
   // 1. Fetch dữ liệu - Đảm bảo lấy đủ 100 store để không sót UI
   const { data: rolesData, isLoading: isLoadingRoles } = getRoles();
   const { data: storesData, isLoading: isLoadingStores } = storeList({
+    page: 1,
     limit: 100,
     sortOrder: "DESC",
   });
@@ -86,7 +87,7 @@ export default function UserCreateModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const submitData = { ...formData, role: activeRole };
+    const submitData = { ...formData, role: activeRole as any };
 
     if (isStoreStaff && !submitData.storeId) {
       toast.error("Vui lòng chọn chi nhánh nhượng quyền!");
@@ -111,8 +112,8 @@ export default function UserCreateModal({
         {/* HEADER */}
         <DialogHeader className="bg-slate-50/50 px-10 py-6 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left">
           <div className="space-y-1">
-            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
-              Ghi danh <span className="text-indigo-600">Nhân sự</span>
+            <DialogTitle className="text-2xl font-black font-display tracking-wider uppercase text-text-main leading-none">
+              Ghi danh <span className="text-primary">Nhân sự</span>
             </DialogTitle>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic mt-1">
               Account Creation
@@ -189,7 +190,7 @@ export default function UserCreateModal({
                       <SelectItem
                         key={role.value}
                         value={role.value}
-                        className="py-4 px-6 text-slate-300 focus:bg-indigo-600 focus:text-white rounded-2xl cursor-pointer"
+                        className="py-4 px-6 text-slate-300 focus:bg-primary focus:text-white rounded-2xl cursor-pointer"
                       >
                         {role.label}
                       </SelectItem>
@@ -202,7 +203,7 @@ export default function UserCreateModal({
             {/* CHỌN CHI NHÁNH (Hiển thị dựa trên logic isStoreStaff) */}
             {isStoreStaff && (
               <div className="space-y-1.5 animate-in slide-in-from-top-4 duration-500">
-                <label className="text-[9px] font-black uppercase text-indigo-500 ml-5 flex items-center gap-2 italic">
+                <label className="text-[9px] font-black uppercase text-primary ml-5 flex items-center gap-2 italic">
                   <BuildingStorefrontIcon className="h-4 w-4" /> Chi nhánh liên
                   kết ({storeOptions.length})
                 </label>
@@ -212,7 +213,7 @@ export default function UserCreateModal({
                     setFormData({ ...formData, storeId: val })
                   }
                 >
-                  <SelectTrigger className="w-full rounded-full bg-indigo-50/50 border-2 border-indigo-100 px-8 py-6 text-sm font-black text-indigo-900 focus:border-indigo-600 uppercase italic">
+                  <SelectTrigger className="w-full rounded-full bg-primary/10/50 border-2 border-primary/20 px-8 py-6 text-sm font-black text-primary-dark focus:border-primary uppercase italic">
                     <SelectValue
                       placeholder={
                         isLoadingStores
@@ -232,8 +233,8 @@ export default function UserCreateModal({
                           key={s.value}
                           value={s.value}
                           className="py-4 px-6 text-slate-700 font-bold uppercase italic text-[10px] 
-               focus:bg-indigo-600 focus:text-white rounded-2xl cursor-pointer 
-               data-[state=checked]:bg-indigo-50 data-[state=checked]:text-indigo-900"
+               focus:bg-primary focus:text-white rounded-2xl cursor-pointer 
+               data-[state=checked]:bg-primary/10 data-[state=checked]:text-primary-dark"
                         >
                           {s.label}
                         </SelectItem>
@@ -265,7 +266,7 @@ export default function UserCreateModal({
           <Button
             type="submit"
             disabled={createUser.isPending}
-            className="w-full rounded-full bg-slate-900 py-7 text-[10px] font-black uppercase tracking-[0.3em] shadow-xl hover:bg-indigo-600 transition-all active:scale-95 italic mt-4"
+            className="w-full rounded-full bg-primary py-7 text-[10px] font-black uppercase tracking-[0.3em] shadow-xl hover:bg-primary-dark transition-all active:scale-95 italic mt-4"
           >
             {createUser.isPending
               ? "Hệ thống đang lưu..."

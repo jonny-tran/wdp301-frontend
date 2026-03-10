@@ -29,11 +29,11 @@ export default function DemandPattern({ data, isLoading, onSearchId }: { data: S
         <div>
           <div className="flex items-center gap-2 mb-2">
             <ChartBarIcon className="h-4 w-4 text-black" />
-            <p className="text-[10px] font-black text-black/40 uppercase tracking-[0.2em]">
+            <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
               Store Demand
             </p>
           </div>
-          <h3 className="text-3xl font-black text-black uppercase italic tracking-tighter">
+          <h3 className="text-3xl font-black text-text-main font-display tracking-wider uppercase">
             Nhu cầu hàng tuần
           </h3>
           <p className="text-[10px] font-bold text-red-500 uppercase mt-2 italic">
@@ -58,7 +58,7 @@ export default function DemandPattern({ data, isLoading, onSearchId }: { data: S
           />
           <button
             type="submit"
-            className="bg-black text-white p-2.5 rounded-xl hover:scale-105 active:scale-95 transition-all"
+            className="bg-primary text-white p-2.5 rounded-xl hover:scale-105 active:scale-95 transition-all"
           >
             <MagnifyingGlassIcon className="h-4 w-4 stroke-[3px]" />
           </button>
@@ -76,16 +76,16 @@ export default function DemandPattern({ data, isLoading, onSearchId }: { data: S
               >
                 <div className="w-full relative flex flex-col justify-end h-full bg-slate-50 rounded-full overflow-hidden">
                   <div
-                    className="w-full bg-black transition-all duration-1000 ease-out origin-bottom group-hover/bar:bg-slate-700"
+                    className="w-full bg-primary transition-all duration-1000 ease-out origin-bottom group-hover/bar:bg-slate-700"
                     style={{ height: `${height}%` }}
                   />
                   {d.totalRequestedQuantity > 0 && (
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/bar:opacity-100 transition-opacity bg-black text-white text-[8px] font-black px-2 py-1 rounded-md mb-2 pointer-events-none whitespace-nowrap">
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/bar:opacity-100 transition-opacity bg-primary text-white text-[8px] font-black px-2 py-1 rounded-md mb-2 pointer-events-none whitespace-nowrap">
                       {d.totalRequestedQuantity.toLocaleString()} đơn
                     </div>
                   )}
                 </div>
-                <span className="text-[9px] font-black text-black/40 group-hover/bar:text-black transition-colors tracking-tighter uppercase italic">
+                <span className="text-[9px] font-black text-text-muted group-hover/bar:text-black transition-colors tracking-tighter uppercase italic">
                   {d.dayOfWeek.includes("Thứ")
                     ? d.dayOfWeek.replace("Thứ ", "T")
                     : d.dayOfWeek.substring(0, 3)}

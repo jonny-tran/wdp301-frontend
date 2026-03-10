@@ -29,7 +29,7 @@ export default function OrderAnalytics({
       value: `${data.leadTime?.avgReviewTime || 0}${data.leadTime?.unit || 'h'}`,
       sub: "Review Time",
       icon: DocumentMagnifyingGlassIcon,
-      color: "text-blue-600",
+      color: "text-primary",
     },
     {
       label: "Nhặt hàng (Avg)",

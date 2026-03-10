@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { BaseUnitRow } from "./base-unit.types";
 import {
@@ -59,7 +59,7 @@ export default function BaseUnitTable({ data, onEdit, onDelete }: Props) {
             key={row.id}
             className="border-slate-50 hover:bg-slate-50/50 transition-all duration-300 group"
           >
-            <TableCell className="pl-10 py-8 font-black italic text-slate-300 group-hover:text-indigo-600 transition-colors">
+            <TableCell className="pl-10 py-8 font-black italic text-slate-300 group-hover:text-primary transition-colors">
               {row.no}
             </TableCell>
             <TableCell className="py-8">

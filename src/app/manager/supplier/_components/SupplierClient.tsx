@@ -36,7 +36,7 @@ export default function SupplierClient() {
       {/* Header tinh giản */}
       <div className="flex justify-between items-end px-1">
         <div className="space-y-0.5">
-          <h1 className="text-xl font-black uppercase italic tracking-tighter text-slate-900">
+          <h1 className="text-xl font-black font-display tracking-wider uppercase text-text-main">
             Suppliers
           </h1>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
@@ -84,7 +84,7 @@ export default function SupplierClient() {
       <SupplierEditModal
         isOpen={!!editingSupplier}
         onClose={() => setEditingSupplier(null)}
-        data={editingSupplier}
+        supplier={editingSupplier}
       />
     </div>
   );

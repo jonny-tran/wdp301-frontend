@@ -176,7 +176,7 @@ export default function InventoryClient() {
     <div className="flex flex-col gap-6 animate-in fade-in duration-700">
       {/* Header */}
       <div className="px-1 space-y-1">
-        <h1 className="text-2xl font-black uppercase italic tracking-tighter text-slate-950 leading-none">
+        <h1 className="text-2xl font-black font-display tracking-wider uppercase text-text-main leading-none">
           Inventory Dashboard
         </h1>
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">

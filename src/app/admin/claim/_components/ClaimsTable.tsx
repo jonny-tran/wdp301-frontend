@@ -3,9 +3,6 @@
 import { format } from "date-fns";
 import {
   EyeIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  XCircleIcon,
   InboxIcon,
 } from "@heroicons/react/24/outline";
 
@@ -40,7 +37,7 @@ export default function ClaimsTable({
   return (
     <div className="w-full overflow-hidden">
       <table className="w-full text-left text-sm border-separate border-spacing-0">
-        <thead className="bg-slate-50/80 text-[10px] font-black uppercase tracking-[0.2em] text-black/40">
+        <thead className="bg-slate-50/80 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
           <tr>
             <th className="px-6 py-5 border-b border-slate-100 w-[22%]">
               Ngày nhận
@@ -57,20 +54,20 @@ export default function ClaimsTable({
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-50 bg-white">
-          {items.map((claim) => (
+          {items.map((claim, index) => (
             <tr
-              key={claim.claimId}
-              className="group hover:bg-black transition-all duration-300"
+              key={claim.claimId ?? `claim-${index}`}
+              className="group hover:bg-primary-dark transition-all duration-300"
             >
               {/* CỘT NGÀY NHẬN ĐÃ TĂNG CỠ CHỮ */}
               <td className="px-6 py-6 whitespace-nowrap">
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-sm font-black text-black group-hover:text-white uppercase italic tracking-tighter transition-colors">
+                  <span className="text-sm font-black text-black group-hover:text-white font-display tracking-wider uppercase transition-colors">
                     {claim.createdAt
                       ? format(new Date(claim.createdAt), "dd/MM/yyyy")
                       : "---"}
                   </span>
-                  <span className="text-[11px] font-bold text-black/40 group-hover:text-white/40 uppercase tracking-widest leading-none transition-colors">
+                  <span className="text-[11px] font-bold text-text-muted group-hover:text-white/40 uppercase tracking-widest leading-none transition-colors">
                     {claim.createdAt
                       ? format(new Date(claim.createdAt), "HH:mm:ss")
                       : ""}
@@ -103,7 +100,7 @@ export default function ClaimsTable({
               <td className="px-6 py-6 text-right">
                 <Button
                   onClick={() => onViewDetail(claim.claimId)}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all active:scale-95"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-black transition-all active:scale-95"
                 >
                   <EyeIcon className="h-3.5 w-3.5 stroke-[3px]" />
                   Xem

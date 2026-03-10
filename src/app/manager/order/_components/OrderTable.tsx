@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Button } from "@/components/ui/button";
 import { OrderRow } from "./order.types";
@@ -77,7 +77,7 @@ export default function OrderTable({ data, rowStart }: Props) {
                   </span>
                 </div>
               </td>
-              <td className="px-6 py-6 text-right font-black italic text-indigo-600 text-lg">
+              <td className="px-6 py-6 text-right font-black italic text-primary text-lg">
                 {order.formattedAmount}
               </td>
               <td className="px-6 py-6">
@@ -97,7 +97,7 @@ export default function OrderTable({ data, rowStart }: Props) {
                 </span>
               </td>
               <td className="px-10 py-6 text-right">
-                <Button className="p-3 bg-white border border-slate-100 rounded-2xl shadow-sm hover:bg-black hover:text-white transition-all group/btn">
+                <Button className="p-3 bg-white border border-slate-100 rounded-2xl shadow-sm hover:bg-primary-dark hover:text-white transition-all group/btn">
                   <EyeIcon className="w-5 h-5 stroke-[2.5px]" />
                 </Button>
               </td>

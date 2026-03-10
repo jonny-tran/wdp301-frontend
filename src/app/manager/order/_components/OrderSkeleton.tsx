@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 export default function OrderSkeleton() {
   return (
@@ -43,7 +43,7 @@ export default function OrderSkeleton() {
                   <div className="h-2 w-20 bg-slate-100 rounded-full" /> {/* Store ID */}
                 </div>
               </div>
-              <div className="h-6 w-28 bg-indigo-50 rounded-lg flex-1 mx-4" /> {/* Amount */}
+              <div className="h-6 w-28 bg-primary/10 rounded-lg flex-1 mx-4" /> {/* Amount */}
               <div className="h-4 w-24 bg-slate-50 rounded-full flex-1" /> {/* Delivery Date */}
               <div className="h-6 w-24 bg-slate-100 rounded-full flex-1" /> {/* Status Badge */}
               <div className="h-10 w-10 bg-slate-50 rounded-xl ml-auto" /> {/* Action Button */}

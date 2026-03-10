@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -56,7 +56,7 @@ export default function ConfigClient() {
   return (
     <div className="flex flex-col gap-8 pb-20 animate-in fade-in duration-500">
       <div className="flex items-center gap-3 px-1">
-        <div className="p-2.5 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-100">
+        <div className="p-2.5 bg-primary rounded-2xl shadow-xl shadow-primary/20">
           <Cog6ToothIcon className="h-6 w-6 text-white" />
         </div>
         <div className="flex flex-col">

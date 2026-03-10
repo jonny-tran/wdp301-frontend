@@ -56,9 +56,9 @@ export default function BaseUnitFormModal({
         {/* HEADER MODAL */}
         <DialogHeader className="bg-slate-50/50 px-10 py-8 border-b border-slate-100 flex flex-row items-center justify-between space-y-0">
           <div>
-            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-slate-900">
+            <DialogTitle className="text-2xl font-black font-display tracking-wider uppercase text-text-main">
               {isEdit ? "Cập nhật" : "Thêm mới"}{" "}
-              <span className="text-indigo-600">Đơn vị</span>
+              <span className="text-primary">Đơn vị</span>
             </DialogTitle>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">
               {isEdit
@@ -90,7 +90,7 @@ export default function BaseUnitFormModal({
                     <FormControl>
                       <Input
                         placeholder="Ví dụ: Kg, Bao, Miếng, Lít..."
-                        className="rounded-[1.2rem] py-6 px-6 font-bold text-slate-900 border-slate-200 focus:ring-4 ring-indigo-500/10 transition-all placeholder:text-slate-300 placeholder:italic"
+                        className="rounded-[1.2rem] py-6 px-6 font-bold text-slate-900 border-slate-200 focus:ring-4 ring-primary/10 transition-all placeholder:text-slate-300 placeholder:italic"
                         {...field}
                       />
                     </FormControl>
@@ -111,7 +111,7 @@ export default function BaseUnitFormModal({
                     <FormControl>
                       <Textarea
                         placeholder="Nhập mô tả định lượng hoặc cách sử dụng đơn vị này..."
-                        className="rounded-[1.5rem] p-6 font-bold text-slate-900 border-slate-200 focus:ring-4 ring-indigo-500/10 transition-all min-h-120px placeholder:text-slate-300 placeholder:italic"
+                        className="rounded-[1.5rem] p-6 font-bold text-slate-900 border-slate-200 focus:ring-4 ring-primary/10 transition-all min-h-120px placeholder:text-slate-300 placeholder:italic"
                         {...field}
                       />
                     </FormControl>
@@ -131,7 +131,7 @@ export default function BaseUnitFormModal({
                 </button>
                 <button
                   type="submit"
-                  className="flex-2 px-12 py-5 rounded-full bg-slate-900 text-white font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-indigo-600 shadow-xl transition-all group"
+                  className="flex-2 px-12 py-5 rounded-full bg-primary text-white font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-primary shadow-xl transition-all group"
                 >
                   <CheckIcon className="w-4 h-4 stroke-[4px] group-hover:scale-110 transition-transform" />
                   {isEdit ? "Cập nhật dữ liệu" : "Tạo đơn vị mới"}

@@ -66,8 +66,8 @@ export default function ResolveClaimModal({
         {/* HEADER */}
         <DialogHeader className="bg-slate-50/50 px-10 py-8 border-b border-slate-100 flex flex-row items-center justify-between space-y-0">
           <div>
-            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
-              Xử lý <span className="text-indigo-600">Khiếu nại</span>
+            <DialogTitle className="text-2xl font-black font-display tracking-wider uppercase text-text-main leading-none">
+              Xử lý <span className="text-primary">Khiếu nại</span>
             </DialogTitle>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 italic">
               ID: {claimId?.slice(0, 18)}...
@@ -141,7 +141,7 @@ export default function ResolveClaimModal({
                     <FormControl>
                       <Textarea
                         placeholder="Nhập lý do phê duyệt hoặc từ chối khiếu nại này..."
-                        className="rounded-[1.5rem] p-6 font-bold text-slate-900 border-slate-200 focus:ring-4 ring-indigo-500/10 transition-all min-h-120px placeholder:text-slate-300 placeholder:italic"
+                        className="rounded-[1.5rem] p-6 font-bold text-slate-900 border-slate-200 focus:ring-4 ring-primary/10 transition-all min-h-120px placeholder:text-slate-300 placeholder:italic"
                         {...field}
                       />
                     </FormControl>
@@ -165,8 +165,8 @@ export default function ResolveClaimModal({
                   className={cn(
                     "flex-2 px-12 py-5 rounded-full text-white font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-xl active:scale-95 disabled:opacity-50",
                     currentStatus === "approved"
-                      ? "bg-slate-900 hover:bg-emerald-600"
-                      : "bg-slate-900 hover:bg-red-600",
+                      ? "bg-primary hover:bg-emerald-600"
+                      : "bg-primary hover:bg-red-600",
                   )}
                 >
                   {isLoading ? (

@@ -56,13 +56,13 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
         <Button
           variant="ghost"
           onClick={handleBack}
-          className="h-10 w-10 rounded-xl bg-white shadow-md hover:bg-black hover:text-white transition-all border border-slate-100 p-0 group"
+          className="h-10 w-10 rounded-xl bg-white shadow-md hover:bg-primary-dark hover:text-white transition-all border border-slate-100 p-0 group"
         >
           <ArrowLeftIcon className="h-5 w-5 stroke-[2.5px] group-hover:-translate-x-1 transition-transform" />
         </Button>
         <div>
           <h1 className="text-2xl font-black uppercase italic text-black tracking-tighter leading-none">
-            Thông tin <span className="text-indigo-600 italic">Sản phẩm</span>
+            Thông tin <span className="text-primary italic">Sản phẩm</span>
           </h1>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">
             SKU: {product.sku} • ID Hệ thống: #{product.id}
@@ -88,12 +88,12 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
           </div>
 
           <div className="bg-white rounded-[2rem] p-6 shadow-md border border-slate-50 space-y-6">
-            <h2 className="text-xl font-black text-black uppercase italic tracking-tighter leading-tight">
+            <h2 className="text-xl font-black text-text-main font-display tracking-wider uppercase leading-tight">
               {product.name}
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 group hover:bg-indigo-50 transition-colors">
-                <ScaleIcon className="h-4 w-4 text-indigo-500 mb-2" />
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 group hover:bg-primary/10 transition-colors">
+                <ScaleIcon className="h-4 w-4 text-primary mb-2" />
                 <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
                   Đơn vị
                 </p>
@@ -118,7 +118,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
         <div className="lg:col-span-8 space-y-6">
           <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-3">
-              <div className="p-1.5 bg-black rounded-lg shadow-lg -rotate-3">
+              <div className="p-1.5 bg-primary rounded-lg shadow-lg -rotate-3">
                 <CalendarDaysIcon className="h-4 w-4 text-white" />
               </div>
               <h3 className="text-sm font-black text-black uppercase tracking-widest italic">
@@ -168,7 +168,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                   <p className="text-[8px] font-black text-slate-300 uppercase tracking-[0.2em] italic">
                     Mã định danh lô
                   </p>
-                  <p className="text-xs font-black text-black truncate uppercase tracking-tight italic group-hover:text-indigo-600 transition-colors">
+                  <p className="text-xs font-black text-black truncate uppercase tracking-tight italic group-hover:text-primary transition-colors">
                     {batch.batchCode}
                   </p>
                 </div>
@@ -184,7 +184,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                     </span>
                   </div>
                   {batch.imageUrl && (
-                    <PhotoIcon className="h-3 w-3 text-indigo-300 opacity-40" />
+                    <PhotoIcon className="h-3 w-3 text-primary/60 opacity-40" />
                   )}
                 </div>
               </div>

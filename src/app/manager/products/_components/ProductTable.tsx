@@ -87,7 +87,7 @@ export default function ProductTable({
                     <div className="flex flex-col">
                       <span
                         className={clsx(
-                          "text-base font-black uppercase italic tracking-tighter",
+                          "text-base font-black font-display tracking-wider uppercase",
                           item.isActive ? "text-slate-900" : "text-slate-300",
                         )}
                       >
@@ -101,7 +101,7 @@ export default function ProductTable({
                 </td>
                 <td className="px-6 py-8">
                   <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-3 py-1 rounded-lg w-fit uppercase italic border border-blue-100">
+                    <span className="text-[10px] font-black text-primary bg-blue-50 px-3 py-1 rounded-lg w-fit uppercase italic border border-primary/20">
                       {item.baseUnitName}
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 italic">
@@ -147,7 +147,7 @@ export default function ProductTable({
                     ) : (
                       <button
                         onClick={() => onRestore(item.id)}
-                        className="flex items-center gap-2 px-8 py-3 bg-slate-900 text-white text-[10px] font-black uppercase rounded-full hover:bg-black transition-all shadow-lg"
+                        className="flex items-center gap-2 px-8 py-3 bg-primary text-white text-[10px] font-black uppercase rounded-full hover:bg-primary-dark transition-all shadow-lg"
                       >
                         <ArrowPathIcon className="h-4 w-4 stroke-[3px]" /> KHÔI
                         PHỤC

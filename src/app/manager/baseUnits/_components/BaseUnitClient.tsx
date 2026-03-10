@@ -45,15 +45,15 @@ export default function BaseUnitClient() {
       {/* HEADER: Title & Button Trigger POST */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-4">
         <div>
-          <h1 className="text-4xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
-            Đơn vị <span className="text-indigo-600">Đo lường</span>
+          <h1 className="text-4xl font-black font-display tracking-wider uppercase text-text-main leading-none">
+            Đơn vị <span className="text-primary">Đo lường</span>
           </h1>
           <p className="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase mt-3 italic"></p>
         </div>
 
         <button
           onClick={handleOpenAdd}
-          className="rounded-full bg-slate-900 px-10 py-5 text-white font-black text-[11px] uppercase tracking-widest flex items-center gap-3 hover:bg-indigo-600 hover:scale-105 transition-all shadow-xl group"
+          className="rounded-full bg-primary px-10 py-5 text-white font-black text-[11px] uppercase tracking-widest flex items-center gap-3 hover:bg-primary-dark hover:scale-105 transition-all shadow-xl group"
         >
           <PlusIcon className="w-5 h-5 stroke-[3px] group-hover:rotate-90 transition-transform" />
           Thêm đơn vị mới
@@ -70,7 +70,7 @@ export default function BaseUnitClient() {
               placeholder="Tìm tên đơn vị..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-[1.5rem] py-4 pl-14 pr-6 text-sm font-bold text-slate-900 focus:outline-none focus:ring-4 ring-indigo-500/10 transition-all shadow-sm"
+              className="w-full bg-white border border-slate-200 rounded-[1.5rem] py-4 pl-14 pr-6 text-sm font-bold text-slate-900 focus:outline-none focus:ring-4 ring-primary/10 transition-all shadow-sm"
             />
           </div>
           <Button

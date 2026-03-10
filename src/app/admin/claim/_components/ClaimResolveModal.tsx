@@ -59,10 +59,10 @@ export default function ClaimResolveModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl rounded-[2.5rem] p-10 bg-white border-none shadow-2xl outline-none">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase italic text-black leading-none">
+          <DialogTitle className="text-2xl font-black uppercase italic text-text-main leading-none">
             Chi tiết khiếu nại
           </DialogTitle>
-          <p className="text-[10px] font-bold text-black/30 uppercase tracking-widest mt-2">
+          <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-2">
             ID: {claimId}
           </p>
         </DialogHeader>
@@ -85,7 +85,7 @@ export default function ClaimResolveModal({
                       <h4 className="font-black text-black uppercase italic text-sm">
                         {item.productName}
                       </h4>
-                      <span className="text-[9px] font-bold text-black/40 uppercase">
+                      <span className="text-[9px] font-bold text-text-muted uppercase">
                         Batch: {item.batchCode}
                       </span>
                     </div>
@@ -125,7 +125,7 @@ export default function ClaimResolveModal({
             {/* Form Phản hồi */}
             <div className="space-y-4 pt-4 border-t border-slate-100">
               <div className="space-y-2">
-                <label className="text-[9px] font-black text-black/40 uppercase tracking-widest ml-2">
+                <label className="text-[9px] font-black text-text-muted uppercase tracking-widest ml-2">
                   Ghi chú xử lý (Resolution Note)
                 </label>
                 <textarea
@@ -142,7 +142,7 @@ export default function ClaimResolveModal({
                   <button
                     disabled={resolveClaim.isPending}
                     onClick={() => handleResolve("approved")}
-                    className="flex-1 py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 py-4 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-2"
                   >
                     <CheckIcon className="h-4 w-4 stroke-[3px]" />
                     Chấp nhận

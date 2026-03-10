@@ -7,8 +7,6 @@ export const metadata = {
 
 export default function ShipmentPage() {
   return (
-    <main className="p-6 lg:p-10 min-h-screen bg-slate-50/30">
-      <ShipmentClient />
-    </main>
+    <ShipmentClient />
   );
 }

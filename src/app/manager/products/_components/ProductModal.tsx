@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { useProduct } from "@/hooks/useProduct";
@@ -138,7 +138,7 @@ export default function ProductModal({ isOpen, onClose, editingProduct }: any) {
           <button
             onClick={handleSubmit}
             disabled={uploadImage.isPending}
-            className="w-full py-5 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl"
+            className="w-full py-5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-dark transition-all shadow-xl"
           >
             {uploadImage.isPending
               ? "Đang xử lý ảnh..."

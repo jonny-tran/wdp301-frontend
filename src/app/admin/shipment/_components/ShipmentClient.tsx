@@ -65,7 +65,7 @@ export default function ShipmentClient() {
       {/* HEADER SECTION */}
       <div className="flex justify-between items-end px-1">
         <div className="space-y-1">
-          <h1 className="text-2xl font-black uppercase italic tracking-tighter text-slate-950 leading-none">
+          <h1 className="text-2xl font-black font-display tracking-wider uppercase text-text-main leading-none">
             Shipment Portal
           </h1>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">

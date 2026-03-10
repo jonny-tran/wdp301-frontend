@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useInventory } from "@/hooks/useInventory";
 import {
@@ -31,13 +31,13 @@ export default function KitchenBatchDetails({
       <div className="flex justify-between items-center">
         <button
           onClick={onBack}
-          className="text-xs font-bold uppercase italic text-slate-400 hover:text-indigo-600"
+          className="text-xs font-bold uppercase italic text-slate-400 hover:text-primary"
         >
           ← Quay lại
         </button>
         <h2 className="text-xl font-black uppercase italic italic tracking-tighter">
           Lô hàng:{" "}
-          <span className="text-indigo-600">
+          <span className="text-primary">
             {data?.productName || "Đang tải..."}
           </span>
         </h2>

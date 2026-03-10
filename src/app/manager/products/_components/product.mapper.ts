@@ -17,10 +17,14 @@ export function normalizeProduct(p: Record<string, any>): ProductRow {
     sku: p.sku || "N/A",
     name: p.name || "Sản phẩm không tên",
     baseUnitName: p.baseUnitName || "N/A",
+    baseUnitId: Number(p.baseUnitId || 0),
     shelfLifeDays: Number(p.shelfLifeDays || 0),
     minStockLevel: Number(p.minStockLevel || 0),
-    imageUrl: p.imageUrl || "https://res.cloudinary.com/dmhjgnymn/image/upload/v1770135560/OIP_j6j4gz.webp",
+    imageUrl: typeof p.imageUrl === "string" && p.imageUrl.includes("cdn.com") 
+      ? "https://placehold.co/400" 
+      : (p.imageUrl || "https://res.cloudinary.com/dmhjgnymn/image/upload/v1770135560/OIP_j6j4gz.webp"),
     isActive: !!p.isActive,
+    batches: Array.isArray(p.batches) ? p.batches : [],
   };
 }
 
@@ -49,5 +53,5 @@ export function extractBaseUnitOptions(raw: any): UnitOption[] {
   return units.map((u: any) => ({
     label: String(u.name || "N/A"),
     value: Number(u.id || 0)
-  })).filter(opt => opt.value !== 0);
+  })).filter((opt: any) => opt.value !== 0);
 }

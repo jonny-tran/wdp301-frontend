@@ -40,7 +40,7 @@ export default function UserClient({
       page: Number(readValue(searchParams.page)) || 1,
       limit: Number(readValue(searchParams.limit)) || 10,
       search: readValue(searchParams.search),
-      role: readValue(searchParams.role),
+      role: readValue(searchParams.role) as any,
       sortOrder: "DESC" as const,
     }),
     [searchParams],
@@ -119,11 +119,11 @@ export default function UserClient({
       <div className="flex justify-between items-end px-1">
         <div className="space-y-1">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-600 rounded-2xl shadow-lg shadow-indigo-100">
+            <div className="p-2.5 bg-primary rounded-2xl shadow-lg shadow-primary/20">
               <UserGroupIcon className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-3xl font-black text-slate-900 uppercase italic tracking-tighter leading-none">
-              Nhân sự <span className="text-indigo-600">Hệ thống</span>
+            <h1 className="text-3xl font-black text-text-main font-display tracking-wider uppercase leading-none">
+              Nhân sự <span className="text-primary">Hệ thống</span>
             </h1>
           </div>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1">
@@ -133,7 +133,7 @@ export default function UserClient({
         <Can I={P.USER_CREATE} on={Resource.USER}>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-[11px] font-black text-white hover:bg-indigo-600 transition-all shadow-xl active:scale-95 italic"
+            className="flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-[11px] font-black text-white hover:bg-primary transition-all shadow-xl active:scale-95 italic"
           >
             <UserPlusIcon className="h-4 w-4 stroke-[3px]" /> THÊM NHÂN VIÊN
           </button>

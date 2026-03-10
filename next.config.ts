@@ -5,13 +5,11 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'placehold.co',
-        port: '',
         pathname: '/**',
       },
       {
         protocol: 'https',
         hostname: 'images.unsplash.com',
-        port: '',
         pathname: '/**',
       },
       {
@@ -19,8 +17,6 @@ const nextConfig = {
         hostname: 'res.cloudinary.com',
         pathname: '/**',
       },
-      { protocol: 'https', 
-        hostname: 'cdn.com' },
       {
         protocol: 'https',
         hostname: 'images.pexels.com',
@@ -28,14 +24,14 @@ const nextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'res.cloudinary.com',
-        pathname: '/dmhjgnymn/image/upload/central-kitchen/**',
+        hostname: 'ui-avatars.com',
+        pathname: '/api/**',
       },
-            {
+      {
         protocol: 'https',
-        hostname: '',
-        pathname: 'file.hstatic.net',
-      }
+        hostname: 'file.hstatic.net',
+        pathname: '/**',
+      },
     ],
   },
 };

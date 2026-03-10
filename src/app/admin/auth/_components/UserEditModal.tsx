@@ -98,8 +98,8 @@ export default function UserEditModal({
         {/* HEADER SECTION */}
         <DialogHeader className="bg-slate-50/50 px-10 py-6 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left">
           <div className="space-y-0.5">
-            <DialogTitle className="text-xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
-              Cập nhật <span className="text-indigo-600">Hồ sơ nhân sự</span>
+            <DialogTitle className="text-xl font-black font-display tracking-wider uppercase text-text-main leading-none">
+              Cập nhật <span className="text-primary">Hồ sơ nhân sự</span>
             </DialogTitle>
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic truncate max-w-[200px]">
               Tài khoản: {user.username}
@@ -197,7 +197,7 @@ export default function UserEditModal({
                     <SelectItem
                       key={role.value}
                       value={role.value}
-                      className="py-4 px-6 text-slate-300 focus:bg-indigo-600 rounded-2xl italic font-black uppercase text-[10px]"
+                      className="py-4 px-6 text-slate-300 focus:bg-primary rounded-2xl italic font-black uppercase text-[10px]"
                     >
                       {role.label}
                     </SelectItem>
@@ -210,7 +210,7 @@ export default function UserEditModal({
           <Button
             type="submit"
             disabled={updateUser.isPending}
-            className="w-full rounded-full bg-slate-900 py-6 text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-indigo-600 transition-all active:scale-95 disabled:bg-slate-200 mt-2 italic"
+            className="w-full rounded-full bg-primary py-6 text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-primary-dark transition-all active:scale-95 disabled:bg-slate-200 mt-2 italic"
           >
             {updateUser.isPending
               ? "Đang lưu hệ thống..."

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { ClaimRow } from "./claims.types";
 import {
@@ -61,14 +61,14 @@ export default function ClaimTable({ data, onSelect, onResolve }: Props) {
           return (
             <TableRow
               key={row.claimId}
-              className="border-slate-50 hover:bg-indigo-50/10 transition-all group"
+              className="border-slate-50 hover:bg-primary/10/10 transition-all group"
             >
               <TableCell className="pl-10 py-8 font-black italic text-slate-300">
                 {row.no}
               </TableCell>
               <TableCell className="py-8" onClick={() => onSelect(row.claimId)}>
                 <div className="flex flex-col cursor-pointer">
-                  <span className="text-sm font-black uppercase italic text-slate-900 group-hover:text-indigo-600">
+                  <span className="text-sm font-black uppercase italic text-slate-900 group-hover:text-primary">
                     ID: {row.claimId.slice(0, 8)}...
                   </span>
                   <span className="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-tighter">
@@ -106,7 +106,7 @@ export default function ClaimTable({ data, onSelect, onResolve }: Props) {
                         e.stopPropagation();
                         onResolve(row.claimId);
                       }}
-                      className="p-3 bg-indigo-600 text-white border-none rounded-xl hover:bg-slate-950 transition-all shadow-lg hover:shadow-indigo-500/20 active:scale-95"
+                      className="p-3 bg-primary text-white border-none rounded-xl hover:bg-slate-950 transition-all shadow-lg hover:shadow-primary/100/20 active:scale-95"
                     >
                       <CheckIcon className="w-4 h-4 stroke-[3px]" />
                     </Button>

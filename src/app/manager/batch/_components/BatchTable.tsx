@@ -1,17 +1,15 @@
 "use client";
 
-import {
-  PencilSquareIcon,
-  InboxStackIcon,
-  CalendarIcon,
-  PhotoIcon,
-  ArchiveBoxIcon,
-} from "@heroicons/react/24/outline";
-import { Batch } from "@/types/product";
-import { format } from "date-fns";
-import { clsx } from "clsx";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { Batch } from "@/types/product";
+import {
+  ArchiveBoxIcon,
+  CalendarIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/24/outline";
+import { clsx } from "clsx";
+import { format } from "date-fns";
+import Image from "next/image";
 
 interface BatchTableProps {
   items: Batch[];
@@ -63,13 +61,13 @@ export default function BatchTable({
           {items.map((item) => (
             <tr
               key={item.id}
-              className="group hover:bg-slate-900 transition-all duration-300"
+              className="group hover:bg-primary transition-all duration-300"
             >
               <td className="px-10 py-6">
                 <div className="flex items-center gap-4">
                   <div className="relative h-14 w-14 rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center border border-slate-100 group-hover:border-slate-700 transition-all shadow-sm">
                     {item.imageUrl && item.imageUrl.trim() !== "" ? (
-                      <img
+                      <Image
                         src={item.imageUrl || "batch-image"}
                         alt={item.batchCode || "batch-image"}
                         fill
@@ -97,7 +95,7 @@ export default function BatchTable({
                 </div>
               </td>
               <td className="px-6 py-6 text-center">
-                <span className="text-xl font-black text-slate-900 group-hover:text-indigo-400 transition-colors">
+                <span className="text-xl font-black text-slate-900 group-hover:text-primary transition-colors">
                   {Number(item.currentQuantity).toLocaleString()}
                 </span>
               </td>
@@ -117,7 +115,7 @@ export default function BatchTable({
               <td className="px-6 py-6">
                 <span
                   className={clsx(
-                    "px-3 py-1.5 rounded-full text-[10px] font-black uppercase italic tracking-tighter shadow-sm",
+                    "px-3 py-1.5 rounded-full text-[10px] font-black font-display tracking-wider uppercase shadow-sm",
                     item.status === "available"
                       ? "bg-green-100 text-green-600 group-hover:bg-green-600 group-hover:text-white"
                       : "bg-amber-100 text-amber-600 group-hover:bg-amber-600 group-hover:text-white",

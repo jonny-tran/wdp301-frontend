@@ -89,7 +89,7 @@ export default function TransactionTable({
                       <ArrowUpRightIcon className="h-4 w-4" />
                     </div>
                   ) : (
-                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
+                    <div className="p-2 bg-primary/10 text-primary rounded-lg group-hover:bg-blue-600 group-hover:text-white transition-all shadow-sm">
                       <ArrowsRightLeftIcon className="h-4 w-4" />
                     </div>
                   )}
@@ -97,7 +97,7 @@ export default function TransactionTable({
               </td>
               <td
                 className={`px-4 py-5 text-center font-black italic text-xl tracking-tighter tabular-nums group-hover:text-white transition-colors
-                ${t.type === "IN" ? "text-green-600" : t.type === "OUT" ? "text-red-600" : "text-blue-600"}`}
+                ${t.type === "IN" ? "text-green-600" : t.type === "OUT" ? "text-red-600" : "text-primary"}`}
               >
                 {t.type === "OUT" ? "-" : "+"}
                 {t.quantity}
