@@ -19,7 +19,9 @@ import { UserGroupIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import Can from "@/components/shared/Can";
 import { P } from "@/lib/authz";
 import { Resource } from "@/utils/constant";
-import { UserRow, RoleOption } from "./user.types";
+import { UserRow } from "./user.types";
+import { Role } from "@/utils/enum";
+import { PaginationMeta } from "@/types/base";
 
 export default function UserClient({
   searchParams,
@@ -40,7 +42,7 @@ export default function UserClient({
       page: Number(readValue(searchParams.page)) || 1,
       limit: Number(readValue(searchParams.limit)) || 10,
       search: readValue(searchParams.search),
-      role: readValue(searchParams.role) as any,
+      role: readValue(searchParams.role) as Role | undefined,
       sortOrder: "DESC" as const,
     }),
     [searchParams],
@@ -71,7 +73,7 @@ export default function UserClient({
 
   // 4. Bóc tách Metadata phân trang an toàn
   const meta = useMemo(() => {
-    const rawData = userQuery.data as any;
+    const rawData = userQuery.data as { data?: { meta?: PaginationMeta }; meta?: PaginationMeta } | undefined;
     const m = rawData?.data?.meta || rawData?.meta;
     return {
       currentPage: m?.currentPage ?? 1,
@@ -82,10 +84,10 @@ export default function UserClient({
   }, [userQuery.data]);
 
   const updateNavigation = useCallback(
-    (params: Record<string, any>) => {
+    (params: { page: number }) => {
       const newSearchParams = createPaginationSearchParams(
         searchParamsHook,
-        params.page,
+        { page: params.page },
       );
       // Đảm bảo giữ lại các filter hiện tại khi chuyển trang
       if (queryParams.search) newSearchParams.set("search", queryParams.search);

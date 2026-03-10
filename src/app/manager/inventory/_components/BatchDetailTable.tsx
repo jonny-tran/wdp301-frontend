@@ -1,11 +1,19 @@
-﻿"use client";
+"use client";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format, isPast } from "date-fns";
 import { cn } from "@/lib/utils";
 
-export default function BatchDetailTable({ details }: { details: any[] }) {
+export interface BatchDetail {
+  batch_code: string;
+  expiry_date: string;
+  physical: number;
+  reserved: number;
+  available: number;
+}
+
+export default function BatchDetailTable({ details }: { details: BatchDetail[] }) {
   return (
     <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden animate-in fade-in duration-500">
       <div className="bg-slate-50/50 px-8 py-5 border-b flex justify-between items-center">

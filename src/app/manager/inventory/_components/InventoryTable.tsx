@@ -2,7 +2,6 @@
 
 import {
   PlusIcon,
-  ExclamationCircleIcon,
   ArchiveBoxIcon,
 } from "@heroicons/react/24/outline";
 import Can from "@/components/shared/Can";

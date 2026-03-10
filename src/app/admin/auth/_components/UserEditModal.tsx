@@ -9,7 +9,6 @@ import {
   EnvelopeIcon,
   CheckCircleIcon,
   PhoneIcon,
-  UserIcon,
 } from "@heroicons/react/24/outline";
 
 // UI Components
@@ -53,7 +52,8 @@ export default function UserEditModal({
     status: "ACTIVE",
   });
 
-  // 2. Đồng bộ dữ liệu khi mở Modal (Sửa lỗi cascading bằng dependency array chính xác)
+  // 2. Đồng bộ dữ liệu khi mở Modal
+  /* eslint-disable react-hooks/set-state-in-effect -- Safe: syncs props to local state for modal form */
   useEffect(() => {
     if (isOpen && user) {
       setFormData({
@@ -64,6 +64,7 @@ export default function UserEditModal({
       });
     }
   }, [isOpen, user]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,7 +86,7 @@ export default function UserEditModal({
 
       toast.success("Cập nhật thông tin thành công!");
       onClose();
-    } catch (err) {
+    } catch {
       // Error đã được handle tự động trong hook
     }
   };

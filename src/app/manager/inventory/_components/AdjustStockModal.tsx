@@ -8,13 +8,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useInventory } from "@/hooks/useInventory";
-import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { InventoryAdjustBody, InventoryAdjustBodyType } from "@/schemas/inventory";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { handleErrorApi } from "@/lib/errors";
 
-export default function AdjustStockModal({ item, isOpen, onClose }: any) {
+import { InventoryDisplayItem } from "./InventoryClient";
+
+interface AdjustStockModalProps {
+  item: InventoryDisplayItem | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function AdjustStockModal({ item, isOpen, onClose }: AdjustStockModalProps) {
   const { adjustInventory } = useInventory();
 
   const {
@@ -24,6 +31,7 @@ export default function AdjustStockModal({ item, isOpen, onClose }: any) {
     setError,
     formState: { errors, isSubmitting },
   } = useForm<InventoryAdjustBodyType>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(InventoryAdjustBody) as any,
     defaultValues: {
       adjustmentQuantity: 0,
@@ -44,11 +52,11 @@ export default function AdjustStockModal({ item, isOpen, onClose }: any) {
     }
   }, [isOpen, item, reset]);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: InventoryAdjustBodyType) => {
     try {
       await adjustInventory.mutateAsync(data);
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       handleErrorApi({
         error,
         setError,

@@ -59,7 +59,7 @@ export default function SupplierCreateModal({
       await createSupplier.mutateAsync(formData);
       toast.success("Khởi tạo nhà cung cấp thành công!");
       handleClose();
-    } catch (err) {
+    } catch {
       // Error đã được handle trong hook qua handleErrorApi
     }
   };

@@ -8,11 +8,22 @@ import {
   ClockIcon,
 } from "@heroicons/react/24/outline";
 
+export interface TransactionItem {
+  id: string | number;
+  createdAt: string;
+  productName: string;
+  warehouseName?: string;
+  type: "IN" | "OUT" | string;
+  quantity: number;
+  reason: string;
+  note?: string;
+}
+
 export default function TransactionTable({
   items = [],
   isLoading,
 }: {
-  items: any[];
+  items: TransactionItem[];
   isLoading: boolean;
 }) {
   if (isLoading)
@@ -109,7 +120,7 @@ export default function TransactionTable({
                   </span>
                   {t.note && (
                     <p className="text-[9px] text-slate-400 group-hover:text-slate-500 italic truncate max-w-[180px]">
-                      "{t.note}"
+                      &ldquo;{t.note}&rdquo;
                     </p>
                   )}
                 </div>

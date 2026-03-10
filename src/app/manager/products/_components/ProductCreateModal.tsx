@@ -6,7 +6,6 @@ import {
   CheckIcon,
   ArrowPathIcon,
   PlusIcon,
-  ArchiveBoxIcon,
   PhotoIcon,
 } from "@heroicons/react/24/outline";
 import { useProduct } from "@/hooks/useProduct";
@@ -70,7 +69,7 @@ export default function ProductCreateModal({
       });
       toast.success("Đã thêm sản phẩm mới vào danh mục!");
       onClose();
-    } catch (error) {
+    } catch {
       // Lỗi được xử lý tại useProduct
     }
   };

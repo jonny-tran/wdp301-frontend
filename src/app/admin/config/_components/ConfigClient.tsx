@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -33,14 +33,14 @@ export default function ConfigClient() {
     queryKey: ["system-configs"],
     queryFn: () =>
       http.get<SystemConfig[]>("/system-configs").then((res) => {
-        const source = res.data as any;
-        return source?.data || source || [];
+        const source = res.data as { data?: SystemConfig[] } | SystemConfig[];
+        return ((source as { data?: SystemConfig[] })?.data || source || []) as SystemConfig[];
       }),
   });
 
   // 2. Mutation cập nhật
   const updateMutation = useMutation({
-    mutationFn: ({ key, payload }: { key: string; payload: any }) =>
+    mutationFn: ({ key, payload }: { key: string; payload: UpdateConfigPayload }) =>
       http.patch(`/ system - configs / ${key} `, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["system-configs"] });

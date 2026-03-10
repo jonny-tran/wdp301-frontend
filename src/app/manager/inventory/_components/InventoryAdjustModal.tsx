@@ -24,6 +24,7 @@ export default function InventoryAdjustModal({ isOpen, onClose }: Props) {
     formState: { errors },
     reset,
   } = useForm<InventoryAdjustBodyType>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(InventoryAdjustBody) as any,
   });
 
@@ -35,6 +36,8 @@ export default function InventoryAdjustModal({ isOpen, onClose }: Props) {
       },
     });
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">

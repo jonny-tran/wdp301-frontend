@@ -1,16 +1,31 @@
 "use client";
 
-import { MagnifyingGlassIcon, FunnelIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
-export default function ShipmentFilter({ filters, onFilterChange }: any) {
-  const statusOptions = [
-    "preparing",
-    "picking",
-    "delivering",
-    "completed",
-    "cancelled",
-  ];
+export interface ShipmentFilterValues {
+  search: string;
+  status: string;
+  fromDate: string;
+  toDate: string;
+}
 
+interface ShipmentFilterProps {
+  filters: ShipmentFilterValues;
+  onFilterChange: (updates: Partial<ShipmentFilterValues>) => void;
+}
+
+export default function ShipmentFilter({
+  filters,
+  onFilterChange,
+}: ShipmentFilterProps) {
   return (
     <div className="bg-white p-3 rounded-[2rem] border border-slate-100 shadow-sm flex flex-wrap items-center gap-3 animate-in slide-in-from-top duration-500">
       <div className="relative flex-1 min-w-[300px]">
@@ -24,33 +39,49 @@ export default function ShipmentFilter({ filters, onFilterChange }: any) {
         />
       </div>
 
-      <select
-        value={filters.status || ""}
-        onChange={(e) => onFilterChange({ status: e.target.value })}
-        className="bg-slate-50 border-none rounded-full py-3 px-6 text-[10px] font-black uppercase tracking-widest cursor-pointer outline-none focus:ring-2 focus:ring-slate-900"
+      {/* Lọc theo Trạng thái */}
+      <Select
+        // Chuyển giá trị undefined/null thành "ALL" để đồng bộ logic dropdown
+        value={filters.status || "ALL"}
+        onValueChange={(value) =>
+          onFilterChange({ status: value === "ALL" ? undefined : value })
+        }
       >
-        <option value="">TẤT CẢ TRẠNG THÁI</option>
-        {[
-          { value: "preparing", label: "Đang chuẩn bị" },
-          { value: "picking", label: "Đang lấy hàng" },
-          { value: "delivering", label: "Đang giao" },
-          { value: "completed", label: "Hoàn thành" },
-          { value: "cancelled", label: "Đã hủy" },
-        ].map((s) => (
-          <option key={s.value} value={s.value}>
-            {s.label.toUpperCase()}
-          </option>
-        ))}
-      </select>
+        {/* Đưa toàn bộ styling cũ từ className của select vào SelectTrigger */}
+        <SelectTrigger className="w-[180px] bg-slate-50 border-none rounded-full py-3 px-6 text-[10px] font-black uppercase tracking-widest cursor-pointer outline-none focus:ring-2 focus:ring-slate-900 shadow-none">
+          <SelectValue placeholder="TẤT CẢ TRẠNG THÁI" />
+        </SelectTrigger>
 
-      <button
+        <SelectContent>
+          <SelectItem value="ALL" className="text-[10px] font-bold uppercase">
+            TẤT CẢ TRẠNG THÁI
+          </SelectItem>
+          {[
+            { value: "preparing", label: "Đang chuẩn bị" },
+            { value: "picking", label: "Đang lấy hàng" },
+            { value: "delivering", label: "Đang giao" },
+            { value: "completed", label: "Hoàn thành" },
+            { value: "cancelled", label: "Đã hủy" },
+          ].map((s) => (
+            <SelectItem
+              key={s.value}
+              value={s.value}
+              className="text-[10px] font-bold uppercase"
+            >
+              {s.label.toUpperCase()}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Button
         onClick={() =>
           onFilterChange({ search: "", status: "", fromDate: "", toDate: "" })
         }
         className="p-3 hover:bg-slate-100 rounded-full transition-colors text-slate-400 active:scale-90"
       >
         <FunnelIcon className="h-5 w-5" />
-      </button>
+      </Button>
     </div>
   );
 }

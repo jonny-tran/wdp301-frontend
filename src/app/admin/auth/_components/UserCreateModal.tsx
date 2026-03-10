@@ -13,6 +13,7 @@ import {
   LockClosedIcon,
   BuildingStorefrontIcon,
 } from "@heroicons/react/24/outline";
+import { Role } from "@/utils/enum";
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -87,20 +88,23 @@ export default function UserCreateModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const submitData = { ...formData, role: activeRole as any };
+    const submitData: { username: string; email: string; password: string; role: Role; storeId?: string } = {
+      ...formData,
+      role: activeRole as Role,
+    };
 
     if (isStoreStaff && !submitData.storeId) {
       toast.error("Vui lòng chọn chi nhánh nhượng quyền!");
       return;
     }
 
-    if (!isStoreStaff) delete (submitData as any).storeId;
+    if (!isStoreStaff) delete submitData.storeId;
 
     try {
       await createUser.mutateAsync(submitData);
       toast.success("Tạo tài khoản thành công!");
       handleClose();
-    } catch (err) {
+    } catch {
       // Lỗi được xử lý tự động trong hook
     }
   };

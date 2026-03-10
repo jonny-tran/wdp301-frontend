@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useEffect, useState } from "react";
 import { SystemConfig } from "./ConfigClient";
-import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 
 interface Props {
   isOpen: boolean;
@@ -22,12 +25,14 @@ export default function ConfigEditModal({
   const [value, setValue] = useState("");
   const [desc, setDesc] = useState("");
 
+  /* eslint-disable react-hooks/set-state-in-effect -- Safe: syncs config prop to local state */
   useEffect(() => {
     if (config) {
       setValue(config.value);
       setDesc(config.description);
     }
   }, [config]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   if (!isOpen || !config) return null;
 
@@ -43,12 +48,12 @@ export default function ConfigEditModal({
               {config.key}
             </span>
           </div>
-          <button
+          <Button
             onClick={onClose}
             className="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors"
           >
             <XMarkIcon className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
 
         <div className="space-y-4">
@@ -56,7 +61,7 @@ export default function ConfigEditModal({
             <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
               Giá trị mới
             </label>
-            <input
+            <Input
               value={value}
               onChange={(e) => setValue(e.target.value)}
               className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-primary transition-all"
@@ -66,7 +71,7 @@ export default function ConfigEditModal({
             <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
               Mô tả tác vụ
             </label>
-            <textarea
+            <Textarea
               rows={3}
               value={desc}
               onChange={(e) => setDesc(e.target.value)}

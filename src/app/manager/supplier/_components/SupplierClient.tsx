@@ -6,7 +6,6 @@ import { Supplier } from "@/types/supplier";
 import SupplierTable from "./SupplierTable";
 import SupplierCreateModal from "./SupplierCreateModal";
 import SupplierEditModal from "./SupplierEditModal"; // Import component mới
-import { toast } from "sonner";
 import Can from "@/components/shared/Can";
 import { P } from "@/lib/authz";
 import { Resource } from "@/utils/constant";

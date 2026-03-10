@@ -8,7 +8,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
 import { BaseUnit } from "@/types/base-unit";
-import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { UpdateBaseUnitBody, UpdateBaseUnitBodyType } from "@/schemas/base-unit";
 import { zodResolver } from "@hookform/resolvers/zod";

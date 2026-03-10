@@ -6,7 +6,6 @@ import {
   CheckIcon,
   ArrowPathIcon,
   PencilSquareIcon,
-  PhotoIcon,
 } from "@heroicons/react/24/outline";
 import { useProduct } from "@/hooks/useProduct";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
@@ -79,7 +78,7 @@ export default function ProductEditModal({
       });
       toast.success("Cập nhật thông tin sản phẩm thành công!");
       onClose();
-    } catch (error) {
+    } catch {
       // Lỗi được xử lý trong useProduct hook
     }
   };

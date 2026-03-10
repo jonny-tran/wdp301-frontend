@@ -1,11 +1,8 @@
 "use client";
 
-import {
-  EyeIcon,
-  DocumentDuplicateIcon,
-  ClockIcon,
-} from "@heroicons/react/24/outline";
+import { Button } from "@/components/ui/button";
 import { Shipment } from "@/types/shipment";
+import { ClockIcon, DocumentDuplicateIcon } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -72,12 +69,12 @@ export default function ShipmentTable({
                       <span className="font-black text-slate-900 group-hover:text-white transition-colors italic text-sm tracking-tighter">
                         #{ship.id.slice(0, 8).toUpperCase()}
                       </span>
-                      <button
+                      <Button
                         onClick={(e) => handleCopy(e, ship.id, "Mã vận đơn")}
                         className="opacity-0 group-hover/ship:opacity-100 p-1.5 bg-slate-50 rounded-lg hover:bg-white active:scale-90 transition-all shadow-sm"
                       >
                         <DocumentDuplicateIcon className="h-3 w-3 text-slate-400" />
-                      </button>
+                      </Button>
                     </div>
                     <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-500">
                       ORD: {ship.orderId.slice(0, 8).toUpperCase()}
@@ -134,12 +131,13 @@ export default function ShipmentTable({
                 <td className="px-4 py-5 text-center">
                   <span
                     className={`inline-block w-full py-1 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all duration-300
-                    ${ship.status === "completed"
+                    ${
+                      ship.status === "completed"
                         ? "bg-green-100 text-green-700 group-hover:bg-green-600 group-hover:text-white"
                         : ship.status === "preparing"
                           ? "bg-orange-100 text-orange-700 group-hover:bg-orange-600 group-hover:text-white"
                           : "bg-blue-100 text-blue-700 group-hover:bg-blue-600 group-hover:text-white"
-                      }`}
+                    }`}
                   >
                     {ship.status === "completed"
                       ? "Hoàn thành"

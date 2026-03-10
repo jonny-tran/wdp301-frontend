@@ -1,4 +1,4 @@
-import { ProductRow } from "./product.types";
+import { ProductRow, RawProductData, ProductListResponse, RawBaseUnitData, BaseUnitListResponse } from "./product.types";
 
 /**
  * Định nghĩa kiểu dữ liệu cho Select Option
@@ -11,7 +11,7 @@ export interface UnitOption {
 /**
  * Chuyển đổi dữ liệu Sản phẩm từ API sang hàng trong bảng
  */
-export function normalizeProduct(p: Record<string, any>): ProductRow {
+export function normalizeProduct(p: RawProductData): ProductRow {
   return {
     id: p.id,
     sku: p.sku || "N/A",
@@ -31,8 +31,9 @@ export function normalizeProduct(p: Record<string, any>): ProductRow {
 /**
  * Trích xuất danh sách sản phẩm từ Response
  */
-export function extractProducts(raw: any): ProductRow[] {
-  const items = raw?.data?.items || raw?.items || raw?.data || [];
+export function extractProducts(raw: unknown): ProductRow[] {
+  const data = raw as ProductListResponse | undefined;
+  const items = data?.data?.items || data?.items || [];
   return Array.isArray(items) ? items.map(normalizeProduct) : [];
 }
 
@@ -40,18 +41,25 @@ export function extractProducts(raw: any): ProductRow[] {
  * Trích xuất danh sách Đơn vị tính cho Select
  * Sửa lỗi "Trống dữ liệu đơn vị" bằng cách quét đa tầng
  */
-export function extractBaseUnitOptions(raw: any): UnitOption[] {
-  // Tìm mảng dữ liệu trong res.data hoặc res.data.items
-  const units = Array.isArray(raw) 
-    ? raw 
-    : Array.isArray(raw?.data) 
-      ? raw.data 
-      : Array.isArray(raw?.data?.items) 
-        ? raw.data.items 
-        : [];
+export function extractBaseUnitOptions(raw: unknown): UnitOption[] {
+  const response = raw as BaseUnitListResponse | RawBaseUnitData[] | undefined;
 
-  return units.map((u: any) => ({
-    label: String(u.name || "N/A"),
-    value: Number(u.id || 0)
-  })).filter((opt: any) => opt.value !== 0);
+  // Tìm mảng dữ liệu trong res.data hoặc res.data.items
+  let units: RawBaseUnitData[] = [];
+  if (Array.isArray(response)) {
+    units = response;
+  } else if (response?.data) {
+    if (Array.isArray(response.data)) {
+      units = response.data;
+    } else if (Array.isArray((response.data as { items?: RawBaseUnitData[] }).items)) {
+      units = (response.data as { items: RawBaseUnitData[] }).items;
+    }
+  }
+
+  return units
+    .map((u) => ({
+      label: String(u.name || "N/A"),
+      value: Number(u.id || 0),
+    }))
+    .filter((opt) => opt.value !== 0);
 }

@@ -82,7 +82,7 @@ export default function SupplierEditModal({
 
       toast.success("Cập nhật thông tin đối tác thành công!");
       onClose();
-    } catch (err) {
+    } catch {
       // Error handled in hook
     }
   };

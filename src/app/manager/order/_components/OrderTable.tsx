@@ -5,10 +5,7 @@ import { OrderRow } from "./order.types";
 import { OrderStatus } from "@/utils/enum";
 import {
   EyeIcon,
-  ClockIcon,
   TruckIcon,
-  CheckBadgeIcon,
-  XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { clsx } from "clsx";
 
