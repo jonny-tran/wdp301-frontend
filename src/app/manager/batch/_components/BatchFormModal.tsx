@@ -1,23 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
-import { useProduct } from "@/hooks/useProduct";
 import ImageUpload from "@/components/shared/ImageUpload";
-import { toast } from "sonner";
-import {
-  XMarkIcon,
-  CheckIcon,
-  PencilSquareIcon,
-  CircleStackIcon,
-  CalendarIcon,
-  TagIcon,
-} from "@heroicons/react/24/outline";
-import { Batch } from "@/types/product";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { UpdateBatchBody, UpdateBatchBodyType } from "@/schemas/product";
-import { BatchStatus } from "@/utils/enum";
+import { Button } from "@/components/ui/button";
+import { useProduct } from "@/hooks/useProduct";
 import { handleErrorApi } from "@/lib/errors";
+import { UpdateBatchBody, UpdateBatchBodyType } from "@/schemas/product";
+import { Batch } from "@/types/product";
+import { BatchStatus } from "@/utils/enum";
+import {
+  CalendarIcon,
+  CheckIcon,
+  CircleStackIcon,
+  PencilSquareIcon,
+  TagIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
+import { Controller, useForm } from "react-hook-form";
 
 interface Props {
   isOpen: boolean;
@@ -27,7 +27,13 @@ interface Props {
   productName?: string;
 }
 
-export default function BatchFormModal({ isOpen, onClose, batch, productId, productName }: Props) {
+export default function BatchFormModal({
+  isOpen,
+  onClose,
+  batch,
+  productId,
+  productName,
+}: Props) {
   const { updateBatch } = useProduct();
 
   const {
@@ -87,21 +93,23 @@ export default function BatchFormModal({ isOpen, onClose, batch, productId, prod
               <PencilSquareIcon className="h-6 w-6 stroke-[2.5px]" />
             </div>
             <div className="flex flex-col">
-              <h3 className="text-2xl font-black uppercase italic text-slate-900 tracking-tighter">
-                {batch ? `Cập nhật Lô: ${batch.batchCode}` : `Thêm Lô mới: ${productName}`}
+              <h3 className="text-2xl font-black font-display tracking-wider uppercase text-text-main">
+                {batch
+                  ? `Cập nhật Lô: ${batch.batchCode}`
+                  : `Thêm Lô mới: ${productName}`}
               </h3>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 ml-1">
-                {batch ? 'Batch Modification Mode' : 'New Batch Entry'}
+                {batch ? "Batch Modification Mode" : "New Batch Entry"}
               </p>
             </div>
           </div>
-          <button
+          <Button
             type="button"
             onClick={onClose}
             className="p-3 hover:bg-slate-50 rounded-full text-slate-400 transition-colors"
           >
             <XMarkIcon className="h-6 w-6" />
-          </button>
+          </Button>
         </div>
 
         <div className="grid grid-cols-2 gap-x-10 gap-y-6">
@@ -137,7 +145,11 @@ export default function BatchFormModal({ isOpen, onClose, batch, productId, prod
                   {...register("initialQuantity", { valueAsNumber: true })}
                   className={`w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-black text-slate-900 outline-none focus:bg-white transition-all shadow-sm ${errors.initialQuantity ? "border-red-500 bg-red-50" : ""}`}
                 />
-                {errors.initialQuantity && <p className="text-[10px] text-red-500 ml-4">{errors.initialQuantity.message}</p>}
+                {errors.initialQuantity && (
+                  <p className="text-[10px] text-red-500 ml-4">
+                    {errors.initialQuantity.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
@@ -152,7 +164,11 @@ export default function BatchFormModal({ isOpen, onClose, batch, productId, prod
                   <option value={BatchStatus.EMPTY}>EMPTY</option>
                   <option value={BatchStatus.EXPIRED}>EXPIRED</option>
                 </select>
-                {errors.status && <p className="text-[10px] text-red-500 ml-4">{errors.status.message}</p>}
+                {errors.status && (
+                  <p className="text-[10px] text-red-500 ml-4">
+                    {errors.status.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -174,7 +190,11 @@ export default function BatchFormModal({ isOpen, onClose, batch, productId, prod
                 )}
               />
             </div>
-            {errors.imageUrl && <p className="text-[10px] text-red-500 ml-4">{errors.imageUrl.message}</p>}
+            {errors.imageUrl && (
+              <p className="text-[10px] text-red-500 ml-4">
+                {errors.imageUrl.message}
+              </p>
+            )}
           </div>
         </div>
 
@@ -196,5 +216,3 @@ export default function BatchFormModal({ isOpen, onClose, batch, productId, prod
     </div>
   );
 }
-
-

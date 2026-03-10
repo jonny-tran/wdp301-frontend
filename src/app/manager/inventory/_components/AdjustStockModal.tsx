@@ -8,13 +8,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useInventory } from "@/hooks/useInventory";
-import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { InventoryAdjustBody, InventoryAdjustBodyType } from "@/schemas/inventory";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { handleErrorApi } from "@/lib/errors";
 
-export default function AdjustStockModal({ item, isOpen, onClose }: any) {
+import { InventoryDisplayItem } from "./InventoryClient";
+
+interface AdjustStockModalProps {
+  item: InventoryDisplayItem | null;
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+export default function AdjustStockModal({ item, isOpen, onClose }: AdjustStockModalProps) {
   const { adjustInventory } = useInventory();
 
   const {
@@ -24,6 +31,7 @@ export default function AdjustStockModal({ item, isOpen, onClose }: any) {
     setError,
     formState: { errors, isSubmitting },
   } = useForm<InventoryAdjustBodyType>({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(InventoryAdjustBody) as any,
     defaultValues: {
       adjustmentQuantity: 0,
@@ -44,11 +52,11 @@ export default function AdjustStockModal({ item, isOpen, onClose }: any) {
     }
   }, [isOpen, item, reset]);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: InventoryAdjustBodyType) => {
     try {
       await adjustInventory.mutateAsync(data);
       onClose();
-    } catch (error: any) {
+    } catch (error: unknown) {
       handleErrorApi({
         error,
         setError,
@@ -60,10 +68,10 @@ export default function AdjustStockModal({ item, isOpen, onClose }: any) {
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="rounded-[2.5rem] border-none max-w-md p-10 bg-white shadow-2xl overflow-hidden">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-black">
+          <DialogTitle className="text-2xl font-black font-display tracking-wider uppercase text-black">
             LỆNH ĐIỀU CHỈNH
           </DialogTitle>
-          <p className="text-[10px] font-black text-black/40 uppercase tracking-widest mt-2">
+          <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mt-2">
             PRODUCT: {item?.productName}
           </p>
         </DialogHeader>
@@ -99,7 +107,7 @@ export default function AdjustStockModal({ item, isOpen, onClose }: any) {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-5 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-xl disabled:opacity-50"
+            className="w-full py-5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-dark transition-all shadow-xl disabled:opacity-50"
           >
             {isSubmitting ? "ĐANG XỬ LÝ..." : "XÁC NHẬN CẬP NHẬT"}
           </button>

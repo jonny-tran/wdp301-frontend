@@ -11,7 +11,7 @@ export default function StoreReliability({ stats }: { stats: StoreReliabilityAna
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Chỉ số trung bình hệ thống */}
-      <div className="bg-black p-8 rounded-[2.5rem] shadow-2xl flex flex-col justify-between">
+      <div className="bg-primary p-8 rounded-[2.5rem] shadow-2xl flex flex-col justify-between">
         <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">
           System Claim Average
         </p>
@@ -28,7 +28,7 @@ export default function StoreReliability({ stats }: { stats: StoreReliabilityAna
       {/* Danh sách Store cần chú ý */}
       <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden">
         <div className="flex justify-between items-center mb-6">
-          <p className="text-[10px] font-black text-black/40 uppercase tracking-[0.2em]">
+          <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
             Store Reliability Ranking
           </p>
           <div className="flex items-center gap-1">
@@ -47,7 +47,7 @@ export default function StoreReliability({ stats }: { stats: StoreReliabilityAna
             >
               <div className="flex items-center gap-4">
                 <div
-                  className={`p-2 rounded-lg ${s.isFraudWarning ? "bg-red-100 text-red-600" : "bg-black text-white"}`}
+                  className={`p-2 rounded-lg ${s.isFraudWarning ? "bg-red-100 text-red-600" : "bg-primary text-white"}`}
                 >
                   {s.isFraudWarning ? (
                     <ExclamationTriangleIcon className="h-4 w-4" />
@@ -59,7 +59,7 @@ export default function StoreReliability({ stats }: { stats: StoreReliabilityAna
                   <p className="text-[11px] font-black text-black uppercase italic">
                     {s.storeName}
                   </p>
-                  <p className="text-[9px] font-bold text-black/30 uppercase tracking-tighter">
+                  <p className="text-[9px] font-bold text-text-muted uppercase tracking-tighter">
                     Hỏng: {s.totalDamagedQty} đơn
                   </p>
                 </div>

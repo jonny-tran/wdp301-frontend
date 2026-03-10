@@ -55,7 +55,7 @@ export default function BatchClient() {
       {/* Header & Search Bar */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1">
         <div className="flex items-center gap-4">
-          <div className="h-14 w-14 bg-slate-900 rounded-[2rem] flex items-center justify-center shadow-xl shadow-slate-200">
+          <div className="h-14 w-14 bg-primary rounded-[2rem] flex items-center justify-center shadow-xl shadow-slate-200">
             <InboxStackIcon className="h-7 w-7 text-white" />
           </div>
           <div className="flex flex-col">
@@ -73,7 +73,7 @@ export default function BatchClient() {
             <MagnifyingGlassIcon className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 stroke-[3px]" />
             <input
               placeholder="Lọc mã lô hàng..."
-              className="w-full pl-12 pr-6 py-4 rounded-full bg-white border border-slate-100 text-xs font-bold outline-none focus:border-indigo-600 focus:shadow-xl focus:shadow-indigo-50 transition-all shadow-sm"
+              className="w-full pl-12 pr-6 py-4 rounded-full bg-white border border-slate-100 text-xs font-bold outline-none focus:border-primary focus:shadow-xl focus:shadow-primary/10 transition-all shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -85,7 +85,7 @@ export default function BatchClient() {
       <div className="rounded-[3.5rem] border border-slate-100 bg-white shadow-2xl overflow-hidden min-h-[550px] flex flex-col relative">
         {isLoading && (
           <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] z-10 flex items-center justify-center">
-            <ArrowPathIcon className="h-10 w-10 animate-spin text-indigo-600" />
+            <ArrowPathIcon className="h-10 w-10 animate-spin text-primary" />
           </div>
         )}
 

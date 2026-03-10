@@ -5,12 +5,12 @@ import {
   UserCircleIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { User } from "@/types/user";
+import { UserRow, RoleOption } from "./user.types";
 import { clsx } from "clsx";
 import { Button } from "@/components/ui/button";
 
 interface UserTableProps {
-  items: User[];
+  items: UserRow[];
   isLoading: boolean;
   roleOptions: RoleOption[];
   onEdit: (user: UserRow) => void;
@@ -26,7 +26,7 @@ export default function UserTable({
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-40 gap-4">
-        <div className="h-12 w-12 border-[5px] border-slate-100 border-t-indigo-600 rounded-full animate-spin" />
+        <div className="h-12 w-12 border-[5px] border-slate-100 border-t-primary rounded-full animate-spin" />
         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-300 italic">
           Đang truy xuất dữ liệu nhân sự...
         </p>
@@ -42,7 +42,7 @@ export default function UserTable({
           <UserCircleIcon className="h-14 w-14 text-slate-200" />
         </div>
         <div className="space-y-1">
-          <p className="text-sm font-black uppercase italic tracking-tighter text-slate-900">
+          <p className="text-sm font-black font-display tracking-wider uppercase text-text-main">
             Hệ thống trống
           </p>
           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -75,16 +75,16 @@ export default function UserTable({
             return (
               <tr
                 key={user.id}
-                className="group hover:bg-indigo-50/20 transition-all duration-300"
+                className="group hover:bg-primary/10/20 transition-all duration-300"
               >
                 {/* 1. IDENTITY COLUMN */}
                 <td className="px-10 py-7">
                   <div className="flex items-center gap-5">
-                    <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100 group-hover:bg-white group-hover:border-indigo-100 group-hover:text-indigo-600 transition-all duration-300">
+                    <div className="h-12 w-12 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100 group-hover:bg-white group-hover:border-primary/20 group-hover:text-primary transition-all duration-300">
                       <UserCircleIcon className="h-7 w-7" />
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-sm font-black text-slate-900 leading-tight tracking-tight uppercase italic group-hover:text-indigo-600 transition-colors">
+                      <span className="text-sm font-black text-slate-900 leading-tight tracking-tight uppercase italic group-hover:text-primary transition-colors">
                         {user.username}
                       </span>
                       <span className="text-[10px] font-bold text-slate-400 mt-1">
@@ -100,11 +100,11 @@ export default function UserTable({
                     className={clsx(
                       "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border shadow-sm inline-flex items-center gap-2 italic transition-all",
                       user.role === "admin"
-                        ? "bg-slate-900 text-white border-slate-900 shadow-slate-200"
+                        ? "bg-primary text-white border-primary shadow-primary-200"
                         : user.role === "manager"
                           ? "bg-purple-50 text-purple-600 border-purple-100 shadow-purple-50"
                           : user.role === "supply_coordinator"
-                            ? "bg-blue-50 text-blue-600 border-blue-100 shadow-blue-50"
+                            ? "bg-primary/10 text-primary border-primary/20 shadow-blue-50"
                             : user.role === "central_kitchen_staff"
                               ? "bg-orange-50 text-orange-600 border-orange-100 shadow-orange-50"
                               : user.role === "franchise_store_staff"
@@ -138,7 +138,7 @@ export default function UserTable({
                 <td className="px-10 py-7 text-right">
                   <Button
                     onClick={() => onEdit(user)}
-                    className="p-3.5 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-indigo-600 hover:bg-white hover:shadow-2xl hover:border-indigo-100 transition-all active:scale-90 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0"
+                    className="p-3.5 bg-white border border-slate-200 rounded-2xl text-slate-400 hover:text-primary hover:bg-white hover:shadow-2xl hover:border-primary/20 transition-all active:scale-90 opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0"
                   >
                     <PencilSquareIcon className="h-5 w-5 stroke-[2.5px]" />
                   </Button>

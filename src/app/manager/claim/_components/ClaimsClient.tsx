@@ -77,8 +77,8 @@ export default function ClaimClient() {
       {/* HEADER SECTION */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-4">
         <div>
-          <h1 className="text-4xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
-            Quản lý <span className="text-indigo-600">Khiếu nại</span>
+          <h1 className="text-4xl font-black font-display tracking-wider uppercase text-text-main leading-none">
+            Quản lý <span className="text-primary">Khiếu nại</span>
           </h1>
           <p className="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase mt-3 italic">
             Theo dõi và xử lý thất thoát vận hành
@@ -97,13 +97,13 @@ export default function ClaimClient() {
               defaultValue={search}
               onChange={(e) => handleSearch(e.target.value)}
               placeholder="Tìm mã vận đơn (Shipment ID)..."
-              className="w-full bg-white border border-slate-200 rounded-[1.5rem] py-4 pl-14 pr-6 text-sm font-bold text-slate-900 focus:outline-none focus:ring-4 ring-indigo-500/10 transition-all shadow-sm italic placeholder:text-slate-300"
+              className="w-full bg-white border border-slate-200 rounded-[1.5rem] py-4 pl-14 pr-6 text-sm font-bold text-slate-900 focus:outline-none focus:ring-4 ring-primary/10 transition-all shadow-sm italic placeholder:text-slate-300"
             />
           </div>
 
           <div className="flex items-center gap-4">
             <div className="px-6 py-4 bg-white border border-slate-200 rounded-2xl flex items-center gap-3 shadow-sm">
-              <ShieldCheckIcon className="w-4 h-4 text-indigo-500 stroke-[2.5px]" />
+              <ShieldCheckIcon className="w-4 h-4 text-primary stroke-[2.5px]" />
               <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
                 Tất cả trạng thái
               </span>

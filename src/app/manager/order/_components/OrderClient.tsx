@@ -33,7 +33,7 @@ export default function OrderClient() {
   const limit = 10;
   const search = searchParams.get("search") || "";
   const status = searchParams.get("status") || "";
-  const sortOrder = searchParams.get("sortOrder") || "DESC";
+  const sortOrder = (searchParams.get("sortOrder") as "ASC" | "DESC") || "DESC";
 
   // 2. Fetch dữ liệu
   const { orderList } = useOrder();
@@ -88,8 +88,8 @@ export default function OrderClient() {
       {/* HEADER SECTION */}
       <div className="flex justify-between items-end px-4">
         <div>
-          <h1 className="text-4xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
-            Quản lý <span className="text-indigo-600">Đơn hàng</span>
+          <h1 className="text-4xl font-black font-display tracking-wider uppercase text-text-main leading-none">
+            Quản lý <span className="text-primary">Đơn hàng</span>
           </h1>
           <p className="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase mt-3 italic">
             Hệ thống cung ứng • {meta?.totalItems || 0} bản ghi
@@ -119,7 +119,7 @@ export default function OrderClient() {
           >
             <SelectTrigger className="w-240px bg-white border border-slate-200 rounded-2xl py-7 px-6 h-auto shadow-sm font-black uppercase text-[10px] tracking-widest">
               <div className="flex items-center gap-2">
-                <FunnelIcon className="w-4 h-4 text-indigo-500" />
+                <FunnelIcon className="w-4 h-4 text-primary" />
                 <SelectValue placeholder="Trạng thái" />
               </div>
             </SelectTrigger>
@@ -182,7 +182,7 @@ export default function OrderClient() {
               size="icon"
               disabled={page <= 1}
               onClick={() => handlePageChange(page - 1)}
-              className="w-12 h-12 rounded-2xl bg-white border-slate-200 hover:bg-black hover:text-white transition-all disabled:opacity-30"
+              className="w-12 h-12 rounded-2xl bg-white border-slate-200 hover:bg-primary-dark hover:text-white transition-all disabled:opacity-30"
             >
               <ChevronLeftIcon className="w-5 h-5 stroke-[3px]" />
             </Button>
@@ -202,8 +202,8 @@ export default function OrderClient() {
                       className={clsx(
                         "w-12 h-12 rounded-2xl text-[11px] font-black transition-all",
                         page === p
-                          ? "bg-indigo-600 text-white shadow-lg scale-110"
-                          : "bg-white border border-slate-100 text-slate-400 hover:border-indigo-200",
+                          ? "bg-primary text-white shadow-lg scale-110"
+                          : "bg-white border border-slate-100 text-slate-400 hover:border-primary/30",
                       )}
                     >
                       {p}
@@ -217,7 +217,7 @@ export default function OrderClient() {
               size="icon"
               disabled={page >= totalPages}
               onClick={() => handlePageChange(page + 1)}
-              className="w-12 h-12 rounded-2xl bg-white border-slate-200 hover:bg-black hover:text-white transition-all disabled:opacity-30"
+              className="w-12 h-12 rounded-2xl bg-white border-slate-200 hover:bg-primary-dark hover:text-white transition-all disabled:opacity-30"
             >
               <ChevronRightIcon className="w-5 h-5 stroke-[3px]" />
             </Button>

@@ -31,7 +31,7 @@ export default function ProductBatchModal({ isOpen, onClose, product }: { isOpen
               <CubeIcon className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-xl font-black uppercase italic tracking-tighter text-slate-900">
+              <h2 className="text-xl font-black font-display tracking-wider uppercase text-text-main">
                 Lô: {product?.name}
               </h2>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -42,7 +42,7 @@ export default function ProductBatchModal({ isOpen, onClose, product }: { isOpen
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsAddBatchOpen(true)}
-              className="flex items-center gap-2 rounded-full bg-slate-900 px-5 py-2.5 text-[10px] font-black text-white hover:bg-black transition-all shadow-lg"
+              className="flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[10px] font-black text-white hover:bg-primary-dark transition-all shadow-lg"
             >
               <PlusIcon className="h-3.5 w-3.5 stroke-[3.5px]" /> NHẬP LÔ MỚI
             </button>

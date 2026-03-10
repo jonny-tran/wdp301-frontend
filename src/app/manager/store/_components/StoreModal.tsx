@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useStore } from "@/hooks/useStore";
-import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { Store } from "@/types/store";
 import { CreateStoreBody, CreateStoreBodyType, UpdateStoreBodyType } from "@/schemas/store";
@@ -77,7 +76,7 @@ export default function StoreModal({ isOpen, onClose, editingStore }: StoreModal
           <DialogTitle className="text-2xl font-black uppercase italic text-black tracking-tighter">
             {editingStore ? "Chỉnh sửa Store" : "Thêm Store mới"}
           </DialogTitle>
-          <p className="text-[10px] font-bold text-black/30 uppercase tracking-widest italic">
+          <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest italic">
             {editingStore
               ? `ID: ${editingStore.id}`
               : "Nhập thông tin hệ thống"}
@@ -87,7 +86,7 @@ export default function StoreModal({ isOpen, onClose, editingStore }: StoreModal
         <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
           {/* Tên Store */}
           <div className="space-y-1.5">
-            <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.2em] ml-2">
+            <label className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] ml-2">
               Tên chi nhánh
             </label>
             <input
@@ -100,7 +99,7 @@ export default function StoreModal({ isOpen, onClose, editingStore }: StoreModal
 
           {/* Quản lý */}
           <div className="space-y-1.5">
-            <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.2em] ml-2">
+            <label className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] ml-2">
               Người quản lý
             </label>
             <input
@@ -114,7 +113,7 @@ export default function StoreModal({ isOpen, onClose, editingStore }: StoreModal
           {/* Phone & Address */}
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.2em] ml-2">
+              <label className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] ml-2">
                 Hotline
               </label>
               <input
@@ -124,7 +123,7 @@ export default function StoreModal({ isOpen, onClose, editingStore }: StoreModal
               {errors.phone && <p className="text-[10px] text-red-500 ml-2">{errors.phone.message}</p>}
             </div>
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black text-black/40 uppercase tracking-[0.2em] ml-2">
+              <label className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] ml-2">
                 Địa chỉ
               </label>
               <input
@@ -138,7 +137,7 @@ export default function StoreModal({ isOpen, onClose, editingStore }: StoreModal
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-5 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-slate-800 transition-all shadow-xl active:scale-95 disabled:bg-slate-200"
+            className="w-full py-5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-primary-dark transition-all shadow-xl active:scale-95 disabled:bg-slate-200"
           >
             {isSubmitting
               ? "Đang xử lý..."

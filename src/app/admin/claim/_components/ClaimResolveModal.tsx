@@ -8,10 +8,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useClaim } from "@/hooks/useClaim";
-import { toast } from "sonner";
 import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
-import { Claim } from "@/types/claim";
+import { Claim, ClaimItem } from "@/types/claim";
 import Can from "@/components/shared/Can";
 import { P } from "@/lib/authz";
 import { Resource } from "@/utils/constant";
@@ -35,9 +35,11 @@ export default function ClaimResolveModal({
   const [note, setNote] = useState("");
 
   // Reset note khi đóng modal
+  /* eslint-disable react-hooks/set-state-in-effect -- Safe: reset local state on modal close */
   useEffect(() => {
     if (!isOpen) setNote("");
   }, [isOpen]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleResolve = async (status: "approved" | "rejected") => {
     if (!claimId) return;
@@ -48,21 +50,21 @@ export default function ClaimResolveModal({
         data: { status, resolutionNote: note },
       });
       onClose();
-    } catch (e) {
+    } catch {
       // toast.error đã được handle trong onSuccess/onError của hook (nếu có)
     }
   };
 
-  const claimInfo = (detailData as any)?.data || detailData; // Phòng thủ cấu trúc lồng nhau
+  const claimInfo = (detailData as { data?: Claim } | null)?.data || detailData; // Phòng thủ cấu trúc lồng nhau
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl rounded-[2.5rem] p-10 bg-white border-none shadow-2xl outline-none">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase italic text-black leading-none">
+          <DialogTitle className="text-2xl font-black uppercase italic text-text-main leading-none">
             Chi tiết khiếu nại
           </DialogTitle>
-          <p className="text-[10px] font-bold text-black/30 uppercase tracking-widest mt-2">
+          <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-2">
             ID: {claimId}
           </p>
         </DialogHeader>
@@ -75,7 +77,7 @@ export default function ClaimResolveModal({
           <div className="mt-6 space-y-6">
             {/* Danh sách Item lỗi */}
             <div className="space-y-3 max-h-[350px] overflow-y-auto pr-2 scrollbar-hide">
-              {claimInfo?.items?.map((item: any, i: number) => (
+              {claimInfo?.items?.map((item: ClaimItem, i: number) => (
                 <div
                   key={i}
                   className="flex gap-5 p-5 bg-slate-50 rounded-[2rem] border border-slate-100 group hover:border-black transition-all"
@@ -85,7 +87,7 @@ export default function ClaimResolveModal({
                       <h4 className="font-black text-black uppercase italic text-sm">
                         {item.productName}
                       </h4>
-                      <span className="text-[9px] font-bold text-black/40 uppercase">
+                      <span className="text-[9px] font-bold text-text-muted uppercase">
                         Batch: {item.batchCode}
                       </span>
                     </div>
@@ -108,13 +110,15 @@ export default function ClaimResolveModal({
                       </div>
                     </div>
                     <p className="text-[10px] font-bold text-black/60 mt-3 leading-relaxed bg-white p-3 rounded-xl border border-slate-100 italic">
-                      "{item.reason}"
+                      &ldquo;{item.reason}&rdquo;
                     </p>
                   </div>
                   {item.imageProofUrl && (
-                    <img
+                    <Image
                       src={item.imageProofUrl}
                       alt="Evidence"
+                      width={96}
+                      height={96}
                       className="w-24 h-24 rounded-2xl object-cover shadow-md border-2 border-white group-hover:scale-105 transition-transform"
                     />
                   )}
@@ -125,7 +129,7 @@ export default function ClaimResolveModal({
             {/* Form Phản hồi */}
             <div className="space-y-4 pt-4 border-t border-slate-100">
               <div className="space-y-2">
-                <label className="text-[9px] font-black text-black/40 uppercase tracking-widest ml-2">
+                <label className="text-[9px] font-black text-text-muted uppercase tracking-widest ml-2">
                   Ghi chú xử lý (Resolution Note)
                 </label>
                 <textarea
@@ -142,7 +146,7 @@ export default function ClaimResolveModal({
                   <button
                     disabled={resolveClaim.isPending}
                     onClick={() => handleResolve("approved")}
-                    className="flex-1 py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-2"
+                    className="flex-1 py-4 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-green-600 transition-all flex items-center justify-center gap-2"
                   >
                     <CheckIcon className="h-4 w-4 stroke-[3px]" />
                     Chấp nhận

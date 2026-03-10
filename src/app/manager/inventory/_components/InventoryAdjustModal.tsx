@@ -24,7 +24,8 @@ export default function InventoryAdjustModal({ isOpen, onClose }: Props) {
     formState: { errors },
     reset,
   } = useForm<InventoryAdjustBodyType>({
-    resolver: zodResolver(InventoryAdjustBody),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(InventoryAdjustBody) as any,
   });
 
   const onSubmit = (data: InventoryAdjustBodyType) => {
@@ -36,14 +37,16 @@ export default function InventoryAdjustModal({ isOpen, onClose }: Props) {
     });
   };
 
+  if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="w-full max-w-lg bg-white rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
         {/* Header */}
         <div className="bg-slate-50/50 px-10 py-8 border-b border-slate-100 flex justify-between items-center">
           <div>
-            <h2 className="text-2xl font-black uppercase italic tracking-tighter">
-              Điều chỉnh <span className="text-indigo-600">Kho</span>
+            <h2 className="text-2xl font-black font-display tracking-wider uppercase">
+              Điều chỉnh <span className="text-primary">Kho</span>
             </h2>
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
               Cập nhật số lượng tồn kho thủ công
@@ -66,7 +69,7 @@ export default function InventoryAdjustModal({ isOpen, onClose }: Props) {
               </label>
               <input
                 {...register("warehouseId", { valueAsNumber: true })}
-                className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 font-bold focus:ring-2 ring-indigo-500/20 outline-none"
+                className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 font-bold focus:ring-2 ring-primary/20 outline-none"
                 placeholder="Nhập ID"
               />
               {errors.warehouseId && (
@@ -81,7 +84,7 @@ export default function InventoryAdjustModal({ isOpen, onClose }: Props) {
               </label>
               <input
                 {...register("batchId", { valueAsNumber: true })}
-                className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 font-bold focus:ring-2 ring-indigo-500/20 outline-none"
+                className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 font-bold focus:ring-2 ring-primary/20 outline-none"
                 placeholder="Nhập ID"
               />
             </div>
@@ -94,7 +97,7 @@ export default function InventoryAdjustModal({ isOpen, onClose }: Props) {
             <input
               {...register("adjustmentQuantity", { valueAsNumber: true })}
               type="number"
-              className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 font-bold focus:ring-2 ring-indigo-500/20 outline-none"
+              className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 font-bold focus:ring-2 ring-primary/20 outline-none"
               placeholder="Ví dụ: 10 hoặc -5"
             />
           </div>
@@ -105,7 +108,7 @@ export default function InventoryAdjustModal({ isOpen, onClose }: Props) {
             </label>
             <select
               {...register("reason")}
-              className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 font-bold focus:ring-2 ring-indigo-500/20 outline-none appearance-none"
+              className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 font-bold focus:ring-2 ring-primary/20 outline-none appearance-none"
             >
               <option value="DAMAGED">Hàng hư hỏng</option>
               <option value="EXPIRED">Hàng hết hạn</option>
@@ -125,7 +128,7 @@ export default function InventoryAdjustModal({ isOpen, onClose }: Props) {
             <button
               type="submit"
               disabled={adjustInventory.isPending}
-              className="flex-[2] py-5 rounded-full bg-black text-white text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 shadow-lg shadow-slate-200"
+              className="flex-[2] py-5 rounded-full bg-primary text-white text-[11px] font-black uppercase tracking-widest hover:bg-primary-dark transition-all disabled:opacity-50 shadow-lg shadow-slate-200"
             >
               {adjustInventory.isPending
                 ? "ĐANG XỬ LÝ..."

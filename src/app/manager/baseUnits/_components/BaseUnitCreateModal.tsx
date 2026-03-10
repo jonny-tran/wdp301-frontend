@@ -1,9 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
 import { XMarkIcon, CheckIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
-import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { CreateBaseUnitBody, CreateBaseUnitBodyType } from "@/schemas/base-unit";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -82,7 +81,7 @@ export default function BaseUnitCreateModal({
           </div>
           <div className="md:col-span-5 flex flex-col justify-between p-10 bg-slate-50/50 border-l border-slate-100 text-center">
             <div className="relative p-6 rounded-[2rem] bg-white border border-slate-200">
-              <div className="h-12 w-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center mx-auto mb-4">
+              <div className="h-12 w-12 bg-primary text-white rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <PlusIcon className="h-6 w-6" />
               </div>
               <h3 className="text-xl font-black uppercase tracking-tighter italic leading-tight text-slate-900">

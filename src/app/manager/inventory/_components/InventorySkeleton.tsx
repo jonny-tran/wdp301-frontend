@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 export default function InventorySkeleton() {
   return (
@@ -49,7 +49,7 @@ export default function InventorySkeleton() {
               {/* SKU */}
               <div className="h-4 w-48 bg-slate-50 rounded-full flex-1" />{" "}
               {/* Warehouse */}
-              <div className="h-6 w-16 bg-indigo-50 rounded-full ml-auto" />{" "}
+              <div className="h-6 w-16 bg-primary/10 rounded-full ml-auto" />{" "}
               {/* Quantity */}
               <div className="h-6 w-12 bg-slate-50 rounded-full ml-10" />{" "}
               {/* Unit */}

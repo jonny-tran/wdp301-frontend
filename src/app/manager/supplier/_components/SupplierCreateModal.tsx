@@ -59,7 +59,7 @@ export default function SupplierCreateModal({
       await createSupplier.mutateAsync(formData);
       toast.success("Khởi tạo nhà cung cấp thành công!");
       handleClose();
-    } catch (err) {
+    } catch {
       // Error đã được handle trong hook qua handleErrorApi
     }
   };
@@ -70,8 +70,8 @@ export default function SupplierCreateModal({
         {/* HEADER SECTION */}
         <DialogHeader className="bg-slate-50/50 px-10 py-8 border-b border-slate-100 flex flex-row items-center justify-between space-y-0">
           <div className="space-y-1">
-            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
-              Đăng ký <span className="text-indigo-600">Nhà cung cấp</span>
+            <DialogTitle className="text-2xl font-black font-display tracking-wider uppercase text-text-main leading-none">
+              Đăng ký <span className="text-primary">Nhà cung cấp</span>
             </DialogTitle>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic mt-1">
               SUPPLY CHAIN PARTNER
@@ -175,7 +175,7 @@ export default function SupplierCreateModal({
           <Button
             type="submit"
             disabled={createSupplier.isPending}
-            className="w-full rounded-full bg-slate-900 py-7 text-[10px] font-black uppercase tracking-[0.3em] shadow-xl hover:bg-indigo-600 transition-all active:scale-95 disabled:bg-slate-200 mt-4 italic"
+            className="w-full rounded-full bg-primary py-7 text-[10px] font-black uppercase tracking-[0.3em] shadow-xl hover:bg-primary-dark transition-all active:scale-95 disabled:bg-slate-200 mt-4 italic"
           >
             {createSupplier.isPending
               ? "Đang xử lý hồ sơ..."

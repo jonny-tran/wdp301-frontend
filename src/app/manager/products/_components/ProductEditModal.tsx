@@ -6,7 +6,6 @@ import {
   CheckIcon,
   ArrowPathIcon,
   PencilSquareIcon,
-  PhotoIcon,
 } from "@heroicons/react/24/outline";
 import { useProduct } from "@/hooks/useProduct";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
@@ -54,7 +53,7 @@ export default function ProductEditModal({
         name: product.name,
         baseUnitId: 0, // Lưu ý: Cần tìm ID từ tên hoặc API nếu ProductRow chỉ có name
         shelfLifeDays: product.shelfLifeDays,
-        imageUrl: product.imageUrl,
+        imageUrl: product.imageUrl || "",
         isActive: product.isActive,
       });
     }
@@ -79,7 +78,7 @@ export default function ProductEditModal({
       });
       toast.success("Cập nhật thông tin sản phẩm thành công!");
       onClose();
-    } catch (error) {
+    } catch {
       // Lỗi được xử lý trong useProduct hook
     }
   };
@@ -144,18 +143,18 @@ export default function ProductEditModal({
           {/* CỘT PHẢI: Đơn vị & Trạng thái */}
           <div className="md:col-span-5 flex flex-col justify-between p-10 md:p-14 bg-slate-50/80">
             <div className="relative p-10 rounded-[2.5rem] bg-white border border-slate-200 text-center shadow-xl mb-6">
-              <div className="h-16 w-16 bg-indigo-600 text-white rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-lg -rotate-3">
+              <div className="h-16 w-16 bg-primary text-white rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-lg -rotate-3">
                 <PencilSquareIcon className="h-8 w-8 stroke-[3px]" />
               </div>
-              <h3 className="text-3xl font-black text-black uppercase italic tracking-tighter">
-                Chỉnh <span className="text-indigo-600">Sửa</span>
+              <h3 className="text-3xl font-black text-text-main font-display tracking-wider uppercase">
+                Chỉnh <span className="text-primary">Sửa</span>
               </h3>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">
                 ID: #{product.id} • {product.sku}
               </p>
               <Button
                 onClick={onClose}
-                className="absolute -top-4 -right-4 p-4 bg-white border border-slate-200 text-black rounded-full hover:bg-black hover:text-white shadow-xl active:scale-90"
+                className="absolute -top-4 -right-4 p-4 bg-white border border-slate-200 text-black rounded-full hover:bg-primary-dark hover:text-white shadow-xl active:scale-90"
               >
                 <XMarkIcon className="h-5 w-5 stroke-[2.5px]" />
               </Button>
@@ -188,7 +187,7 @@ export default function ProductEditModal({
                         <SelectItem
                           key={opt.value}
                           value={String(opt.value)}
-                          className="font-black uppercase text-[10px] tracking-widest py-4 focus:bg-black focus:text-white text-black"
+                          className="font-black uppercase text-[10px] tracking-widest py-4 focus:bg-primary focus:text-white text-black"
                         >
                           {opt.label}
                         </SelectItem>
@@ -219,7 +218,7 @@ export default function ProductEditModal({
                   type="submit"
                   onClick={handleSubmit}
                   disabled={updateProduct.isPending}
-                  className="flex items-center justify-center gap-4 rounded-full py-6 text-xs font-black text-white transition-all bg-black hover:bg-slate-800 disabled:bg-slate-300 shadow-2xl active:scale-95"
+                  className="flex items-center justify-center gap-4 rounded-full py-6 text-xs font-black text-white transition-all bg-primary hover:bg-primary-dark disabled:bg-slate-300 shadow-2xl active:scale-95"
                 >
                   {updateProduct.isPending ? (
                     <ArrowPathIcon className="h-5 w-5 animate-spin" />

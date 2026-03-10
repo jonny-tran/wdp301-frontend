@@ -4,7 +4,6 @@ import {
   PencilSquareIcon,
   TrashIcon,
   UserGroupIcon,
-  PhoneIcon,
 } from "@heroicons/react/24/outline";
 import { Supplier } from "@/types/supplier";
 import Can from "@/components/shared/Can";
@@ -56,10 +55,10 @@ export default function SupplierTable({
           {items.map((item) => (
             <tr
               key={item.id}
-              className="group hover:bg-slate-900 transition-all duration-200 ease-in-out cursor-pointer"
+              className="group hover:bg-primary transition-all duration-200 ease-in-out cursor-pointer"
             >
               <td className="px-4 py-4">
-                <p className="font-black text-slate-900 uppercase italic tracking-tighter group-hover:text-white leading-tight transition-colors">
+                <p className="font-black text-text-main font-display tracking-wider uppercase group-hover:text-white leading-tight transition-colors">
                   {item.name}
                 </p>
                 {/* FIX 3: Đảm bảo text phụ cũng đổi màu khi hover */}

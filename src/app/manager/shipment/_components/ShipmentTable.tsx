@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  EyeIcon,
   DocumentDuplicateIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";

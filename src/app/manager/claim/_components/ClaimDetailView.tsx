@@ -58,8 +58,8 @@ export default function ClaimDetailView({ claimId, onBack }: Props) {
           </span>
         </Button>
         <div className="text-right">
-          <h2 className="text-2xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
-            Chi tiết <span className="text-indigo-600">Khiếu nại</span>
+          <h2 className="text-2xl font-black font-display tracking-wider uppercase text-text-main leading-none">
+            Chi tiết <span className="text-primary">Khiếu nại</span>
           </h2>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2 italic">
             Mã ID: {detail.id}
@@ -71,14 +71,14 @@ export default function ClaimDetailView({ claimId, onBack }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
         <div className="bg-white p-8 rounded-[2.5rem] shadow-xl border border-slate-100 space-y-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+            <div className="p-2 bg-primary/10 rounded-lg text-primary">
               <InboxIcon className="w-5 h-5" />
             </div>
             <span className="text-[10px] font-black uppercase text-slate-400 italic">
               Thông tin vận đơn
             </span>
           </div>
-          <p className="text-sm font-black text-slate-900 uppercase italic tracking-tighter">
+          <p className="text-sm font-black text-text-main font-display tracking-wider uppercase">
             Shipment: {detail.shipmentId}
           </p>
           <Badge className="bg-emerald-100 text-emerald-600 border-none px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest">
@@ -86,7 +86,7 @@ export default function ClaimDetailView({ claimId, onBack }: Props) {
           </Badge>
         </div>
 
-        <div className="bg-slate-900 p-8 rounded-[2.5rem] shadow-xl text-white space-y-4">
+        <div className="bg-primary p-8 rounded-[2.5rem] shadow-xl text-white space-y-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/10 rounded-lg text-slate-300">
               <CalendarIcon className="w-5 h-5" />
@@ -145,7 +145,7 @@ export default function ClaimDetailView({ claimId, onBack }: Props) {
             {/* Nội dung chi tiết */}
             <div className="flex-1 p-12 space-y-6">
               <div>
-                <h4 className="text-2xl font-black uppercase italic tracking-tighter text-slate-900">
+                <h4 className="text-2xl font-black font-display tracking-wider uppercase text-text-main">
                   {item.name}
                 </h4>
                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">

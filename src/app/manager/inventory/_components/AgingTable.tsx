@@ -1,16 +1,27 @@
 "use client";
 
+import { ClockIcon } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
-import {
-  ExclamationTriangleIcon,
-  ClockIcon,
-} from "@heroicons/react/24/outline";
+
+export interface AgingBatchItem {
+  batchCode: string;
+  productName: string;
+  quantity: number;
+  expiryDate: string;
+  percentageLeft: number;
+  level?: "WARNING" | "CRITICAL";
+}
+
+export interface AgingData {
+  warning: AgingBatchItem[];
+  critical: AgingBatchItem[];
+}
 
 export default function AgingTable({
   data,
   isLoading,
 }: {
-  data: any;
+  data: AgingData;
   isLoading: boolean;
 }) {
   // 1. Loading State
@@ -28,9 +39,15 @@ export default function AgingTable({
   const warningList = data?.warning || [];
   const criticalList = data?.critical || [];
 
-  const allBatches = [
-    ...criticalList.map((b: any) => ({ ...b, level: "CRITICAL" })),
-    ...warningList.map((b: any) => ({ ...b, level: "WARNING" })),
+  const allBatches: AgingBatchItem[] = [
+    ...criticalList.map((b: AgingBatchItem) => ({
+      ...b,
+      level: "CRITICAL" as const,
+    })),
+    ...warningList.map((b: AgingBatchItem) => ({
+      ...b,
+      level: "WARNING" as const,
+    })),
   ];
 
   // 3. Empty State

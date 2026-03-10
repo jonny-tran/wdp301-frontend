@@ -2,7 +2,22 @@
 
 import { TrashIcon, CalendarIcon } from "@heroicons/react/24/outline";
 
-export default function WasteReportView({ data, isLoading }: any) {
+export interface WasteDetailItem {
+  productName: string;
+  wasteReason?: string;
+  quantity: number;
+  unit: string;
+}
+
+export interface WasteReportData {
+  kpi?: {
+    totalWastedQuantity: number;
+    period: string;
+  };
+  details?: WasteDetailItem[];
+}
+
+export default function WasteReportView({ data, isLoading }: { data: WasteReportData; isLoading: boolean }) {
   // 1. Loading State
   if (isLoading)
     return (
@@ -49,7 +64,7 @@ export default function WasteReportView({ data, isLoading }: any) {
           </p>
         ) : (
           <div className="grid gap-3">
-            {details.map((d: any, i: number) => (
+            {details.map((d: WasteDetailItem, i: number) => (
               <div
                 key={i}
                 className="flex justify-between items-center bg-white p-5 rounded-2xl border border-slate-50 hover:border-red-200 hover:bg-red-50/20 transition-all group"

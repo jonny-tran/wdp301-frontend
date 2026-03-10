@@ -20,7 +20,7 @@ export default function InventoryAnalytics({ data }: { data: InventoryStats }) {
       label: "Tổng sản phẩm",
       value: data.totalProducts,
       icon: InboxIcon,
-      color: "text-blue-600",
+      color: "text-primary",
     },
     {
       label: "Sắp hết hàng",
@@ -56,7 +56,7 @@ export default function InventoryAnalytics({ data }: { data: InventoryStats }) {
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
               {s.label}
             </p>
-            <p className="text-lg font-black italic tracking-tighter text-slate-900 leading-none">
+            <p className="text-lg font-black italic tracking-tighter text-text-main leading-none">
               {s.value}
             </p>
           </div>

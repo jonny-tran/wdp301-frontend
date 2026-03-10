@@ -72,7 +72,9 @@ export const extractClaimDetail = (data: unknown) => {
             missing: item.quantityMissing,
             damaged: item.quantityDamaged,
             reason: item.reason ?? "Không có lý do",
-            image: item.imageUrl
+            image: typeof item.imageUrl === "string" && item.imageUrl.includes("cdn.com") 
+                ? "https://placehold.co/400" 
+                : item.imageUrl
         }))
     };
 };

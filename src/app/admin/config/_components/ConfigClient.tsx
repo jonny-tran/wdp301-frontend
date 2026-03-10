@@ -33,14 +33,14 @@ export default function ConfigClient() {
     queryKey: ["system-configs"],
     queryFn: () =>
       http.get<SystemConfig[]>("/system-configs").then((res) => {
-        const source = res.data as any;
-        return source?.data || source || [];
+        const source = res.data as { data?: SystemConfig[] } | SystemConfig[];
+        return ((source as { data?: SystemConfig[] })?.data || source || []) as SystemConfig[];
       }),
   });
 
   // 2. Mutation cập nhật
   const updateMutation = useMutation({
-    mutationFn: ({ key, payload }: { key: string; payload: any }) =>
+    mutationFn: ({ key, payload }: { key: string; payload: UpdateConfigPayload }) =>
       http.patch(`/ system - configs / ${key} `, payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["system-configs"] });
@@ -56,7 +56,7 @@ export default function ConfigClient() {
   return (
     <div className="flex flex-col gap-8 pb-20 animate-in fade-in duration-500">
       <div className="flex items-center gap-3 px-1">
-        <div className="p-2.5 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-100">
+        <div className="p-2.5 bg-primary rounded-2xl shadow-xl shadow-primary/20">
           <Cog6ToothIcon className="h-6 w-6 text-white" />
         </div>
         <div className="flex flex-col">

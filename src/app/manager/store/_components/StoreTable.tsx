@@ -49,7 +49,7 @@ export default function StoreTable({
   return (
     <div className="w-full overflow-hidden">
       <table className="w-full text-left text-sm border-separate border-spacing-0">
-        <thead className="bg-slate-50/80 text-[10px] font-black uppercase tracking-[0.2em] text-black/40">
+        <thead className="bg-slate-50/80 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
           <tr>
             <th className="px-8 py-5 border-b border-slate-100 w-[35%]">
               Thông tin Cửa hàng
@@ -69,12 +69,12 @@ export default function StoreTable({
           {items.map((store) => (
             <tr
               key={store.id}
-              className="group hover:bg-black transition-all duration-300 ease-in-out"
+              className="group hover:bg-primary-dark transition-all duration-300 ease-in-out"
             >
               {/* Tên & Địa chỉ */}
               <td className="px-8 py-6">
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-black text-black group-hover:text-white uppercase italic tracking-tighter transition-colors">
+                  <span className="text-sm font-black text-black group-hover:text-white font-display tracking-wider uppercase transition-colors">
                     {store.name}
                   </span>
                   <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-60 transition-opacity">
@@ -97,7 +97,7 @@ export default function StoreTable({
                   </div>
                   <div className="flex items-center gap-2">
                     <PhoneIcon className="h-3 w-3 text-black group-hover:text-white opacity-40" />
-                    <span className="text-[10px] font-bold text-black/40 group-hover:text-white/40">
+                    <span className="text-[10px] font-bold text-text-muted group-hover:text-white/40">
                       {store.phone}
                     </span>
                   </div>

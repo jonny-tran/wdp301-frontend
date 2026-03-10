@@ -5,12 +5,20 @@ import { Badge } from "@/components/ui/badge";
 import { format, isPast } from "date-fns";
 import { cn } from "@/lib/utils";
 
-export default function BatchDetailTable({ details }: { details: any[] }) {
+export interface BatchDetail {
+  batch_code: string;
+  expiry_date: string;
+  physical: number;
+  reserved: number;
+  available: number;
+}
+
+export default function BatchDetailTable({ details }: { details: BatchDetail[] }) {
   return (
     <div className="bg-white rounded-[2rem] shadow-xl border border-slate-100 overflow-hidden animate-in fade-in duration-500">
       <div className="bg-slate-50/50 px-8 py-5 border-b flex justify-between items-center">
         <h3 className="text-sm font-black uppercase italic tracking-widest text-slate-900">
-          Chi tiết <span className="text-indigo-600">Lô hàng (Batches)</span>
+          Chi tiết <span className="text-primary">Lô hàng (Batches)</span>
         </h3>
         <Badge variant="outline" className="rounded-full border-slate-200 text-[10px] font-bold">
           {details.length} Lô tồn kho

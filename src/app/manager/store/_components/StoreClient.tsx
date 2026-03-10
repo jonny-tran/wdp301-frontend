@@ -84,14 +84,14 @@ export default function StoreClient() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-black rounded-xl">
+            <div className="p-2 bg-primary rounded-xl">
               <BuildingStorefrontIcon className="h-5 w-5 text-white" />
             </div>
-            <h1 className="text-3xl font-black uppercase italic tracking-tighter text-black">
+            <h1 className="text-3xl font-black font-display tracking-wider uppercase text-black">
               Store Intel
             </h1>
           </div>
-          <p className="text-[10px] font-black text-black/40 uppercase tracking-[0.2em] italic ml-1">
+          <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] italic ml-1">
             Quản lý mạng lưới chi nhánh & Phân tích
           </p>
         </div>
@@ -99,7 +99,7 @@ export default function StoreClient() {
         <Can I={P.STORE_CREATE} on={Resource.STORE}>
           <button
             onClick={() => setModal({ isOpen: true, editingStore: null })}
-            className="flex items-center gap-2 px-8 py-4 bg-black text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl active:scale-95"
+            className="flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl active:scale-95"
           >
             <PlusIcon className="h-4 w-4 stroke-[3px]" />
             Add Store
@@ -183,7 +183,7 @@ export default function StoreClient() {
             <p>
               Trang {meta.currentPage} / {meta.totalPages}
             </p>
-            <p className="text-[9px] font-bold text-black/30 mt-1 uppercase italic">
+            <p className="text-[9px] font-bold text-text-muted mt-1 uppercase italic">
               Total {meta.totalItems} stores found
             </p>
           </div>
@@ -192,7 +192,7 @@ export default function StoreClient() {
             <button
               onClick={() => handlePageChange(params.page - 1)}
               disabled={params.page === 1 || isListLoading}
-              className="p-3 rounded-xl border border-slate-100 hover:bg-black hover:text-white disabled:opacity-10 transition-all shadow-sm"
+              className="p-3 rounded-xl border border-slate-100 hover:bg-primary-dark hover:text-white disabled:opacity-10 transition-all shadow-sm"
             >
               <ChevronLeftIcon className="h-4 w-4 stroke-[3px]" />
             </button>
@@ -203,8 +203,8 @@ export default function StoreClient() {
                   key={i + 1}
                   onClick={() => handlePageChange(i + 1)}
                   className={`w-11 h-11 rounded-xl text-[10px] font-black transition-all ${params.page === i + 1
-                    ? "bg-black text-white shadow-xl"
-                    : "bg-slate-50 text-black/40 hover:bg-slate-100"
+                    ? "bg-primary text-white shadow-xl"
+                    : "bg-slate-50 text-text-muted hover:bg-slate-100"
                     }`}
                 >
                   {i + 1}
@@ -215,7 +215,7 @@ export default function StoreClient() {
             <button
               onClick={() => handlePageChange(params.page + 1)}
               disabled={params.page === meta.totalPages || isListLoading}
-              className="p-3 rounded-xl border border-slate-100 hover:bg-black hover:text-white disabled:opacity-10 transition-all shadow-sm"
+              className="p-3 rounded-xl border border-slate-100 hover:bg-primary-dark hover:text-white disabled:opacity-10 transition-all shadow-sm"
             >
               <ChevronRightIcon className="h-4 w-4 stroke-[3px]" />
             </button>

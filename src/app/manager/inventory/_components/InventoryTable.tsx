@@ -1,8 +1,7 @@
-"use client";
+﻿"use client";
 
 import {
   PlusIcon,
-  ExclamationCircleIcon,
   ArchiveBoxIcon,
 } from "@heroicons/react/24/outline";
 import Can from "@/components/shared/Can";
@@ -129,7 +128,7 @@ export default function InventoryTable({
                     <Can I={P.PRODUCT_UPDATE} on={Resource.PRODUCT}>
                       <button
                         onClick={() => onAdjust(item)} // Gọi hàm truyền từ Client
-                        className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-950 transition-all shadow-lg active:scale-95"
+                        className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-950 transition-all shadow-lg active:scale-95"
                       >
                         <PlusIcon className="h-3 w-3 stroke-[3px]" />
                         Adjust

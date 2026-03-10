@@ -70,7 +70,7 @@ export default function ProductClient({
   const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
 
   const handlePageChange = (nextPage: number) => {
-    const query = createPaginationSearchParams(searchParamsHook, nextPage);
+    const query = createPaginationSearchParams(searchParamsHook, { page: nextPage });
     router.push(`${pathname}?${query}`);
   };
 
@@ -112,15 +112,15 @@ export default function ProductClient({
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-1">
         <div>
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-slate-900 rounded-[1.5rem] shadow-xl">
+            <div className="p-3 bg-primary rounded-[1.5rem] shadow-xl">
               <CubeIcon className="h-7 w-7 text-white" />
             </div>
-            <h1 className="text-4xl font-black uppercase italic text-slate-900 tracking-tighter leading-none">
-              Danh mục <span className="text-indigo-600">Sản phẩm</span>
+            <h1 className="text-4xl font-black font-display tracking-wider uppercase text-text-main leading-none">
+              Danh mục <span className="text-primary">Sản phẩm</span>
             </h1>
           </div>
           <div className="flex items-center gap-2 mt-2 ml-1">
-            <SparklesIcon className="h-4 w-4 text-blue-500 animate-pulse" />
+            <SparklesIcon className="h-4 w-4 text-primary animate-pulse" />
             <p className="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase">
               Hệ thống Quản lý Kho • {meta.totalItems} sản phẩm
             </p>
@@ -129,7 +129,7 @@ export default function ProductClient({
 
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="group flex items-center gap-4 rounded-full bg-slate-900 px-10 py-5 text-xs font-black text-white hover:bg-black transition-all active:scale-95 shadow-2xl border-b-4 border-slate-700"
+          className="group flex items-center gap-4 rounded-full bg-primary px-10 py-5 text-xs font-black text-white hover:bg-primary-dark transition-all active:scale-95 shadow-2xl border-b-4 border-primary-dark"
         >
           <PlusIcon className="h-5 w-5 stroke-[3px]" />
           THÊM SẢN PHẨM MỚI

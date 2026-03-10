@@ -24,7 +24,7 @@ export default function ClaimsAnalytics({ stats }: { stats: ClaimAnalyticsSummar
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* 1. Damage Rate */}
       <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
-        <p className="text-[10px] font-black text-black/40 uppercase tracking-[0.2em] relative z-10">
+        <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] relative z-10">
           Damage Rate
         </p>
         <h3 className="text-5xl font-black text-black italic tracking-tighter mt-2 relative z-10">
@@ -35,7 +35,7 @@ export default function ClaimsAnalytics({ stats }: { stats: ClaimAnalyticsSummar
 
       {/* 2. Total Shipments */}
       <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm relative overflow-hidden group">
-        <p className="text-[10px] font-black text-black/40 uppercase tracking-[0.2em] relative z-10">
+        <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] relative z-10">
           Total Shipments
         </p>
         <h3 className="text-5xl font-black text-black italic tracking-tighter mt-2 relative z-10">
@@ -45,7 +45,7 @@ export default function ClaimsAnalytics({ stats }: { stats: ClaimAnalyticsSummar
       </div>
 
       {/* 3. Bottleneck Search & List (Thẻ Đen) */}
-      <div className="bg-black p-8 rounded-[2.5rem] shadow-2xl relative min-h-[220px] overflow-hidden">
+      <div className="bg-primary p-8 rounded-[2.5rem] shadow-2xl relative min-h-[220px] overflow-hidden">
         <div className="flex justify-between items-start mb-6 relative z-10">
           <div className="flex items-center gap-2">
             <ExclamationTriangleIcon className="h-4 w-4 text-yellow-400" />
