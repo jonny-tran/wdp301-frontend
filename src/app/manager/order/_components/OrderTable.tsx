@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { Button } from "@/components/ui/button";
 import { OrderRow } from "./order.types";
@@ -6,12 +6,16 @@ import { OrderStatus } from "@/utils/enum";
 import {
   EyeIcon,
   TruckIcon,
+  ArchiveBoxIcon,
 } from "@heroicons/react/24/outline";
 import { clsx } from "clsx";
 
 interface Props {
   data: OrderRow[];
   rowStart: number;
+  isLoading: boolean;
+  isError: boolean;
+  onView?: (order: OrderRow) => void;
 }
 
 const getStatusStyle = (status: OrderStatus) => {
@@ -29,10 +33,39 @@ const getStatusStyle = (status: OrderStatus) => {
   }
 };
 
-export default function OrderTable({ data, rowStart }: Props) {
+export default function OrderTable({ data, rowStart, isLoading, isError, onView }: Props) {
+  if (isLoading) {
+    return (
+      <div className="p-32 text-center">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-slate-950 mb-4" />
+        <p className="font-black text-slate-300 italic uppercase text-[10px] tracking-widest">
+          Đang tải thông tin đơn hàng...
+        </p>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="p-32 text-center flex flex-col items-center gap-4 text-red-400 uppercase italic font-black text-[10px] tracking-[0.3em]">
+        <ArchiveBoxIcon className="h-10 w-10 opacity-40" />
+        Không thể tải dữ liệu đơn hàng. Vui lòng thử lại.
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
+    return (
+      <div className="p-32 text-center flex flex-col items-center gap-4 text-slate-200 uppercase italic font-black text-[10px] tracking-[0.3em]">
+        <ArchiveBoxIcon className="h-10 w-10 opacity-20" />
+        Không tìm thấy đơn hàng nào
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full overflow-hidden">
-      <table className="w-full text-left border-collapse">
+    <div className="w-full overflow-x-auto scrollbar-hide">
+      <table className="w-full text-left border-collapse min-w-[900px]">
         <thead className="bg-slate-50/50">
           <tr className="border-b border-slate-100">
             <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
@@ -87,14 +120,16 @@ export default function OrderTable({ data, rowStart }: Props) {
                 <span
                   className={clsx(
                     "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest",
-                    getStatusStyle(order.status),
+                    getStatusStyle(order.status as OrderStatus),
                   )}
                 >
                   {order.status}
                 </span>
               </td>
               <td className="px-10 py-6 text-right">
-                <Button className="p-3 bg-white border border-slate-100 rounded-2xl shadow-sm hover:bg-primary-dark hover:text-white transition-all group/btn">
+                <Button 
+                  onClick={() => onView?.(order)}
+                  className="p-3 bg-white border border-slate-100 rounded-2xl shadow-sm hover:bg-primary-dark hover:text-white transition-all group/btn">
                   <EyeIcon className="w-5 h-5 stroke-[2.5px]" />
                 </Button>
               </td>

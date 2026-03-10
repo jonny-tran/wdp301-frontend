@@ -18,7 +18,8 @@ export default function ProductBatchModal({ isOpen, onClose, product }: { isOpen
     sortOrder: "DESC",
   });
 
-  const batches: Batch[] = useMemo(() => (data as any)?.items || data || [], [data]);
+  const responseData = data as Record<string, unknown> | undefined;
+  const batches: Batch[] = useMemo(() => (responseData?.items || data || []) as Batch[], [responseData, data]);
 
   if (!isOpen) return null;
 
@@ -48,6 +49,7 @@ export default function ProductBatchModal({ isOpen, onClose, product }: { isOpen
             </button>
             <button
               onClick={onClose}
+              title="Đóng"
               className="p-3 hover:bg-white rounded-full border border-slate-200"
             >
               <XMarkIcon className="h-6 w-6 text-slate-400" />

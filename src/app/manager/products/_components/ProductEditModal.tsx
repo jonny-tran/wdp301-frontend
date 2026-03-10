@@ -49,12 +49,14 @@ export default function ProductEditModal({
   // Cập nhật form khi product thay đổi hoặc modal mở
   useEffect(() => {
     if (product && isOpen) {
-      setFormData({
-        name: product.name,
-        baseUnitId: 0, // Lưu ý: Cần tìm ID từ tên hoặc API nếu ProductRow chỉ có name
-        shelfLifeDays: product.shelfLifeDays,
-        imageUrl: product.imageUrl || "",
-        isActive: product.isActive,
+      queueMicrotask(() => {
+        setFormData({
+          name: product.name,
+          baseUnitId: 0, // Lưu ý: Cần tìm ID từ tên hoặc API nếu ProductRow chỉ có name
+          shelfLifeDays: product.shelfLifeDays,
+          imageUrl: product.imageUrl || "",
+          isActive: product.isActive,
+        });
       });
     }
   }, [product, isOpen]);

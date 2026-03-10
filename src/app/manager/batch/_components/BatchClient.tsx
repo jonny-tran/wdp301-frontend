@@ -5,49 +5,72 @@ import { useProduct } from "@/hooks/useProduct";
 import { Batch } from "@/types/product";
 import BatchTable from "./BatchTable";
 import BatchFormModal from "./BatchFormModal";
+import BatchFilter from "./BatchFilter";
+import {
+  parseManagerListQuery,
+  normalizeMeta,
+  createPaginationSearchParams,
+  type RawSearchParams,
+} from "@/app/manager/_components/query";
+import { BasePagination } from "@/components/layout/BasePagination";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   InboxStackIcon,
-  MagnifyingGlassIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  PlusIcon,
-  ArrowPathIcon,
 } from "@heroicons/react/24/outline";
 
-export default function BatchClient() {
+export default function BatchClient({
+  searchParams,
+}: {
+  searchParams: RawSearchParams;
+}) {
+  const router = useRouter();
+  const searchParamsHook = useSearchParams();
+  const pathname = usePathname();
+
   const { batchList } = useProduct();
 
-  // 1. Quản lý trạng thái phân trang và tìm kiếm
-  const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
+  // 1. URL-driven query
+  const parsedQuery = useMemo(
+    () => parseManagerListQuery(searchParams, { page: 1, limit: 10, sortOrder: "DESC" }),
+    [searchParams],
+  );
 
-  // 2. Quản lý trạng thái Modal hợp nhất
+  // 2. State modal
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedBatch, setSelectedBatch] = useState<any>(null);
+  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
 
-  // 3. Fetch dữ liệu từ API
   const { data, isLoading, isError, isPlaceholderData } = batchList({
-    page,
-    limit: 10,
-    sortOrder: "DESC",
+    page: parsedQuery.page,
+    limit: parsedQuery.limit,
+    sortOrder: parsedQuery.sortOrder,
+    search: parsedQuery.search, 
+    productId: parsedQuery.productId,
   });
 
-  // 4. Mapper dữ liệu phòng thủ
+  const responseData = data as Record<string, unknown> | undefined;
+
   const items: Batch[] = useMemo(() => {
-    const all = (data as any)?.items || data || [];
-    if (!searchTerm) return all;
-    // Lọc client-side theo mã lô hàng
-    return (all as Batch[]).filter((b) =>
-      b.batchCode.toLowerCase().includes(searchTerm.toLowerCase()),
-    );
-  }, [data, searchTerm]);
+    const all = (responseData?.items || responseData || []) as Batch[];
+    return all.map((b) => ({
+      ...b,
+      currentQuantity: Number(b.currentQuantity) || 0,
+      initialQuantity: Number(b.initialQuantity) || 0,
+    }));
+  }, [responseData]);
 
-  const meta = (data as any)?.meta;
+  const meta = useMemo(() => {
+    const rawMeta = responseData?.meta;
+    return normalizeMeta(rawMeta, parsedQuery.page, parsedQuery.limit, items.length);
+  }, [responseData, items.length, parsedQuery.page, parsedQuery.limit]);
 
-  // 5. Logic đóng mở Modal
-  const handleOpenEdit = (batch: any) => {
+  const handleOpenEdit = (batch: Batch) => {
     setSelectedBatch(batch);
     setIsModalOpen(true);
+  };
+
+  const handlePageChange = (nextPage: number) => {
+    const query = createPaginationSearchParams(searchParamsHook, nextPage);
+    router.push(`${pathname}?${query}`);
   };
 
   return (
@@ -59,7 +82,7 @@ export default function BatchClient() {
             <InboxStackIcon className="h-7 w-7 text-white" />
           </div>
           <div className="flex flex-col">
-            <h1 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">
+            <h1 className="text-4xl font-black text-slate-900 font-display tracking-tighter uppercase italic leading-none">
               Inventory Batches
             </h1>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 ml-1">
@@ -67,70 +90,39 @@ export default function BatchClient() {
             </p>
           </div>
         </div>
-
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <div className="relative flex-1 md:w-80">
-            <MagnifyingGlassIcon className="absolute left-5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 stroke-[3px]" />
-            <input
-              placeholder="Lọc mã lô hàng..."
-              className="w-full pl-12 pr-6 py-4 rounded-full bg-white border border-slate-100 text-xs font-bold outline-none focus:border-primary focus:shadow-xl focus:shadow-primary/10 transition-all shadow-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
       </div>
+
+      <BatchFilter currentLimit={parsedQuery.limit} />
 
       {/* Main Table Content */}
       <div className="rounded-[3.5rem] border border-slate-100 bg-white shadow-2xl overflow-hidden min-h-[550px] flex flex-col relative">
-        {isLoading && (
-          <div className="absolute inset-0 bg-white/50 backdrop-blur-[2px] z-10 flex items-center justify-center">
-            <ArrowPathIcon className="h-10 w-10 animate-spin text-primary" />
-          </div>
-        )}
-
         <div className="flex-1">
           <BatchTable
             items={items}
             isLoading={isLoading && !isPlaceholderData}
             isError={isError}
-            onEdit={handleOpenEdit} // Truyền hàm mở Edit Modal
+            onEdit={handleOpenEdit}
           />
         </div>
 
         {/* Pagination Section */}
-        {meta && meta.totalPages > 1 && (
-          <div className="px-12 py-6 border-t border-slate-50 flex justify-between items-center bg-slate-50/30">
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest italic">
-                Trang {meta.currentPage} trên {meta.totalPages}
-              </span>
-              <span className="text-[9px] font-bold text-slate-400 uppercase mt-0.5">
-                Hiển thị {items.length} trên tổng số {meta.totalItems} lô hàng
-              </span>
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                disabled={page === 1 || isLoading}
-                onClick={() => setPage((p) => p - 1)}
-                className="p-3 rounded-2xl bg-white border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all shadow-sm active:scale-90"
-              >
-                <ChevronLeftIcon className="h-4 w-4 stroke-[3px]" />
-              </button>
-              <button
-                disabled={page === meta.totalPages || isLoading}
-                onClick={() => setPage((p) => p + 1)}
-                className="p-3 rounded-2xl bg-white border border-slate-200 disabled:opacity-30 hover:bg-slate-50 transition-all shadow-sm active:scale-90"
-              >
-                <ChevronRightIcon className="h-4 w-4 stroke-[3px]" />
-              </button>
-            </div>
+        <div className="px-12 py-6 border-t border-slate-50 flex justify-between items-center bg-slate-50/30">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest italic">
+              HIỂN THỊ {items.length} / {meta.totalItems} LÔ HÀNG
+            </span>
           </div>
-        )}
+
+          <BasePagination
+            currentPage={meta.currentPage}
+            totalPages={meta.totalPages}
+            onPageChange={handlePageChange}
+            totalItems={meta.totalItems}
+            itemsPerPage={meta.itemsPerPage}
+          />
+        </div>
       </div>
 
-      {/* MODAL HỢP NHẤT (CREATE/EDIT) */}
       <BatchFormModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

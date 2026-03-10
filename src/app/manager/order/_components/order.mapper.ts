@@ -6,10 +6,8 @@ import { OrderRow } from "./order.types";
  * Đã fix để nhận diện đúng mảng items từ response của useOrder
  */
 export const extractOrders = (response: unknown): OrderRow[] => {
-  // Vì Hook orderList đã return res.data, nên response ở đây chính là object chứa { items, meta }
-  const res = response as any;
+  const res = response as Record<string, unknown> | undefined;
   
-  // Bóc tách mảng items: Ưu tiên res.items vì Hook đã bóc lớp .data đầu tiên rồi
   const rawItems = res?.items ?? (Array.isArray(res) ? res : []);
 
   if (!Array.isArray(rawItems)) {
@@ -17,31 +15,31 @@ export const extractOrders = (response: unknown): OrderRow[] => {
     return [];
   }
 
-  return rawItems.map((item: any): OrderRow => ({
-    ...item,
-    // Format tiền tệ Việt Nam (Ví dụ: 0 ₫)
+  return rawItems.map((item: unknown): OrderRow => {
+    const data = item as Record<string, unknown>;
+    return {
+    ...(data as unknown as OrderRow),
     formattedAmount: new Intl.NumberFormat('vi-VN', { 
       style: 'currency', 
       currency: 'VND' 
-    }).format(Number(item.totalAmount || 0)),
+    }).format(Number(data.totalAmount || 0)),
 
-    // Format ngày dự kiến giao hàng
-    deliveryDateFormatted: item.deliveryDate 
-      ? new Date(item.deliveryDate).toLocaleDateString('vi-VN')
+    deliveryDateFormatted: data.deliveryDate 
+      ? new Date(data.deliveryDate as string).toLocaleDateString('vi-VN')
       : "N/A",
 
-    // Format ngày tạo đơn
-    createdAtFormatted: item.createdAt 
-      ? new Date(item.createdAt).toLocaleDateString('vi-VN') 
+    createdAtFormatted: data.createdAt 
+      ? new Date(data.createdAt as string).toLocaleDateString('vi-VN') 
       : "N/A",
-  }));
+    };
+  });
 };
 
-export const extractShortfallChartData = (shortfallAnalysis: any[]) => {
+export const extractShortfallChartData = (shortfallAnalysis: Record<string, unknown>[]) => {
   if (!Array.isArray(shortfallAnalysis)) return [];
 
   return shortfallAnalysis
-    .filter(item => item.shortfallQuantity > 0) // Chỉ lấy các lý do có thực tế thất thoát
+    .filter(item => Number(item.shortfallQuantity) > 0) // Chỉ lấy các lý do có thực tế thất thoát
     .map(item => ({
       name: item.reason || "Không xác định",
       value: Number(item.shortfallQuantity)
