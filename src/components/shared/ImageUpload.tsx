@@ -1,12 +1,15 @@
 "use client";
 
-import { useRef } from "react";
+import { useUpload } from "@/hooks/useUpload";
 import {
-  PlusIcon,
   ArrowPathIcon,
+  PlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { useUpload } from "@/hooks/useUpload";
+import Image from "next/image";
+import { useRef } from "react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 
 interface ImageUploadProps {
   value: string; // URL ảnh từ Cloudinary
@@ -44,7 +47,7 @@ export default function ImageUpload({ value, onChange }: ImageUploadProps) {
       className="relative h-64 w-full cursor-pointer overflow-hidden rounded-[2.5rem] border-2 border-dashed border-slate-200 bg-slate-50/50 transition-all hover:border-blue-400 group"
       onClick={() => fileInputRef.current?.click()}
     >
-      <input
+      <Input
         type="file"
         ref={fileInputRef}
         onChange={handleFileChange}
@@ -61,14 +64,14 @@ export default function ImageUpload({ value, onChange }: ImageUploadProps) {
         </div>
       ) : value ? (
         <div className="relative h-full w-full">
-          <img
+          <Image
             src={value}
             alt="Preview"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
             <div className="flex gap-4">
-              <button
+              <Button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -77,7 +80,7 @@ export default function ImageUpload({ value, onChange }: ImageUploadProps) {
                 className="p-4 bg-white rounded-full text-red-500 shadow-2xl hover:scale-110 active:scale-90 transition-all group/btn"
               >
                 <XMarkIcon className="h-6 w-6 stroke-[3px]" />
-              </button>
+              </Button>
               <div className="p-4 bg-white/20 rounded-full text-white backdrop-blur-md border border-white/30 hover:scale-110 transition-all">
                 <PlusIcon className="h-6 w-6 stroke-[3px]" />
               </div>
