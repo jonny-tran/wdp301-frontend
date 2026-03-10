@@ -1,316 +1,319 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useInventory } from "@/hooks/useInventory";
+import { BasePagination } from "@/components/layout/BasePagination";
+import {
+    createPaginationSearchParams,
+    normalizeMeta,
+    parseManagerListQuery,
+    type RawSearchParams,
+} from "@/app/manager/_components/query";
 
 // Components
-import InventoryTable from "./InventoryTable";
+import InventoryTable, { type InventoryRowItem } from "./InventoryTable";
 import AgingTable from "./AgingTable";
 import WasteReportView from "./WasteReportView";
 import InventoryAnalytics from "./InventoryAnalytics";
-import InventoryFilter, { InventoryFilterValues } from "./InventoryFilter";
+import InventoryFilter from "./InventoryFilter";
 import AdjustStockModal from "./AdjustStockModal";
+
+/* ─────────────────────────────────────────────
+   Types — View Models (decoupled from API DTOs)
+   ───────────────────────────────────────────── */
 
 /** Tab ID union type */
 type InventoryTab = "summary" | "low-stock" | "aging" | "waste";
 
-/** Cấu trúc item inventoryRow hiển thị trên bảng */
-export interface InventoryDisplayItem {
-  productId: number;
-  productName: string;
-  sku: string;
-  totalQuantity: number;
-  minStockLevel?: number;
-  status: "normal" | "low-stock" | "out-of-stock";
-  warehouseName?: string;
-  unit: string;
-  currentQuantity?: number;
-  [key: string]: unknown;
-}
+/** Re-export for AdjustStockModal compatibility */
+export type InventoryDisplayItem = InventoryRowItem & {
+    warehouseId?: number;
+    currentQuantity?: number;
+    minStockLevel?: number;
+};
 
-/** Cấu trúc response wrapper (defensive) */
+/** Response wrapper — defensive for various API shapes */
 interface ResponseWrapper<T> {
-  data?: { items?: T[]; buckets?: AgingBuckets; kpi?: WasteKpi; details?: WasteDetail[] };
-  items?: T[];
-  buckets?: AgingBuckets;
-  kpi?: WasteKpi;
-  details?: WasteDetail[];
+    data?: { items?: T[]; meta?: unknown; buckets?: AgingBuckets; kpi?: WasteKpi; details?: WasteDetail[] };
+    items?: T[];
+    meta?: unknown;
+    buckets?: AgingBuckets;
+    kpi?: WasteKpi;
+    details?: WasteDetail[];
 }
 
-/** Cấu trúc aging bucket */
 interface AgingBuckets {
-  warning?: AgingBatchItem[];
-  critical?: AgingBatchItem[];
+    warning?: AgingBatchItem[];
+    critical?: AgingBatchItem[];
 }
 
 interface AgingBatchItem {
-  batchCode?: string;
-  productName?: string;
-  quantity?: number;
-  expiryDate?: string;
-  percentageLeft?: number;
+    batchCode?: string;
+    productName?: string;
+    quantity?: number;
+    expiryDate?: string;
+    percentageLeft?: number;
 }
 
 interface WasteKpi {
-  totalWastedQuantity: number;
-  period: string;
+    totalWastedQuantity: number;
+    period: string;
 }
 
 interface WasteDetail {
-  productName: string;
-  wastedQuantity?: number;
-  quantity: number;
-  unit: string;
-  reason?: string;
+    productName: string;
+    wastedQuantity?: number;
+    quantity: number;
+    unit: string;
+    reason?: string;
 }
 
-/** Analytics Summary */
 interface AnalyticsSummaryData {
-  totalProducts?: number;
-  lowStockItems?: number;
-  expiringItems?: number;
+    totalProducts?: number;
+    lowStockItems?: number;
+    expiringItems?: number;
 }
 
-/** Financial loss */
 interface FinancialLossData {
-  totalLoss?: number;
+    totalLoss?: number;
 }
 
-interface InventoryParams {
-  page: number;
-  limit: number;
-  search: string;
-  warehouseId: string | number;
-}
+/* ─────────────────────────────────────────────
+   Mapper — API DTO → InventoryDisplayItem (View Model)
+   ───────────────────────────────────────────── */
 
-export default function InventoryClient() {
-  // 1. Quản lý Trạng thái (Tab & Bộ lọc)
-  const [activeTab, setActiveTab] = useState<InventoryTab>("summary");
-  const [params, setParams] = useState<InventoryParams>({
-    page: 1,
-    limit: 10,
-    search: "",
-    warehouseId: "",
-  });
-  const [debouncedParams, setDebouncedParams] = useState(params);
+function mapToDisplayItem(item: Record<string, unknown>): InventoryDisplayItem {
+    const totalQuantity = (item.totalQuantity as number) ?? (item.currentQuantity as number) ?? 0;
+    const minStockLevel = (item.minStockLevel as number) ?? 10;
 
-  // State quản lý Modal điều chỉnh tồn kho
-  const [adjustModal, setAdjustModal] = useState<{ isOpen: boolean; item: InventoryDisplayItem | null }>({
-    isOpen: false,
-    item: null,
-  });
+    let status: InventoryDisplayItem["status"] = "normal";
+    if (totalQuantity <= 0) status = "out-of-stock";
+    else if (totalQuantity <= minStockLevel) status = "low-stock";
 
-  // 2. Lấy tài nguyên từ Hook
-  const {
-    inventorySummary,
-    lowStock,
-    inventoryAgingReport,
-    inventoryWasteReport,
-    inventoryAnalyticsSummary,
-    financialLossImpact,
-  } = useInventory();
-
-  // 3. Cơ chế Debounce
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedParams(params), 400);
-    return () => clearTimeout(handler);
-  }, [params]);
-
-  /**
-   * 4. SAFE QUERY
-   */
-  const safeQuery = useMemo(
-    () => ({
-      page: debouncedParams.page,
-      limit: debouncedParams.limit,
-      sortOrder: "DESC" as const,
-      ...(debouncedParams.warehouseId && {
-        warehouseId: Number(debouncedParams.warehouseId),
-      }),
-    }),
-    [debouncedParams],
-  );
-
-  // 5. Thực thi các Queries tương ứng
-  const summaryQuery = inventorySummary(safeQuery);
-  const lowStockQuery = lowStock(
-    debouncedParams.warehouseId
-      ? Number(debouncedParams.warehouseId)
-      : undefined,
-  );
-  const agingQuery = inventoryAgingReport({ daysThreshold: 30 });
-  const wasteQuery = inventoryWasteReport({
-    fromDate: "2026-01-01",
-    toDate: "2026-12-31",
-  });
-
-  const { data: rawStats } = inventoryAnalyticsSummary();
-  const { data: rawLoss } = financialLossImpact({});
-
-  /**
-   * 6. MAPPING DỮ LIỆU & CLIENT-SIDE SEARCH
-   */
-  const items = useMemo(() => {
-    const rawData = (activeTab === "summary" ? summaryQuery.data : lowStockQuery.data) as ResponseWrapper<Record<string, unknown>> | undefined;
-    const data = rawData?.data?.items || rawData?.items || [];
-    const result: InventoryDisplayItem[] = Array.isArray(data) ? data.map((item) => {
-      const totalQuantity = (item.totalQuantity as number) ?? (item.currentQuantity as number) ?? 0;
-      const minStockLevel = (item.minStockLevel as number) ?? 10;
-      let status: "normal" | "low-stock" | "out-of-stock" = "normal";
-      if (totalQuantity <= 0) status = "out-of-stock";
-      else if (totalQuantity <= minStockLevel) status = "low-stock";
-
-      return {
-        ...item,
+    return {
         productId: (item.productId as number) || 0,
         productName: (item.productName as string) || "Sản phẩm không tên",
         sku: (item.sku as string) || "N/A",
         unit: (item.unit as string) || "N/A",
         totalQuantity,
+        minStockLevel,
         status,
         warehouseName: (item.warehouseName as string) || "Kho chính",
-      };
-    }) : [];
+        warehouseId: item.warehouseId as number | undefined,
+        currentQuantity: item.currentQuantity as number | undefined,
+    };
+}
 
-    if (!debouncedParams.search.trim()) return result;
-    const s = debouncedParams.search.toLowerCase().trim();
-    return result.filter(
-      (i) =>
-        i.productName?.toLowerCase().includes(s) ||
-        i.sku?.toLowerCase().includes(s),
+/* ─────────────────────────────────────────────
+   Component
+   ───────────────────────────────────────────── */
+
+interface InventoryClientProps {
+    searchParams: RawSearchParams;
+}
+
+export default function InventoryClient({ searchParams }: InventoryClientProps) {
+    const router = useRouter();
+    const pathname = usePathname();
+    const searchParamsHook = useSearchParams();
+
+    // ── 1. URL-Driven State ──
+    const parsedQuery = useMemo(
+        () => parseManagerListQuery(searchParams, { page: 1, limit: 10, sortOrder: "DESC" }),
+        [searchParams],
     );
-  }, [
-    activeTab,
-    summaryQuery.data,
-    lowStockQuery.data,
-    debouncedParams.search,
-  ]);
 
-  const stats = useMemo(
-    () => {
-      const statsData = ((rawStats as { data?: AnalyticsSummaryData })?.data || rawStats) as AnalyticsSummaryData | undefined;
-      const lossData = ((rawLoss as { data?: FinancialLossData })?.data || rawLoss) as FinancialLossData | undefined;
-      return {
-        totalProducts: statsData?.totalProducts || 0,
-        lowStockCount: statsData?.lowStockItems || 0,
-        expiringBatches: statsData?.expiringItems || 0,
-        estimatedLossVnd: lossData?.totalLoss || 0,
-      };
-    },
-    [rawStats, rawLoss],
-  );
+    // Tab state — kept as local state as it's UI-only (not shareable via URL for this dashboard)
+    const [activeTab, setActiveTab] = useState<InventoryTab>("summary");
 
-  const agingData = useMemo(
-    () => {
-      const agingRaw = agingQuery.data as ResponseWrapper<unknown> | undefined;
-      const buckets = agingRaw?.data?.buckets || agingRaw?.buckets;
-      const mapBatch = (item: AgingBatchItem) => ({
-        batchCode: item.batchCode || "N/A",
-        productName: item.productName || "Sản phẩm không tên",
-        quantity: item.quantity || 0,
-        expiryDate: item.expiryDate || "",
-        percentageLeft: item.percentageLeft ?? 100,
-      });
+    // Modal state
+    const [adjustModal, setAdjustModal] = useState<{ isOpen: boolean; item: InventoryDisplayItem | null }>({
+        isOpen: false,
+        item: null,
+    });
 
-      return {
-        warning: Array.isArray(buckets?.warning) ? buckets.warning.map(mapBatch) : [],
-        critical: Array.isArray(buckets?.critical) ? buckets.critical.map(mapBatch) : [],
-      };
-    },
-    [agingQuery.data],
-  );
+    // ── 2. Data Fetching via hooks ──
+    const {
+        inventorySummary,
+        lowStock,
+        inventoryAgingReport,
+        inventoryWasteReport,
+        inventoryAnalyticsSummary,
+        financialLossImpact,
+    } = useInventory();
 
-  const wasteData = useMemo(
-    () => {
-      const wasteRaw = wasteQuery.data as ResponseWrapper<unknown> | undefined;
-      const data = wasteRaw?.data || wasteRaw;
-      const kpi = data?.kpi || {
-        totalWastedQuantity: 0,
-        period: "N/A"
-      };
-      const details = Array.isArray(data?.details) ? data.details : [];
-      return { kpi, details };
-    },
-    [wasteQuery.data],
-  );
+    const summaryQuery = inventorySummary({
+        page: parsedQuery.page,
+        limit: parsedQuery.limit,
+        sortOrder: parsedQuery.sortOrder,
+        ...(parsedQuery.warehouseId ? { warehouseId: parsedQuery.warehouseId } : {}),
+    });
 
-  return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-700">
-      {/* Header */}
-      <div className="px-1 space-y-1">
-        <h1 className="text-2xl font-black font-display tracking-wider uppercase text-text-main leading-none">
-          Inventory Dashboard
-        </h1>
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">
-          Manager Portal • Điều phối &amp; Kiểm soát lãng phí
-        </p>
-      </div>
+    const lowStockQuery = lowStock(parsedQuery.warehouseId);
 
-      {/* Analytics KPI */}
-      <InventoryAnalytics data={stats} />
+    const agingQuery = inventoryAgingReport({ daysThreshold: 30 });
+    const wasteQuery = inventoryWasteReport({
+        fromDate: "2026-01-01",
+        toDate: "2026-12-31",
+    });
 
-      {/* Tabs Navigation Capsule */}
-      <div className="flex gap-2 p-1.5 bg-slate-50 border border-slate-100 rounded-[2rem] w-fit shadow-sm">
-        {([
-          { id: "summary" as const, label: "Tồn kho tổng" },
-          { id: "low-stock" as const, label: "Cảnh báo hết" },
-          { id: "aging" as const, label: "Hạn sử dụng" },
-          { id: "waste" as const, label: "Lãng phí" },
-        ]).map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300
-              ${activeTab === tab.id
-                ? "bg-slate-950 text-white shadow-xl scale-[1.05]"
-                : "text-slate-400 hover:text-slate-900"
-              }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+    const { data: rawStats } = inventoryAnalyticsSummary();
+    const { data: rawLoss } = financialLossImpact({});
 
-      {/* Filter Bar (Chỉ hiện cho Tab Tồn kho & Cảnh báo) */}
-      {["summary", "low-stock"].includes(activeTab) && (
-        <InventoryFilter
-          filters={params}
-          onFilterChange={(u: Partial<InventoryFilterValues>) =>
-            setParams((p) => ({ ...p, ...u, page: 1 }))
-          }
-        />
-      )}
+    // ── 3. Mapping API response → View Models ──
+    const { items, meta } = useMemo(() => {
+        const rawData = (activeTab === "summary" ? summaryQuery.data : lowStockQuery.data) as ResponseWrapper<Record<string, unknown>> | undefined;
+        const data = rawData?.data?.items || rawData?.items || [];
+        const rawMeta = rawData?.data?.meta || rawData?.meta;
 
-      {/* Main Content Area */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden min-h-[550px]">
-        {activeTab === "summary" && (
-          <InventoryTable
-            items={items}
-            isLoading={summaryQuery.isLoading}
-            onAdjust={(item: InventoryDisplayItem) => setAdjustModal({ isOpen: true, item })}
-          />
-        )}
-        {activeTab === "low-stock" && (
-          <InventoryTable
-            items={items}
-            isLoading={lowStockQuery.isLoading}
-            onAdjust={(item: InventoryDisplayItem) => setAdjustModal({ isOpen: true, item })}
-          />
-        )}
-        {activeTab === "aging" && (
-          <AgingTable data={agingData} isLoading={agingQuery.isLoading} />
-        )}
-        {activeTab === "waste" && (
-          <WasteReportView data={wasteData} isLoading={wasteQuery.isLoading} />
-        )}
-      </div>
+        const mapped: InventoryDisplayItem[] = Array.isArray(data) ? data.map(mapToDisplayItem) : [];
 
-      {/* Modal Lệnh Điều Chỉnh */}
-      <AdjustStockModal
-        isOpen={adjustModal.isOpen}
-        item={adjustModal.item}
-        onClose={() => setAdjustModal({ isOpen: false, item: null })}
-      />
-    </div>
-  );
+        // Client-side search (filter by search from URL)
+        const search = parsedQuery.search?.toLowerCase().trim();
+        const filtered = search
+            ? mapped.filter(
+                (i) =>
+                    i.productName.toLowerCase().includes(search) ||
+                    i.sku.toLowerCase().includes(search),
+            )
+            : mapped;
+
+        return {
+            items: filtered,
+            meta: normalizeMeta(rawMeta, parsedQuery.page, parsedQuery.limit, filtered.length),
+        };
+    }, [activeTab, summaryQuery.data, lowStockQuery.data, parsedQuery]);
+
+    const stats = useMemo(() => {
+        const statsData = ((rawStats as { data?: AnalyticsSummaryData })?.data || rawStats) as AnalyticsSummaryData | undefined;
+        const lossData = ((rawLoss as { data?: FinancialLossData })?.data || rawLoss) as FinancialLossData | undefined;
+        return {
+            totalProducts: statsData?.totalProducts || 0,
+            lowStockCount: statsData?.lowStockItems || 0,
+            expiringBatches: statsData?.expiringItems || 0,
+            estimatedLossVnd: lossData?.totalLoss || 0,
+        };
+    }, [rawStats, rawLoss]);
+
+    const agingData = useMemo(() => {
+        const agingRaw = agingQuery.data as ResponseWrapper<unknown> | undefined;
+        const buckets = agingRaw?.data?.buckets || agingRaw?.buckets;
+
+        const mapBatch = (item: AgingBatchItem) => ({
+            batchCode: item.batchCode || "N/A",
+            productName: item.productName || "Sản phẩm không tên",
+            quantity: item.quantity || 0,
+            expiryDate: item.expiryDate || "",
+            percentageLeft: item.percentageLeft ?? 100,
+        });
+
+        return {
+            warning: Array.isArray(buckets?.warning) ? buckets.warning.map(mapBatch) : [],
+            critical: Array.isArray(buckets?.critical) ? buckets.critical.map(mapBatch) : [],
+        };
+    }, [agingQuery.data]);
+
+    const wasteData = useMemo(() => {
+        const wasteRaw = wasteQuery.data as ResponseWrapper<unknown> | undefined;
+        const data = wasteRaw?.data || wasteRaw;
+        const kpi = data?.kpi || { totalWastedQuantity: 0, period: "N/A" };
+        const details = Array.isArray(data?.details) ? data.details : [];
+        return { kpi, details };
+    }, [wasteQuery.data]);
+
+    // ── 4. URL-Driven Handlers ──
+    const handlePageChange = (nextPage: number) => {
+        const query = createPaginationSearchParams(searchParamsHook, nextPage);
+        router.push(`${pathname}?${query}`);
+    };
+
+    const isTableLoading = activeTab === "summary" ? summaryQuery.isLoading : lowStockQuery.isLoading;
+    const isTableError = activeTab === "summary" ? summaryQuery.isError : lowStockQuery.isError;
+
+    return (
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-end justify-between px-2">
+                <div>
+                    <h1 className="text-2xl font-black font-display tracking-wider uppercase text-text-main leading-none">
+                        Inventory Dashboard
+                    </h1>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">
+                        Manager Portal &bull; Điều phối &amp; Kiểm soát lãng phí
+                    </p>
+                </div>
+            </div>
+
+            {/* Analytics KPI */}
+            <InventoryAnalytics data={stats} />
+
+            {/* Tabs Navigation Capsule */}
+            <div className="flex gap-2 p-1.5 bg-slate-50 border border-slate-100 rounded-[2rem] w-fit shadow-sm">
+                {([
+                    { id: "summary" as const, label: "Tồn kho tổng" },
+                    { id: "low-stock" as const, label: "Cảnh báo hết" },
+                    { id: "aging" as const, label: "Hạn sử dụng" },
+                    { id: "waste" as const, label: "Lãng phí" },
+                ]).map((tab) => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300
+                            ${activeTab === tab.id
+                                ? "bg-slate-950 text-white shadow-xl scale-[1.05]"
+                                : "text-slate-400 hover:text-slate-900"
+                            }`}
+                    >
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Filter Bar — Only show for list tabs (URL-driven via BaseFilter) */}
+            {["summary", "low-stock"].includes(activeTab) && (
+                <InventoryFilter currentLimit={parsedQuery.limit} />
+            )}
+
+            {/* Main Content Area */}
+            <section className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden min-h-[550px]">
+                {(activeTab === "summary" || activeTab === "low-stock") && (
+                    <>
+                        <InventoryTable
+                            items={items}
+                            isLoading={isTableLoading}
+                            isError={isTableError}
+                            onAdjust={(item) =>
+                                setAdjustModal({ isOpen: true, item: item as InventoryDisplayItem })
+                            }
+                        />
+
+                        {/* Pagination — Đồng bộ với BasePagination pattern */}
+                        <div className="border-t border-slate-100 px-8 py-5 bg-white">
+                            <BasePagination
+                                currentPage={meta.currentPage}
+                                totalPages={meta.totalPages}
+                                onPageChange={handlePageChange}
+                                totalItems={meta.totalItems}
+                                itemsPerPage={meta.itemsPerPage}
+                            />
+                        </div>
+                    </>
+                )}
+                {activeTab === "aging" && (
+                    <AgingTable data={agingData} isLoading={agingQuery.isLoading} />
+                )}
+                {activeTab === "waste" && (
+                    <WasteReportView data={wasteData} isLoading={wasteQuery.isLoading} />
+                )}
+            </section>
+
+            {/* Modal điều chỉnh tồn kho */}
+            <AdjustStockModal
+                isOpen={adjustModal.isOpen}
+                item={adjustModal.item}
+                onClose={() => setAdjustModal({ isOpen: false, item: null })}
+            />
+        </div>
+    );
 }

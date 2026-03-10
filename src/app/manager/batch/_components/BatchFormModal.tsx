@@ -17,7 +17,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, Resolver } from "react-hook-form";
 
 interface Props {
   isOpen: boolean;
@@ -44,7 +44,7 @@ export default function BatchFormModal({
     setError,
     formState: { errors, isSubmitting },
   } = useForm<UpdateBatchBodyType>({
-    resolver: zodResolver(UpdateBatchBody) as any,
+    resolver: zodResolver(UpdateBatchBody) as unknown as Resolver<UpdateBatchBodyType>,
   });
 
   // Sync dữ liệu khi mở Modal

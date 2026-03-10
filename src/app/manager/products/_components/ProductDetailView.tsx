@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -16,9 +15,11 @@ import { Button } from "@/components/ui/button";
 import { clsx } from "clsx";
 // Giả định BatchStatus được export từ file types của Hàn
 import { BatchStatus } from "@/utils/enum";
+import { ProductRow } from "./product.types";
+import { Batch } from "@/types/product";
 
 interface ProductDetailViewProps {
-  product: any;
+  product: ProductRow & { batches?: Batch[] };
 }
 
 export default function ProductDetailView({ product }: ProductDetailViewProps) {
@@ -134,9 +135,9 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {product.batches?.map((batch: any) => (
+            {product.batches?.map((batch: Batch) => (
               <div
-                key={batch.id}
+                key={String(batch.id)}
                 className="bg-white p-5 rounded-[1.8rem] border border-slate-100 shadow-sm hover:shadow-md transition-all flex flex-col justify-between min-h-180px group relative overflow-hidden"
               >
                 <div className="flex justify-between items-start z-10">
@@ -157,10 +158,10 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                   <span
                     className={clsx(
                       "px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest border shadow-sm transition-all",
-                      getStatusStyles(batch.status),
+                      getStatusStyles(batch.status || ""),
                     )}
                   >
-                    ● {batch.status}
+                    ● {batch.status || "UNKNOWN"}
                   </span>
                 </div>
 

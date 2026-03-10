@@ -4,16 +4,17 @@ import { useMemo, useState } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useProduct } from "@/hooks/useProduct";
 import {
+  parseManagerListQuery,
   normalizeMeta,
   createPaginationSearchParams,
-  RawSearchParams,
-} from "@/app/kitchen/_components/query";
+  type RawSearchParams,
+} from "@/app/manager/_components/query";
 import { extractProducts } from "./product.mapper";
 import ProductTable from "./ProductTable";
 import ProductCreateModal from "./ProductCreateModal";
 import ProductEditModal from "./ProductEditModal";
+import ProductFilter from "./ProductFilter";
 import { BasePagination } from "@/components/layout/BasePagination";
-import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
 import { PlusIcon, CubeIcon, SparklesIcon } from "@heroicons/react/24/outline";
 import { ProductRow } from "./product.types";
 
@@ -30,29 +31,29 @@ export default function ProductClient({
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductRow | null>(null);
 
-  // 2. Phân tích tham số phân trang & lọc
-  const page = Number(searchParams.page) || 1;
-  const limit = Number(searchParams.limit) || 10;
-  const sortOrder = (searchParams.sortOrder as "ASC" | "DESC") || "DESC";
+  // 2. URL-Driven State
+  const parsedQuery = useMemo(
+    () => parseManagerListQuery(searchParams, { page: 1, limit: 10, sortOrder: "DESC" }),
+    [searchParams],
+  );
 
   const { productList, deleteProduct, restoreProduct } = useProduct();
 
+  // Bóc tách isActive từ chuỗi (vì ProductList Query expects boolean | undefined)
+  let isActiveBool: boolean | undefined = undefined;
+  if (searchParams.isActive === "true") isActiveBool = true;
+  else if (searchParams.isActive === "false") isActiveBool = false;
+
   const listQuery = productList({
-    page,
-    limit,
-    search: (searchParams.search as string) || "",
-    isActive:
-      searchParams.isActive === "true"
-        ? true
-        : searchParams.isActive === "false"
-          ? false
-          : undefined,
-    sortOrder: sortOrder,
+    page: parsedQuery.page,
+    limit: parsedQuery.limit,
+    search: parsedQuery.search || "",
+    isActive: isActiveBool,
+    sortOrder: parsedQuery.sortOrder,
   });
 
-  // 3. Logic Chuyển sang trang Chi tiết (Thay vì mở Modal)
+  // 3. Logic Chuyển sang trang Chi tiết Lô hàng
   const handleViewDetail = (id: number) => {
-    // Chuyển hướng đến URL động /manager/products/[id]
     router.push(`/manager/products/${id}`);
   };
 
@@ -62,49 +63,16 @@ export default function ProductClient({
   );
 
   const meta = useMemo(() => {
-    const responseData = listQuery.data as any;
-    const rawMeta = responseData?.data?.meta || responseData?.meta;
-    return normalizeMeta(rawMeta, page, limit, items.length);
-  }, [listQuery.data, page, limit, items.length]);
+    const rawMeta = listQuery.data?.meta;
+    return normalizeMeta(rawMeta, parsedQuery.page, parsedQuery.limit, items.length);
+  }, [listQuery.data, items.length, parsedQuery.page, parsedQuery.limit]);
 
   const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
 
   const handlePageChange = (nextPage: number) => {
-    const query = createPaginationSearchParams(searchParamsHook, { page: nextPage });
+    const query = createPaginationSearchParams(searchParamsHook, nextPage);
     router.push(`${pathname}?${query}`);
   };
-
-  const filterConfig: FilterConfig[] = [
-    {
-      key: "search",
-      label: "Tìm kiếm",
-      type: "text",
-      placeholder: "Tên hoặc SKU...",
-      className: "lg:col-span-2",
-    },
-    {
-      key: "isActive",
-      label: "Trạng thái",
-      type: "select",
-      options: [
-        { label: "Tất cả", value: "" },
-        { label: "Hoạt động", value: "true" },
-        { label: "Đã ẩn", value: "false" },
-      ],
-      className: "lg:col-span-1",
-    },
-    {
-      key: "limit",
-      label: "Số dòng",
-      type: "select",
-      defaultValue: String(limit),
-      options: [
-        { label: "10 dòng", value: "10" },
-        { label: "20 dòng", value: "20" },
-      ],
-      className: "lg:col-span-1",
-    },
-  ];
 
   return (
     <div className="space-y-10 pb-20 animate-in fade-in duration-700">
@@ -136,7 +104,7 @@ export default function ProductClient({
         </button>
       </div>
 
-      <BaseFilter filters={filterConfig} />
+      <ProductFilter currentLimit={parsedQuery.limit} />
 
       {/* Bảng dữ liệu chính */}
       <div className="rounded-[3.5rem] border border-slate-100 bg-white shadow-2xl overflow-hidden flex flex-col min-h-[650px]">
@@ -148,7 +116,7 @@ export default function ProductClient({
             onEdit={(product) => setEditingProduct(product)}
             onDelete={(id) => deleteProduct.mutate(id)}
             onRestore={(id) => restoreProduct.mutate(id)}
-            onViewDetail={(product) => handleViewDetail(product.id)} // Gọi hàm chuyển trang
+            onViewDetail={(product) => handleViewDetail(product.id)}
           />
         </div>
 
@@ -169,14 +137,12 @@ export default function ProductClient({
 
       {/* MODALS QUẢN TRỊ */}
 
-      {/* Modal Tạo mới - Reset bằng key khi mở/đóng */}
       <ProductCreateModal
         key={isCreateModalOpen ? "create-open" : "create-closed"}
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
 
-      {/* Modal Chỉnh sửa - Reset bằng key chứa ID sản phẩm để nạp dữ liệu chuẩn */}
       <ProductEditModal
         key={editingProduct ? `edit-${editingProduct.id}` : "edit-closed"}
         product={editingProduct}

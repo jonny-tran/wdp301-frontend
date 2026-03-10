@@ -29,7 +29,9 @@ export default function FillRateAnalytics() {
     to,
   });
 
-  const shortfallData = (analyticsRes as any)?.data?.shortfallAnalysis || (analyticsRes as any)?.shortfallAnalysis || [];
+  const res = analyticsRes as Record<string, unknown> | undefined;
+  const data = res?.data as Record<string, unknown> | undefined;
+  const shortfallData = (data?.shortfallAnalysis || res?.shortfallAnalysis || []) as Record<string, unknown>[];
 
   return (
     <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden animate-in fade-in duration-500">
@@ -69,19 +71,19 @@ export default function FillRateAnalytics() {
                 </TableCell>
               </TableRow>
             ) : shortfallData.length > 0 ? (
-              shortfallData.map((item: any, idx: number) => (
+              shortfallData.map((item: Record<string, unknown>, idx: number) => (
                 <TableRow
                   key={idx}
                   className="border-slate-50 hover:bg-slate-50/50 transition-colors group"
                 >
                   <TableCell className="pl-10 py-6">
                     <span className="text-[11px] font-bold text-slate-700 uppercase italic group-hover:text-primary transition-colors">
-                      {item.reason}
+                      {String(item.reason || "N/A")}
                     </span>
                   </TableCell>
                   <TableCell className="text-right pr-10 py-6">
                     <span className="text-base font-black text-slate-900 italic">
-                      -{item.shortfallQuantity.toLocaleString()}
+                      -{Number(item.shortfallQuantity || 0).toLocaleString()}
                     </span>
                   </TableCell>
                 </TableRow>

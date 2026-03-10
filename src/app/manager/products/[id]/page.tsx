@@ -7,11 +7,14 @@ import ProductDetailView from "../_components/ProductDetailView";
 import { ArchiveBoxIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
 
+import { ProductRow } from "../_components/product.types";
+import { Batch } from "@/types/product";
+
 // Định nghĩa Interface để khớp với JSON API của Hàn
 interface ProductDetailResponse {
   statusCode: number;
   message: string;
-  data: any; // Đây là nơi chứa object sản phẩm (Đùi gà KFC)
+  data: ProductRow & { batches?: Batch[] }; // Đây là nơi chứa object sản phẩm (Đùi gà KFC)
 }
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
@@ -25,12 +28,17 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     isLoading,
     error,
     refetch,
-  } = productDetail(Number(id)) as any;
+  } = productDetail(Number(id)) as {
+    data: ProductDetailResponse | (ProductRow & { batches?: Batch[] }) | undefined;
+    isLoading: boolean;
+    error: Error | null;
+    refetch: () => void;
+  };
 
   // 2. Bóc tách dữ liệu: response.data chính là Object Product
   const product = useMemo(() => {
     if (!response) return null;
-    return response.data || response;
+    return ('data' in response ? response.data : response) as ProductRow & { batches?: Batch[] };
   }, [response]);
 
   // 3. Giao diện Loading
