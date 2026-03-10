@@ -92,7 +92,7 @@ export default function StoreClient() {
             </h1>
           </div>
           <p className="text-[10px] font-black text-black/40 uppercase tracking-[0.2em] italic ml-1">
-            Quản lý mạng lưới chi nhánh & Phân tích [cite: 2026-02-25]
+            Quản lý mạng lưới chi nhánh & Phân tích
           </p>
         </div>
 

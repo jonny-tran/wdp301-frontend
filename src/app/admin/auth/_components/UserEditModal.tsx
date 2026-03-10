@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
@@ -9,184 +9,215 @@ import {
   EnvelopeIcon,
   CheckCircleIcon,
   PhoneIcon,
+  UserIcon,
 } from "@heroicons/react/24/outline";
-import { Role } from "@/utils/enum";
-import { handleErrorApi } from "@/lib/errors";
-import { useForm } from "react-hook-form";
-import { UpdateUserBody, UpdateUserBodyType } from "@/schemas/auth";
-import { zodResolver } from "@hookform/resolvers/zod";
 
-// Danh sách vai trò cấp cứng đồng bộ với Create
-const HARDCODED_ROLES: { value: Role; label: string }[] = [
-  { value: Role.MANAGER, label: "Quản lý khu vực" },
-  { value: Role.SUPPLY_COORDINATOR, label: "Điều phối viên nguồn cung" },
-  { value: Role.CENTRAL_KITCHEN_STAFF, label: "Nhân viên bếp trung tâm" },
-  { value: Role.FRANCHISE_STORE_STAFF, label: "Nhân viên cửa hàng nhượng quyền" },
-];
-
-import { User } from "@/types/user";
+// UI Components
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { UserRow, RoleOption } from "./user.types";
 
 interface UserEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: User | null; // Dữ liệu user từ dòng được chọn trong bảng
+  user: UserRow | null; // Dữ liệu user được chọn từ bảng
+  roleOptions: RoleOption[]; // Nhận từ Client để tránh fetch lặp lại
 }
 
 export default function UserEditModal({
   isOpen,
   onClose,
   user,
+  roleOptions,
 }: UserEditModalProps) {
   const { updateUser } = useAuth();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<UpdateUserBodyType>({
-    resolver: zodResolver(UpdateUserBody),
+  // 1. Khởi tạo State sạch
+  const [formData, setFormData] = useState({
+    role: "",
+    email: "",
+    phone: "",
+    status: "ACTIVE",
   });
 
-  // Đồng bộ dữ liệu từ User được chọn vào Form khi mở Modal
+  // 2. Đồng bộ dữ liệu khi mở Modal (Sửa lỗi cascading bằng dependency array chính xác)
   useEffect(() => {
     if (isOpen && user) {
-      reset({
-        role: user.role,
-        email: user.email,
+      setFormData({
+        role: user.role || "",
+        email: user.email || "",
         phone: user.phone || "",
         status: user.isActive ? "ACTIVE" : "INACTIVE",
       });
     }
-  }, [isOpen, user, reset]);
+  }, [isOpen, user]);
 
-  const onSubmit = async (data: UpdateUserBodyType) => {
-    if (!user) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // CHUẨN HÓA DỮ LIỆU GỬI ĐI (FIX LỖI 400)
+    const submitPayload = {
+      status: formData.status.toUpperCase(), // Backend yêu cầu viết hoa
+      role: formData.role,
+      email: formData.email,
+      phone: formData.phone || "",
+    };
+
     try {
+      if (!user?.id) return;
       await updateUser.mutateAsync({
         id: user.id,
-        payload: data,
+        payload: submitPayload,
       });
+
+      toast.success("Cập nhật thông tin thành công!");
       onClose();
     } catch (err) {
-      handleErrorApi({
-        error: err,
-        setError,
-      });
+      // Error đã được handle tự động trong hook
     }
   };
 
   if (!isOpen || !user) return null;
 
   return (
-    <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-lg bg-white rounded-[2.5rem] p-10 space-y-6 shadow-2xl border border-slate-100 animate-in zoom-in duration-300"
-      >
-        {/* Header */}
-        <div className="flex justify-between items-center border-b border-slate-50 pb-5">
-          <div className="flex flex-col">
-            <h3 className="text-xl font-black uppercase italic text-slate-900 tracking-tighter">
-              Cập nhật tài khoản
-            </h3>
-            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic truncate max-w-[250px]">
-              ID: {user.id}
-            </span>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-xl bg-white rounded-[3rem] p-0 border-none shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 z-[120]">
+        {/* HEADER SECTION */}
+        <DialogHeader className="bg-slate-50/50 px-10 py-6 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left">
+          <div className="space-y-0.5">
+            <DialogTitle className="text-xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
+              Cập nhật <span className="text-indigo-600">Hồ sơ nhân sự</span>
+            </DialogTitle>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic truncate max-w-[200px]">
+              Tài khoản: {user.username}
+            </p>
           </div>
-          <button
-            type="button"
+          <Button
             onClick={onClose}
-            className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-400"
+            className="p-2.5 bg-white text-slate-400 hover:text-red-500 rounded-xl transition-all border border-slate-100 shadow-sm"
           >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
-        </div>
+            <XMarkIcon className="h-5 w-5 stroke-[2.5px]" />
+          </Button>
+        </DialogHeader>
 
-        <div className="space-y-4">
-          {/* TRƯỜNG: EMAIL */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-4 flex items-center gap-1">
-              <EnvelopeIcon className="h-3 w-3" /> Email định danh
-            </label>
-            <input
-              type="email"
-              {...register("email")}
-              className={`w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:bg-white transition-all ${errors.email ? "border-red-500 bg-red-50" : ""
-                }`}
-            />
-            {errors.email && <p className="text-[10px] text-red-500 ml-4">{errors.email.message}</p>}
-          </div>
+        <form onSubmit={handleSubmit} className="p-8 space-y-4">
+          <div className="space-y-4">
+            {/* EMAIL ĐỊNH DANH */}
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
+                <EnvelopeIcon className="h-3 w-3" /> Email hệ thống
+              </label>
+              <Input
+                required
+                type="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                className="rounded-full bg-slate-50 border-slate-100 px-6 py-5 text-sm font-bold shadow-sm italic"
+              />
+            </div>
 
-          {/* TRƯỜNG: SỐ ĐIỆN THOẠI */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-4 flex items-center gap-1">
-              <PhoneIcon className="h-3 w-3" /> Số điện thoại
-            </label>
-            <input
-              placeholder="09xx xxx xxx"
-              {...register("phone")}
-              className={`w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold text-slate-900 outline-none focus:bg-white transition-all ${errors.phone ? "border-red-500 bg-red-50" : ""
-                }`}
-            />
-            {errors.phone && <p className="text-[10px] text-red-500 ml-4">{errors.phone.message}</p>}
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              {/* SỐ ĐIỆN THOẠI */}
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
+                  <PhoneIcon className="h-3 w-3" /> Liên lạc
+                </label>
+                <Input
+                  placeholder="09xx xxx xxx"
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  className="rounded-full bg-slate-50 border-slate-100 px-6 py-5 text-sm font-bold shadow-sm"
+                />
+              </div>
 
-          {/* TRƯỜNG: VAI TRÒ */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
-              Phân quyền hệ thống
-            </label>
-            <div className="relative">
-              <select
-                {...register("role")}
-                className="w-full rounded-full bg-slate-50 border border-indigo-600 px-6 py-4 text-sm font-bold text-slate-900 outline-none appearance-none cursor-pointer focus:bg-white transition-all"
-              >
-                {HARDCODED_ROLES.map((role) => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-indigo-600">
-                <ShieldCheckIcon className="h-5 w-5" />
+              {/* TRẠNG THÁI TÀI KHOẢN */}
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
+                  <CheckCircleIcon className="h-3 w-3" /> Tình trạng
+                </label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, status: val })
+                  }
+                >
+                  <SelectTrigger className="w-full rounded-full bg-white border border-slate-100 px-6 py-5 text-sm font-black text-slate-900">
+                    <SelectValue placeholder="Trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-slate-100 shadow-xl font-bold uppercase italic text-[10px]">
+                    <SelectItem
+                      value="ACTIVE"
+                      className="py-3 text-emerald-600"
+                    >
+                      Đang hoạt động
+                    </SelectItem>
+                    <SelectItem value="INACTIVE" className="py-3 text-red-600">
+                      Đang tạm khóa
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            {errors.role && <p className="text-[10px] text-red-500 ml-4">{errors.role.message}</p>}
-          </div>
 
-          {/* TRƯỜNG: TRẠNG THÁI (ACTIVE/INACTIVE) */}
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
-              Tình trạng tài khoản
-            </label>
-            <div className="relative">
-              <select
-                {...register("status")}
-                className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold text-slate-900 outline-none appearance-none cursor-pointer focus:bg-white transition-all"
+            {/* PHÂN QUYỀN VAI TRÒ (DYNAMIC) */}
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
+                <ShieldCheckIcon className="h-3 w-3" /> Quyền hạn truy cập
+              </label>
+              <Select
+                value={formData.role}
+                onValueChange={(val) => setFormData({ ...formData, role: val })}
               >
-                <option value="ACTIVE">Hoạt động (Active)</option>
-                <option value="INACTIVE">Tạm khóa (Inactive)</option>
-              </select>
-              <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                <CheckCircleIcon className="h-5 w-5" />
-              </div>
+                <SelectTrigger className="w-full rounded-full bg-white border-2 border-slate-100 px-6 py-6 text-sm font-black text-slate-900 uppercase italic">
+                  <SelectValue placeholder="Chọn vai trò" />
+                </SelectTrigger>
+                <SelectContent
+                  position="popper"
+                  sideOffset={8}
+                  className="z-[130] min-w-[var(--radix-select-trigger-width)] rounded-[2rem] border-slate-100 bg-slate-900 shadow-2xl p-2"
+                >
+                  {roleOptions.map((role) => (
+                    <SelectItem
+                      key={role.value}
+                      value={role.value}
+                      className="py-4 px-6 text-slate-300 focus:bg-indigo-600 rounded-2xl italic font-black uppercase text-[10px]"
+                    >
+                      {role.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            {errors.status && <p className="text-[10px] text-red-500 ml-4">{errors.status.message}</p>}
           </div>
-        </div>
 
-        {/* Nút lưu thay đổi */}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full flex items-center justify-center gap-3 rounded-full bg-slate-900 py-5 text-xs font-black text-white hover:bg-black transition-all active:scale-95 shadow-xl disabled:bg-slate-200"
-        >
-          {isSubmitting ? "Hệ thống đang lưu..." : "LƯU THAY ĐỔI"}
-        </button>
-      </form>
-    </div>
+          <Button
+            type="submit"
+            disabled={updateUser.isPending}
+            className="w-full rounded-full bg-slate-900 py-6 text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-indigo-600 transition-all active:scale-95 disabled:bg-slate-200 mt-2 italic"
+          >
+            {updateUser.isPending
+              ? "Đang lưu hệ thống..."
+              : "LƯU THAY ĐỔI NHÂN SỰ"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
-

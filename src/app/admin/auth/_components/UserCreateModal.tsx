@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useStore } from "@/hooks/useStore";
+import { extractStoreOptions, extractRoleOptions } from "./user.mapper";
 import { toast } from "sonner";
 import {
   XMarkIcon,
@@ -11,19 +13,24 @@ import {
   LockClosedIcon,
   BuildingStorefrontIcon,
 } from "@heroicons/react/24/outline";
-import { useStore } from "@/hooks/useStore";
-import { Role } from "@/utils/enum";
-import { useForm } from "react-hook-form";
-import { CreateUserBody, CreateUserBodyType } from "@/schemas/auth";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { handleErrorApi } from "@/lib/errors";
 
-const HARDCODED_ROLES: { value: Role; label: string }[] = [
-  { value: Role.MANAGER, label: "Quản lý khu vực" },
-  { value: Role.SUPPLY_COORDINATOR, label: "Điều phối viên nguồn cung" },
-  { value: Role.CENTRAL_KITCHEN_STAFF, label: "Nhân viên bếp trung tâm" },
-  { value: Role.FRANCHISE_STORE_STAFF, label: "Nhân viên cửa hàng nhượng quyền" },
-];
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  SelectPortal,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogOverlay,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function UserCreateModal({
   isOpen,
@@ -32,191 +39,240 @@ export default function UserCreateModal({
   isOpen: boolean;
   onClose: () => void;
 }) {
-  const { createUser } = useAuth();
+  const { createUser, getRoles } = useAuth();
   const { storeList } = useStore();
 
-  const storesQuery = storeList({ page: 1, limit: 100, sortOrder: "DESC" });
-  const storeOptions = useMemo(
-    () => {
-      const stores: any = (storesQuery.data as any)?.items || (storesQuery.data as any)?.data?.items || [];
-      return Array.isArray(stores) ? stores.map((s: any) => ({
-        value: s.id ?? "",
-        label: s.name ?? "",
-      })) : [];
-    },
-    [storesQuery.data],
-  );
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    watch,
-    setValue,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<CreateUserBodyType>({
-    resolver: zodResolver(CreateUserBody),
-    defaultValues: {
-      role: Role.MANAGER,
-    },
+  // 1. Fetch dữ liệu - Đảm bảo lấy đủ 100 store để không sót UI
+  const { data: rolesData, isLoading: isLoadingRoles } = getRoles();
+  const { data: storesData, isLoading: isLoadingStores } = storeList({
+    limit: 100,
+    sortOrder: "DESC",
   });
 
-  const selectedRole = watch("role");
-  const isStoreStaff = selectedRole === Role.FRANCHISE_STORE_STAFF;
+  // 2. Mapping dữ liệu (Đã fix logic bóc tách 3 lớp trong mapper)
+  const roleOptions = useMemo(() => extractRoleOptions(rolesData), [rolesData]);
+  const storeOptions = useMemo(
+    () => extractStoreOptions(storesData),
+    [storesData],
+  );
 
-  useEffect(() => {
-    if (isOpen) {
-      reset({
-        username: "",
-        email: "",
-        password: "",
-        role: Role.MANAGER,
-        storeId: undefined,
-      });
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+    role: "",
+    storeId: "",
+  });
+
+  // 3. Logic xác định vai trò (Dùng để hiển thị ô chi nhánh)
+  const activeRole =
+    formData.role || (roleOptions.length > 0 ? roleOptions[0].value : "");
+
+  // Ép kiểu chuỗi và kiểm tra cả trường hợp Backend trả về chữ hoa/thường
+  const isStoreStaff =
+    activeRole.toString().toLowerCase().trim() === "franchise_store_staff" ||
+    activeRole.toString().toUpperCase() === "STORE_STAFF";
+
+  const handleClose = () => {
+    setFormData({
+      username: "",
+      email: "",
+      password: "",
+      role: "",
+      storeId: "",
+    });
+    onClose();
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const submitData = { ...formData, role: activeRole };
+
+    if (isStoreStaff && !submitData.storeId) {
+      toast.error("Vui lòng chọn chi nhánh nhượng quyền!");
+      return;
     }
-  }, [isOpen, reset]);
 
-  const onSubmit = async (data: CreateUserBodyType) => {
+    if (!isStoreStaff) delete (submitData as any).storeId;
+
     try {
-      const submitData = { ...data };
-      if (submitData.role !== Role.FRANCHISE_STORE_STAFF) {
-        delete submitData.storeId;
-      }
       await createUser.mutateAsync(submitData);
-      onClose();
+      toast.success("Tạo tài khoản thành công!");
+      handleClose();
     } catch (err) {
-      handleErrorApi({
-        error: err,
-        setError,
-      });
+      // Lỗi được xử lý tự động trong hook
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-300">
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        className="w-full max-w-lg bg-white rounded-[2.5rem] p-10 space-y-6 border border-slate-100 shadow-2xl animate-in zoom-in duration-300"
-      >
-        <div className="flex justify-between items-center border-b border-slate-50 pb-5">
-          <h3 className="text-xl font-black uppercase italic text-slate-900 tracking-tighter">
-            Cấp tài khoản mới
-          </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors"
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
+      <DialogOverlay className="z-[100] bg-slate-900/60 backdrop-blur-md" />
+      <DialogContent className="max-w-xl bg-white rounded-[3rem] p-0 border-none shadow-2xl overflow-hidden z-[110]">
+        {/* HEADER */}
+        <DialogHeader className="bg-slate-50/50 px-10 py-6 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left">
+          <div className="space-y-1">
+            <DialogTitle className="text-2xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
+              Ghi danh <span className="text-indigo-600">Nhân sự</span>
+            </DialogTitle>
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic mt-1">
+              Account Creation
+            </p>
+          </div>
+          <Button
+            onClick={handleClose}
+            className="p-3 bg-white text-slate-400 hover:text-red-500 rounded-2xl transition-all border border-slate-100 shadow-sm"
           >
-            <XMarkIcon className="h-5 w-5" />
-          </button>
-        </div>
+            <XMarkIcon className="h-6 w-6 stroke-[3.5px]" />
+          </Button>
+        </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-4 flex items-center gap-1">
-              <UserIcon className="h-3 w-3" /> Tên đăng nhập
-            </label>
-            <input
-              placeholder="nguyenvan_a"
-              {...register("username")}
-              className={`w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all ${errors.username ? "border-red-500 bg-red-50" : ""
-                }`}
-            />
-            {errors.username && <p className="text-[10px] text-red-500 ml-4">{errors.username.message}</p>}
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-4 flex items-center gap-1">
-              <EnvelopeIcon className="h-3 w-3" /> Email định danh
-            </label>
-            <input
-              type="email"
-              placeholder="email@gmail.com"
-              {...register("email")}
-              className={`w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all ${errors.email ? "border-red-500 bg-red-50" : ""
-                }`}
-            />
-            {errors.email && <p className="text-[10px] text-red-500 ml-4">{errors.email.message}</p>}
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
-              Phân quyền vai trò
-            </label>
-            <div className="relative">
-              <select
-                {...register("role")}
-                onChange={(e) => {
-                  const role = e.target.value as Role;
-                  setValue("role", role);
-                  if (role !== Role.FRANCHISE_STORE_STAFF) {
-                    setValue("storeId", undefined);
-                  }
-                }}
-                className="w-full rounded-full bg-slate-50 border border-indigo-600 px-6 py-4 text-sm font-bold text-slate-900 outline-none appearance-none cursor-pointer focus:bg-white transition-all"
-              >
-                {HARDCODED_ROLES.map((role) => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
-              </select>
-              <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-indigo-600">
-                <ShieldCheckIcon className="h-5 w-5" />
-              </div>
-            </div>
-            {errors.role && <p className="text-[10px] text-red-500 ml-4">{errors.role.message}</p>}
-          </div>
-
-          {isStoreStaff && (
-            <div className="space-y-1 animate-in slide-in-from-top-2 duration-300">
-              <label className="text-[10px] font-black uppercase text-indigo-500 ml-4 flex items-center gap-2">
-                <BuildingStorefrontIcon className="h-3.5 w-3.5" /> Liên kết cửa
-                hàng
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="space-y-4">
+            {/* USERNAME */}
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-slate-400 ml-5 flex items-center gap-2 italic">
+                <UserIcon className="h-3.5 w-3.5" /> Tên đăng nhập
               </label>
-              <select
-                {...register("storeId")}
-                className={`w-full rounded-full bg-indigo-50/50 border border-indigo-100 px-6 py-4 text-sm font-bold text-indigo-900 outline-none ${errors.storeId ? "border-red-500" : ""
-                  }`}
-              >
-                <option value="">--- Chọn cửa hàng cụ thể ---</option>
-                {storeOptions.map((s: any) => (
-                  <option key={s.value} value={s.value}>
-                    {s.label}
-                  </option>
-                ))}
-              </select>
-              {errors.storeId && <p className="text-[10px] text-red-500 ml-4">{errors.storeId.message}</p>}
+              <Input
+                required
+                placeholder="Tên đăng nhập"
+                value={formData.username}
+                onChange={(e) =>
+                  setFormData({ ...formData, username: e.target.value })
+                }
+                className="rounded-full bg-slate-50 border-slate-100 px-8 py-6 text-sm font-bold text-black italic"
+              />
             </div>
-          )}
 
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-4 flex items-center gap-1">
-              <LockClosedIcon className="h-3 w-3" /> Mật khẩu khởi tạo
-            </label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              {...register("password")}
-              className={`w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-indigo-600 transition-all ${errors.password ? "border-red-500 bg-red-50" : ""
-                }`}
-            />
-            {errors.password && <p className="text-[10px] text-red-500 ml-4">{errors.password.message}</p>}
+            {/* EMAIL */}
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase ml-5 flex text-black items-center gap-2 italic">
+                <EnvelopeIcon className="h-3.5 w-3.5" /> Email
+              </label>
+              <Input
+                required
+                type="email"
+                placeholder="@gmail.com"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                className="rounded-full bg-slate-50 text-black border-slate-100 px-8 py-6 text-sm font-bold"
+              />
+            </div>
+
+            {/* PHÂN QUYỀN */}
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-slate-400 ml-5 flex items-center gap-2 italic">
+                <ShieldCheckIcon className="h-3.5 w-3.5" /> Vai trò hệ thống
+              </label>
+              <Select
+                value={activeRole}
+                onValueChange={(val) =>
+                  setFormData({ ...formData, role: val, storeId: "" })
+                }
+              >
+                <SelectTrigger className="w-full rounded-full bg-white border-2 border-slate-100 px-8 py-6 text-sm font-black text-black uppercase italic">
+                  <SelectValue
+                    placeholder={
+                      isLoadingRoles ? "Đang tải..." : "Chọn vai trò"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectPortal>
+                  <SelectContent
+                    position="popper"
+                    sideOffset={8}
+                    className="z-[160] min-w-[var(--radix-select-trigger-width)] rounded-[2rem] border-slate-100 bg-slate-900 shadow-2xl p-2 font-bold uppercase italic text-[10px]"
+                  >
+                    {roleOptions.map((role) => (
+                      <SelectItem
+                        key={role.value}
+                        value={role.value}
+                        className="py-4 px-6 text-slate-300 focus:bg-indigo-600 focus:text-white rounded-2xl cursor-pointer"
+                      >
+                        {role.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </SelectPortal>
+              </Select>
+            </div>
+
+            {/* CHỌN CHI NHÁNH (Hiển thị dựa trên logic isStoreStaff) */}
+            {isStoreStaff && (
+              <div className="space-y-1.5 animate-in slide-in-from-top-4 duration-500">
+                <label className="text-[9px] font-black uppercase text-indigo-500 ml-5 flex items-center gap-2 italic">
+                  <BuildingStorefrontIcon className="h-4 w-4" /> Chi nhánh liên
+                  kết ({storeOptions.length})
+                </label>
+                <Select
+                  value={formData.storeId}
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, storeId: val })
+                  }
+                >
+                  <SelectTrigger className="w-full rounded-full bg-indigo-50/50 border-2 border-indigo-100 px-8 py-6 text-sm font-black text-indigo-900 focus:border-indigo-600 uppercase italic">
+                    <SelectValue
+                      placeholder={
+                        isLoadingStores
+                          ? "Đang lấy danh sách..."
+                          : "Chọn cơ sở KFC..."
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectPortal>
+                    <SelectContent
+                      position="popper"
+                      sideOffset={8}
+                      className="z-[160] min-w-[var(--radix-select-trigger-width)] rounded-[2rem] border-slate-100 bg-white shadow-2xl p-2 font-bold uppercase italic text-[10px]"
+                    >
+                      {storeOptions.map((s) => (
+                        <SelectItem
+                          key={s.value}
+                          value={s.value}
+                          className="py-4 px-6 text-slate-700 font-bold uppercase italic text-[10px] 
+               focus:bg-indigo-600 focus:text-white rounded-2xl cursor-pointer 
+               data-[state=checked]:bg-indigo-50 data-[state=checked]:text-indigo-900"
+                        >
+                          {s.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </SelectPortal>
+                </Select>
+              </div>
+            )}
+
+            {/* MẬT KHẨU */}
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-slate-400 ml-5 flex items-center gap-2 italic">
+                <LockClosedIcon className="h-3.5 w-3.5" /> Mật khẩu
+              </label>
+              <Input
+                required
+                type="password"
+                placeholder="••••••••"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                className="rounded-full bg-slate-50 text-black border-slate-100 px-8 py-6 text-sm font-bold"
+              />
+            </div>
           </div>
-        </div>
 
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full flex items-center justify-center gap-3 rounded-full bg-slate-900 py-5 text-xs font-black text-white hover:bg-black transition-all shadow-xl disabled:bg-slate-200"
-        >
-          {isSubmitting ? "Đang ghi danh..." : "XÁC NHẬN TẠO MỚI"}
-        </button>
-      </form>
-    </div>
+          <Button
+            type="submit"
+            disabled={createUser.isPending}
+            className="w-full rounded-full bg-slate-900 py-7 text-[10px] font-black uppercase tracking-[0.3em] shadow-xl hover:bg-indigo-600 transition-all active:scale-95 italic mt-4"
+          >
+            {createUser.isPending
+              ? "Hệ thống đang lưu..."
+              : "Xác nhận tạo tài khoản"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
-

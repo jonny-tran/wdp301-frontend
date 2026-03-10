@@ -1,163 +1,235 @@
 "use client";
 
-import { useEffect } from "react";
-import {
-  XMarkIcon,
-  CheckIcon,
-  ArrowPathIcon,
-} from "@heroicons/react/24/outline";
+import { useState, useEffect } from "react";
 import { useSupplier } from "@/hooks/useSupplier";
 import { toast } from "sonner";
-import { useForm } from "react-hook-form";
-import { Supplier } from "@/types/supplier";
-import { UpdateSupplierBody, UpdateSupplierBodyType } from "@/schemas/supplier";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { handleErrorApi } from "@/lib/errors";
+import {
+  XMarkIcon,
+  BuildingOfficeIcon,
+  EnvelopeIcon,
+  PhoneIcon,
+  MapPinIcon,
+  UserIcon,
+  CheckCircleIcon,
+} from "@heroicons/react/24/outline";
+
+// UI Components chuẩn
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface SupplierEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  data: Supplier | null;
+  supplier: any; // Dữ liệu nhà cung cấp từ bảng
 }
 
-export default function SupplierEditModal({ isOpen, onClose, data }: SupplierEditModalProps) {
+export default function SupplierEditModal({
+  isOpen,
+  onClose,
+  supplier,
+}: SupplierEditModalProps) {
   const { updateSupplier } = useSupplier();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<UpdateSupplierBodyType>({
-    resolver: zodResolver(UpdateSupplierBody),
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    contactPerson: "",
+    status: "ACTIVE",
   });
 
-  // Prefill dữ liệu khi mở modal
+  // 1. Đồng bộ dữ liệu khi mở Modal (Sửa lỗi cascading bằng cách sync trực tiếp)
   useEffect(() => {
-    if (data && isOpen) {
-      reset({
-        name: data.name || "",
-        contactName: data.contactName || "",
-        phone: data.phone || "",
-        address: data.address || "",
-        isActive: data.isActive,
+    if (isOpen && supplier) {
+      setFormData({
+        name: supplier.name || "",
+        email: supplier.email || "",
+        phone: supplier.phone || "",
+        address: supplier.address || "",
+        contactPerson: supplier.contactPerson || "",
+        status: supplier.isActive ? "ACTIVE" : "INACTIVE",
       });
     }
-  }, [data, isOpen, reset]);
+  }, [isOpen, supplier]);
 
-  const onSubmit = async (formData: UpdateSupplierBodyType) => {
-    if (!data?.id) return;
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const submitPayload = {
+      ...formData,
+      isActive: formData.status === "ACTIVE",
+    };
+
     try {
-      await updateSupplier.mutateAsync({ id: String(data.id), data: formData });
-      onClose();
-    } catch (error) {
-      handleErrorApi({
-        error,
-        setError,
+      await updateSupplier.mutateAsync({
+        id: supplier.id,
+        payload: submitPayload,
       });
+
+      toast.success("Cập nhật thông tin đối tác thành công!");
+      onClose();
+    } catch (err) {
+      // Error handled in hook
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !supplier) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/10 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-12">
-          <div className="md:col-span-8 p-10 space-y-6">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-xl bg-white rounded-[3rem] p-0 border-none shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 z-[110]">
+        {/* HEADER SECTION */}
+        <DialogHeader className="bg-slate-50/50 px-10 py-6 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left">
+          <div className="space-y-0.5">
+            <DialogTitle className="text-xl font-black uppercase italic tracking-tighter text-slate-900 leading-none">
+              Cập nhật <span className="text-indigo-600">Đối tác</span>
+            </DialogTitle>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic truncate max-w-[200px]">
+              ID: {supplier.id}
+            </p>
+          </div>
+          <Button
+            onClick={onClose}
+            className="p-2.5 bg-white text-slate-400 hover:text-red-500 rounded-xl transition-all border border-slate-100 shadow-sm"
+          >
+            <XMarkIcon className="h-5 w-5 stroke-[2.5px]" />
+          </Button>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit} className="p-8 space-y-4">
+          <div className="space-y-4">
+            {/* TÊN CÔNG TY */}
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
+                <BuildingOfficeIcon className="h-3 w-3" /> Tên đơn vị cung ứng
+              </label>
+              <Input
+                required
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+                className="rounded-full bg-slate-50 border-slate-100 px-6 py-5 text-sm font-bold shadow-sm"
+              />
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
-              <div className="col-span-2 space-y-1">
-                <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
-                  Tên công ty
+              {/* SỐ ĐIỆN THOẠI */}
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
+                  <PhoneIcon className="h-3 w-3" /> Số điện thoại
                 </label>
-                <input
-                  {...register("name")}
-                  className={`w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 transition-all shadow-inner ${errors.name ? "border-red-500 bg-red-50" : ""}`}
+                <Input
+                  required
+                  value={formData.phone}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
+                  className="rounded-full bg-slate-50 border-slate-100 px-6 py-5 text-sm font-bold shadow-sm"
                 />
-                {errors.name && <p className="text-[10px] text-red-500 ml-4">{errors.name.message}</p>}
               </div>
-              <div className="space-y-1">
-                <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
-                  Đại diện
+
+              {/* TRẠNG THÁI HỢP TÁC */}
+              <div className="space-y-1.5">
+                <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
+                  <CheckCircleIcon className="h-3 w-3" /> Tình trạng
                 </label>
-                <input
-                  {...register("contactName")}
-                  className={`w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 ${errors.contactName ? "border-red-500 bg-red-50" : ""}`}
-                />
-                {errors.contactName && <p className="text-[10px] text-red-500 ml-4">{errors.contactName.message}</p>}
+                <Select
+                  value={formData.status}
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, status: val })
+                  }
+                >
+                  <SelectTrigger className="w-full rounded-full bg-white border border-slate-100 px-6 py-5 text-sm font-black text-slate-900">
+                    <SelectValue placeholder="Trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border-slate-100 shadow-xl font-bold uppercase italic text-[10px]">
+                    <SelectItem
+                      value="ACTIVE"
+                      className="py-3 text-emerald-600"
+                    >
+                      Đang cung ứng
+                    </SelectItem>
+                    <SelectItem value="INACTIVE" className="py-3 text-red-600">
+                      Ngừng hợp tác
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="space-y-1">
-                <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
-                  Phone
-                </label>
-                <input
-                  {...register("phone")}
-                  className={`w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 ${errors.phone ? "border-red-500 bg-red-50" : ""}`}
-                />
-                {errors.phone && <p className="text-[10px] text-red-500 ml-4">{errors.phone.message}</p>}
-              </div>
-              <div className="col-span-2 space-y-1">
-                <label className="text-[9px] font-black uppercase text-slate-400 ml-4">
-                  Địa chỉ
-                </label>
-                <input
-                  {...register("address")}
-                  className={`w-full rounded-full border border-slate-100 bg-slate-50/50 px-6 py-4 text-xs font-bold outline-none focus:bg-white focus:border-blue-500 ${errors.address ? "border-red-500 bg-red-50" : ""}`}
-                />
-                {errors.address && <p className="text-[10px] text-red-500 ml-4">{errors.address.message}</p>}
-              </div>
+            </div>
+
+            {/* EMAIL */}
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
+                <EnvelopeIcon className="h-3 w-3" /> Email liên hệ
+              </label>
+              <Input
+                required
+                type="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                className="rounded-full bg-slate-50 border-slate-100 px-6 py-5 text-sm font-bold shadow-sm"
+              />
+            </div>
+
+            {/* NGƯỜI ĐẠI DIỆN */}
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
+                <UserIcon className="h-3 w-3" /> Pháp nhân đại diện
+              </label>
+              <Input
+                required
+                value={formData.contactPerson}
+                onChange={(e) =>
+                  setFormData({ ...formData, contactPerson: e.target.value })
+                }
+                className="rounded-full bg-slate-50 border-slate-100 px-6 py-5 text-sm font-bold shadow-sm"
+              />
+            </div>
+
+            {/* ĐỊA CHỈ */}
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
+                <MapPinIcon className="h-3 w-3" /> Trụ sở chính
+              </label>
+              <Input
+                required
+                value={formData.address}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
+                className="rounded-full bg-slate-50 border-slate-100 px-6 py-5 text-sm font-bold shadow-sm"
+              />
             </div>
           </div>
 
-          <div className="md:col-span-4 bg-slate-50/50 p-10 flex flex-col justify-between border-l border-slate-100">
-            <div className="text-center relative">
-              <button
-                type="button"
-                onClick={onClose}
-                className="absolute -top-6 -right-6 p-2 text-slate-300 hover:text-red-500"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </button>
-              <h3 className="text-xl font-black uppercase italic leading-tight">
-                Edit <br /> Supplier
-              </h3>
-              <p className="text-[8px] font-bold text-slate-400 uppercase mt-2 tracking-widest italic">
-                Entry ID: #{data?.id}
-              </p>
-            </div>
-            <div className="space-y-3">
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`w-full py-4 rounded-full text-[10px] font-black uppercase tracking-widest transition-all shadow-md active:scale-95 flex items-center justify-center gap-2
-                  ${isSubmitting ? "bg-slate-200 text-slate-400 cursor-not-allowed" : "bg-slate-900 text-white hover:bg-black"}`}
-              >
-                {isSubmitting ? (
-                  <ArrowPathIcon className="h-4 w-4 animate-spin" />
-                ) : (
-                  <CheckIcon className="h-4 w-4" />
-                )}
-                Xác nhận sửa
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="w-full text-[9px] font-black text-slate-400 hover:text-red-500 uppercase tracking-widest"
-              >
-                Hủy bỏ
-              </button>
-            </div>
-          </div>
+          <Button
+            type="submit"
+            disabled={updateSupplier.isPending}
+            className="w-full rounded-full bg-slate-900 py-6 text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-indigo-600 transition-all active:scale-95 disabled:bg-slate-200 mt-2 italic"
+          >
+            {updateSupplier.isPending
+              ? "Hệ thống đang lưu..."
+              : "LƯU THÔNG TIN ĐỐI TÁC"}
+          </Button>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
-

@@ -6,6 +6,8 @@ import {
   CalendarIcon,
 } from "@heroicons/react/24/outline";
 import { QueryOrder } from "@/types/order";
+import { Input } from "@/components/ui/input";
+import { Select } from "react-day-picker";
 
 interface OrderFilterProps {
   filters: QueryOrder;
@@ -52,7 +54,7 @@ export default function OrderFilter({
       />
 
       {/* 3. Lọc Trạng thái (status) */}
-      <select
+      <Select
         value={filters.status || ""}
         onChange={(e) => onFilterChange({ status: e.target.value as any })}
         className="bg-slate-50 border-none rounded-full py-3 px-6 text-[10px] font-black uppercase tracking-widest cursor-pointer outline-none focus:ring-2 focus:ring-slate-900"
@@ -63,19 +65,19 @@ export default function OrderFilter({
             {s.toUpperCase()}
           </option>
         ))}
-      </select>
+      </Select>
 
       {/* 4. Khoảng ngày (fromDate - toDate) */}
       <div className="flex items-center gap-2 bg-slate-50 rounded-full px-4 py-1.5 border border-slate-100">
         <CalendarIcon className="h-4 w-4 text-slate-400" />
-        <input
+        <Input
           type="date"
           value={filters.fromDate || ""}
           onChange={(e) => onFilterChange({ fromDate: e.target.value })}
           className="bg-transparent border-none text-[9px] font-black uppercase outline-none"
         />
         <span className="text-slate-300 font-bold">→</span>
-        <input
+        <Input
           type="date"
           value={filters.toDate || ""}
           onChange={(e) => onFilterChange({ toDate: e.target.value })}
