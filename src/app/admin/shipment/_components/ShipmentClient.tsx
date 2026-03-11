@@ -1,11 +1,13 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import { useShipment } from "@/hooks/useShipment";
 import { Shipment } from "@/types/shipment";
 import { PaginationMeta } from "@/types/base";
+import { BasePagination } from "@/components/layout/BasePagination";
 import ShipmentTable from "./ShipmentTable";
 import ShipmentFilter, { ShipmentFilterValues } from "./ShipmentFilter";
+import { TruckIcon } from "@heroicons/react/24/outline";
 
 const isValidUUID = (id: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
@@ -37,7 +39,6 @@ interface ShipmentListResponse {
 export default function ShipmentClient() {
   const { shipmentList } = useShipment();
 
-  // Khởi tạo state theo đúng tài liệu API
   const [queryParams, setQueryParams] = useState<ShipmentQueryParams>({
     page: 1,
     limit: 10,
@@ -57,21 +58,15 @@ export default function ShipmentClient() {
     return () => clearTimeout(handler);
   }, [queryParams]);
 
-  /**
-   * Safe Query: Vệ sinh dữ liệu trước khi gửi lên API
-   */
   const safeQuery = useMemo(() => {
     const cleaned: Record<string, string | number> = { ...debouncedParams };
 
-    // Lọc ký tự đặc biệt trong Search
     if (typeof cleaned.search === "string")
       cleaned.search = cleaned.search.replace(/[#%]/g, "").trim();
 
-    // Chỉ gửi storeId nếu là UUID hợp lệ
     if (cleaned.storeId && !isValidUUID(String(cleaned.storeId)))
       delete cleaned.storeId;
 
-    // Xóa các trường rỗng
     Object.keys(cleaned).forEach((key) => {
       if (cleaned[key] === "" || cleaned[key] === undefined)
         delete cleaned[key];
@@ -80,33 +75,58 @@ export default function ShipmentClient() {
     return cleaned;
   }, [debouncedParams]);
 
-  const { data: rawData, isLoading } = shipmentList(safeQuery as Parameters<typeof shipmentList>[0]);
+  const { data: rawData, isLoading } = shipmentList(
+    safeQuery as Parameters<typeof shipmentList>[0],
+  );
 
   const responseData = rawData as ShipmentListResponse | undefined;
+
   const items: Shipment[] = useMemo(
     () => responseData?.items || responseData?.data?.items || [],
     [responseData],
   );
 
-  const totalItems = responseData?.meta?.totalItems || responseData?.data?.meta?.totalItems || 0;
+  // Trích xuất pagination meta
+  const meta = useMemo(() => {
+    const m =
+      responseData?.meta || responseData?.data?.meta;
+    return {
+      currentPage: m?.currentPage ?? queryParams.page,
+      totalPages: m?.totalPages ?? 1,
+      totalItems: m?.totalItems ?? 0,
+      itemsPerPage: m?.itemsPerPage ?? queryParams.limit,
+    };
+  }, [responseData, queryParams.page, queryParams.limit]);
+
+  const handlePageChange = useCallback(
+    (page: number) => {
+      setQueryParams((prev) => ({ ...prev, page }));
+    },
+    [],
+  );
 
   return (
     <div className="flex flex-col gap-6 animate-in fade-in duration-500">
-      {/* HEADER SECTION */}
+      {/* HEADER */}
       <div className="flex justify-between items-end px-1">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-black font-display tracking-wider uppercase text-text-main leading-none">
-            Shipment Portal
-          </h1>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">
-            {isLoading
-              ? "Đang đồng bộ..."
-              : `Hệ thống tìm thấy ${totalItems} vận đơn`}
-          </p>
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-primary rounded-2xl shadow-lg shadow-primary/20">
+            <TruckIcon className="h-6 w-6 text-white" />
+          </div>
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold text-slate-900 leading-none">
+              Vận chuyển
+            </h1>
+            <p className="text-xs text-slate-400">
+              {isLoading
+                ? "Đang đồng bộ..."
+                : `${meta.totalItems} vận đơn trong hệ thống`}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* FILTER BAR */}
+      {/* FILTER */}
       <ShipmentFilter
         filters={queryParams}
         onFilterChange={(updates: Partial<ShipmentFilterValues>) =>
@@ -114,9 +134,18 @@ export default function ShipmentClient() {
         }
       />
 
-      {/* TABLE SECTION */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden min-h-[500px]">
+      {/* TABLE + PAGINATION */}
+      <div className="bg-white rounded-2xl border border-slate-100 shadow-lg overflow-hidden flex flex-col min-h-[500px]">
         <ShipmentTable items={items} isLoading={isLoading} />
+        <div className="mt-auto border-t border-slate-100 px-6 py-4">
+          <BasePagination
+            currentPage={meta.currentPage}
+            totalPages={meta.totalPages}
+            totalItems={meta.totalItems}
+            itemsPerPage={meta.itemsPerPage}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </div>
     </div>
   );

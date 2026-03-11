@@ -1,11 +1,31 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { SystemConfig } from "./ConfigClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { useEffect, useState } from "react";
-import { SystemConfig } from "./ConfigClient";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  CheckIcon,
+  ExclamationTriangleIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 
 interface Props {
   isOpen: boolean;
@@ -24,6 +44,7 @@ export default function ConfigEditModal({
 }: Props) {
   const [value, setValue] = useState("");
   const [desc, setDesc] = useState("");
+  const [showConfirm, setShowConfirm] = useState(false);
 
   /* eslint-disable react-hooks/set-state-in-effect -- Safe: syncs config prop to local state */
   useEffect(() => {
@@ -34,66 +55,117 @@ export default function ConfigEditModal({
   }, [config]);
   /* eslint-enable react-hooks/set-state-in-effect */
 
-  if (!isOpen || !config) return null;
+  if (!config) return null;
+
+  const handleConfirmSave = () => {
+    onSave(config.key, value, desc);
+    setShowConfirm(false);
+  };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/40 backdrop-blur-sm animate-in fade-in">
-      <div className="w-full max-w-md bg-white rounded-[2.5rem] p-10 space-y-6 shadow-2xl border border-slate-100 animate-in zoom-in">
-        <div className="flex justify-between items-center border-b border-slate-50 pb-5">
-          <div className="flex flex-col">
-            <h3 className="text-xl font-black font-display tracking-wider uppercase text-text-main">
-              Sửa cấu hình
-            </h3>
-            <span className="text-[10px] font-bold text-primary uppercase tracking-widest">
-              {config.key}
-            </span>
-          </div>
-          <Button
-            onClick={onClose}
-            className="p-2 text-slate-400 hover:bg-slate-50 rounded-full transition-colors"
-          >
-            <XMarkIcon className="h-5 w-5" />
-          </Button>
-        </div>
+    <>
+      <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+        <DialogContent className="max-w-md bg-white rounded-2xl p-0 border-none shadow-2xl overflow-hidden">
+          {/* HEADER */}
+          <DialogHeader className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left">
+            <div className="flex flex-col">
+              <DialogTitle className="text-lg font-bold text-slate-900">
+                Sửa cấu hình
+              </DialogTitle>
+              <span className="text-xs font-bold text-primary font-mono mt-0.5">
+                {config.key}
+              </span>
+            </div>
+            <Button
+              onClick={onClose}
+              className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-lg transition-colors"
+            >
+              <XMarkIcon className="h-5 w-5" />
+            </Button>
+          </DialogHeader>
 
-        <div className="space-y-4">
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
-              Giá trị mới
-            </label>
-            <Input
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              className="w-full rounded-full bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-primary transition-all"
-            />
-          </div>
-          <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase text-slate-400 ml-4">
-              Mô tả tác vụ
-            </label>
-            <Textarea
-              rows={3}
-              value={desc}
-              onChange={(e) => setDesc(e.target.value)}
-              className="w-full rounded-3xl bg-slate-50 border border-slate-100 px-6 py-4 text-sm font-bold outline-none focus:bg-white focus:border-primary transition-all resize-none"
-            />
-          </div>
-        </div>
+          <div className="p-6 space-y-5">
+            {/* WARNING */}
+            <div className="flex items-start gap-3 p-3.5 bg-amber-50 border border-amber-100 rounded-xl">
+              <ExclamationTriangleIcon className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+              <p className="text-xs text-amber-700 leading-relaxed">
+                Thay đổi cấu hình có thể ảnh hưởng trực tiếp đến toàn bộ
+                hệ thống vận hành. Hãy kiểm tra kỹ trước khi lưu.
+              </p>
+            </div>
 
-        <button
-          onClick={() => onSave(config.key, value, desc)}
-          disabled={isPending}
-          className="w-full flex items-center justify-center gap-3 rounded-full bg-primary py-5 text-xs font-black text-white hover:bg-primary-dark transition-all active:scale-95 shadow-xl disabled:bg-slate-200"
-        >
-          {isPending ? (
-            "Đang lưu..."
-          ) : (
-            <>
-              <CheckIcon className="h-4 w-4 stroke-[3px]" /> XÁC NHẬN THAY ĐỔI
-            </>
-          )}
-        </button>
-      </div>
-    </div>
+            {/* FORM */}
+            <div className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 ml-1">
+                  Giá trị mới
+                </label>
+                <Input
+                  value={value}
+                  onChange={(e) => setValue(e.target.value)}
+                  className="rounded-xl bg-slate-50 border-slate-100 px-4 py-3 text-sm font-bold text-slate-900"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 ml-1">
+                  Mô tả tác vụ
+                </label>
+                <Textarea
+                  rows={3}
+                  value={desc}
+                  onChange={(e) => setDesc(e.target.value)}
+                  className="rounded-xl bg-slate-50 border-slate-100 px-4 py-3 text-sm font-medium text-slate-900 resize-none"
+                />
+              </div>
+            </div>
+
+            <Button
+              onClick={() => setShowConfirm(true)}
+              disabled={isPending || !value.trim()}
+              className="w-full flex items-center justify-center gap-2 rounded-xl bg-primary py-3 text-sm font-bold hover:bg-primary/90 transition-all active:scale-[0.98] disabled:bg-slate-200"
+            >
+              {isPending ? (
+                "Đang lưu..."
+              ) : (
+                <>
+                  <CheckIcon className="h-4 w-4 stroke-[3px]" /> Xác nhận thay
+                  đổi
+                </>
+              )}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* CONFIRMATION DIALOG */}
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <ExclamationTriangleIcon className="h-5 w-5 text-amber-500" />
+              Xác nhận thay đổi cấu hình
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn sắp thay đổi tham số{" "}
+              <span className="font-bold text-slate-900 font-mono">
+                {config.key}
+              </span>{" "}
+              thành{" "}
+              <span className="font-bold text-primary">{value}</span>.
+              Thay đổi này sẽ ảnh hưởng đến toàn hệ thống ngay lập tức.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Hủy bỏ</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmSave}
+              className="rounded-xl bg-primary hover:bg-primary/90"
+            >
+              Đồng ý thay đổi
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
