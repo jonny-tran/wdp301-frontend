@@ -12,17 +12,17 @@ export type Shipment = {
 }
 
 export type ShipmentItem = {
-    productName: string
+    product_name: string
     sku: string
-    batchCode: string
+    batch_code: string
     quantity: string
-    expiryDate: string
-    imageUrl: string
+    expiry_date: string
+    image_url: string
 }
 export type ShipmentPickingList = {
-    shipmentId: string
-    orderId: string
-    storeName: string
+    shipment_id: string
+    order_id: string
+    store_name: string
     status: string
     items: ShipmentItem[]
 }

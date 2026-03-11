@@ -134,12 +134,12 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
             icon: ClipboardDocumentListIcon,
             requiredPermission: { resource: Resource.ORDER, action: P.ORDER_READ_ALL_PENDING }
         },
-        {
-            name: "Allocation",
-            href: "/supply/allocation",
-            icon: Squares2X2Icon,
-            requiredPermission: { resource: Resource.ORDER, action: P.ORDER_APPROVE }
-        },
+        // {
+        //     name: "Allocation",
+        //     href: "/supply/allocation",
+        //     icon: Squares2X2Icon,
+        //     requiredPermission: { resource: Resource.ORDER, action: P.ORDER_APPROVE }
+        // },
         {
             name: "Delivery",
             href: "/supply/delivery",
