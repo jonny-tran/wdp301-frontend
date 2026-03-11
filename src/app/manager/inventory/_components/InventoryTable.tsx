@@ -1,180 +1,164 @@
 "use client";
 
-import {
-    PlusIcon,
-    ArchiveBoxIcon,
-} from "@heroicons/react/24/outline";
+import { PlusIcon, ArchiveBoxIcon, InboxIcon } from "@heroicons/react/24/outline";
 import Can from "@/components/shared/Can";
 import { P } from "@/lib/authz";
 import { Resource } from "@/utils/constant";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
-/** View model for each inventory row — decoupled from API DTO */
 export interface InventoryRowItem {
-    productId: number;
-    productName: string;
-    sku: string;
-    totalQuantity: number;
-    unit: string;
-    status: "normal" | "low-stock" | "out-of-stock";
-    warehouseName?: string;
+  productId: number;
+  productName: string;
+  sku: string;
+  totalQuantity: number;
+  unit: string;
+  status: "normal" | "low-stock" | "out-of-stock";
+  warehouseName?: string;
 }
 
 interface InventoryTableProps {
-    items: InventoryRowItem[];
-    isLoading: boolean;
-    isError: boolean;
-    onAdjust?: (item: InventoryRowItem) => void;
+  items: InventoryRowItem[];
+  isLoading: boolean;
+  isError: boolean;
+  onAdjust?: (item: InventoryRowItem) => void;
 }
 
-const STATUS_BADGE: Record<InventoryRowItem["status"], { idle: string; hover: string; label: string }> = {
-    normal: {
-        idle: "bg-green-100 text-green-700",
-        hover: "group-hover:bg-green-600 group-hover:text-white",
-        label: "Normal",
-    },
-    "low-stock": {
-        idle: "bg-orange-100 text-orange-700",
-        hover: "group-hover:bg-orange-600 group-hover:text-white",
-        label: "Low Stock",
-    },
-    "out-of-stock": {
-        idle: "bg-red-100 text-red-700",
-        hover: "group-hover:bg-red-600 group-hover:text-white",
-        label: "Out of Stock",
-    },
-};
+function TableSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <TableRow key={i}>
+          <TableCell className="pl-6">
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </TableCell>
+          <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+          <TableCell className="text-center"><Skeleton className="h-6 w-16 mx-auto" /></TableCell>
+          <TableCell className="text-center"><Skeleton className="h-5 w-24 mx-auto" /></TableCell>
+          <TableCell className="text-right pr-6">
+            <Skeleton className="h-8 w-16 rounded-md inline-block" />
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
 
-/**
- * InventoryTable — Pure presentational component.
- * Receives data and callbacks via props. Does NOT call any API hooks.
- */
 export default function InventoryTable({
-    items,
-    isLoading,
-    isError,
-    onAdjust,
+  items,
+  isLoading,
+  isError,
+  onAdjust,
 }: InventoryTableProps) {
-    // 1. Loading State
-    if (isLoading) {
-        return (
-            <div className="p-32 text-center">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-slate-950 mb-4" />
-                <p className="font-black text-slate-300 italic uppercase text-[10px] tracking-widest">
-                    Đang kiểm kê kho hàng...
-                </p>
-            </div>
-        );
-    }
-
-    // 2. Error State
-    if (isError) {
-        return (
-            <div className="p-32 text-center flex flex-col items-center gap-4 text-red-400 uppercase italic font-black text-[10px] tracking-[0.3em]">
-                <ArchiveBoxIcon className="h-10 w-10 opacity-40" />
-                Không thể tải dữ liệu kho hàng. Vui lòng thử lại.
-            </div>
-        );
-    }
-
-    // 3. Empty State
-    if (items.length === 0) {
-        return (
-            <div className="p-32 text-center flex flex-col items-center gap-4 text-slate-200 uppercase italic font-black text-[10px] tracking-[0.3em]">
-                <ArchiveBoxIcon className="h-10 w-10 opacity-20" />
-                Không tìm thấy sản phẩm nào
-            </div>
-        );
-    }
-
+  if (isError) {
     return (
-        <div className="w-full overflow-x-auto scrollbar-hide">
-            <table className="w-full min-w-[900px] text-left text-sm border-separate border-spacing-0 table-fixed">
-                <thead className="bg-slate-50/50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                    <tr>
-                        <th className="px-6 py-4 border-b border-slate-100 w-[30%]">
-                            Sản phẩm / SKU
-                        </th>
-                        <th className="px-6 py-4 border-b border-slate-100 w-[20%]">
-                            Kho quản lý
-                        </th>
-                        <th className="px-6 py-4 border-b border-slate-100 text-center w-[15%]">
-                            Tồn kho
-                        </th>
-                        <th className="px-6 py-4 border-b border-slate-100 text-center w-[15%]">
-                            Trạng thái
-                        </th>
-                        <th className="px-6 py-4 border-b border-slate-100 text-right w-[20%]">
-                            Thao tác
-                        </th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50 bg-white">
-                    {items.map((item, idx) => {
-                        const badge = STATUS_BADGE[item.status];
-                        return (
-                            <tr
-                                key={`${item.productId}-${idx}`}
-                                className="group hover:bg-slate-950 transition-all duration-300"
-                            >
-                                {/* Cột Sản phẩm */}
-                                <td className="px-6 py-5">
-                                    <div className="flex flex-col gap-1">
-                                        <span className="font-black text-slate-900 group-hover:text-white transition-colors uppercase italic text-sm tracking-tighter">
-                                            {item.productName}
-                                        </span>
-                                        <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-500 uppercase tracking-widest leading-none">
-                                            SKU: {item.sku}
-                                        </span>
-                                    </div>
-                                </td>
-
-                                {/* Cột Kho */}
-                                <td className="px-6 py-5">
-                                    <span className="text-[10px] font-black text-slate-500 group-hover:text-slate-400 uppercase tracking-wider">
-                                        {item.warehouseName}
-                                    </span>
-                                </td>
-
-                                {/* Cột Số lượng */}
-                                <td className="px-6 py-5 text-center group-hover:text-white font-black italic text-xl tracking-tighter tabular-nums transition-colors">
-                                    {item.totalQuantity}
-                                    <span className="ml-1 text-[10px] not-italic opacity-40 font-bold uppercase">
-                                        {item.unit}
-                                    </span>
-                                </td>
-
-                                {/* Cột Trạng thái */}
-                                <td className="px-6 py-5 text-center">
-                                    <div className="flex justify-center">
-                                        <span
-                                            className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all ${badge.idle} ${badge.hover}`}
-                                        >
-                                            {badge.label}
-                                        </span>
-                                    </div>
-                                </td>
-
-                                {/* Cột Hành động */}
-                                <td className="px-6 py-5 text-right">
-                                    <div className="flex justify-end gap-2">
-                                        {onAdjust && (
-                                            <Can I={P.PRODUCT_UPDATE} on={Resource.PRODUCT}>
-                                                <button
-                                                    onClick={() => onAdjust(item)}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white hover:text-slate-950 transition-all shadow-lg active:scale-95"
-                                                >
-                                                    <PlusIcon className="h-3 w-3 stroke-[3px]" />
-                                                    Adjust
-                                                </button>
-                                            </Can>
-                                        )}
-                                    </div>
-                                </td>
-                            </tr>
-                        );
-                    })}
-                </tbody>
-            </table>
-        </div>
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-sm font-medium text-red-500">
+          Lỗi tải dữ liệu kho hàng.
+        </p>
+      </div>
     );
+  }
+
+  if (!isLoading && items.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="rounded-full bg-slate-100 p-4 mb-4">
+          <InboxIcon className="h-8 w-8 text-slate-400" />
+        </div>
+        <p className="text-sm font-medium text-slate-500">Không tìm thấy sản phẩm nào</p>
+      </div>
+    );
+  }
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+          <TableHead className="pl-6 text-xs font-semibold text-slate-500 w-[35%]">Sản phẩm / SKU</TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[20%]">Kho quản lý</TableHead>
+          <TableHead className="text-center text-xs font-semibold text-slate-500 w-[15%]">Tồn kho</TableHead>
+          <TableHead className="text-center text-xs font-semibold text-slate-500 w-[15%]">Trạng thái</TableHead>
+          <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[15%]">Thao tác</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {isLoading ? (
+          <TableSkeleton />
+        ) : (
+          items.map((item, idx) => (
+            <TableRow
+              key={`${item.productId}-${idx}`}
+              className="group hover:bg-slate-50/50 transition-colors"
+            >
+              <TableCell className="pl-6">
+                <div>
+                  <p className="font-semibold text-slate-900">{item.productName}</p>
+                  <p className="text-xs text-slate-500">SKU: {item.sku}</p>
+                </div>
+              </TableCell>
+              <TableCell>
+                <span className="text-sm font-medium text-slate-700">
+                  {item.warehouseName || "Kho chính"}
+                </span>
+              </TableCell>
+              <TableCell className="text-center">
+                <span className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  {item.totalQuantity.toLocaleString()}
+                </span>
+                <span className="text-xs text-slate-500 ml-1">{item.unit}</span>
+              </TableCell>
+              <TableCell className="text-center">
+                <Badge
+                  variant="outline"
+                  className={
+                    item.status === "normal"
+                      ? "bg-green-50 text-green-700 border-green-200"
+                      : item.status === "low-stock"
+                      ? "bg-orange-50 text-orange-700 border-orange-200"
+                      : "bg-red-50 text-red-700 border-red-200"
+                  }
+                >
+                  {item.status === "normal"
+                    ? "Normal"
+                    : item.status === "low-stock"
+                    ? "Low Stock"
+                    : "Out of Stock"}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right pr-6">
+                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {onAdjust && (
+                    <Can I={P.PRODUCT_UPDATE} on={Resource.PRODUCT}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 gap-1 border-slate-200 hover:bg-slate-100"
+                        onClick={() => onAdjust(item)}
+                      >
+                        <PlusIcon className="h-3.5 w-3.5" />
+                        <span className="text-xs">Adjust</span>
+                      </Button>
+                    </Can>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
+  );
 }

@@ -13,15 +13,10 @@ interface RawClaimItem {
   [key: string]: unknown;
 }
 
-interface RawClaimResponse {
-  items?: RawClaimItem[];
-  [key: string]: unknown;
-}
 
 export const extractClaims = (response: unknown, rowStart: number): ClaimRow[] => {
     // Ép kiểu unknown về cấu trúc mong muốn một cách an toàn
-    const res = response as RawClaimResponse;
-    const rawItems = res?.items || [];
+    const rawItems = Array.isArray(response) ? response : (response as { items?: unknown })?.items || [];
     
     if (!Array.isArray(rawItems)) return [];
 

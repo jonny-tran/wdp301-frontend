@@ -6,9 +6,7 @@ import { OrderRow } from "./order.types";
  * Đã fix để nhận diện đúng mảng items từ response của useOrder
  */
 export const extractOrders = (response: unknown): OrderRow[] => {
-  const res = response as Record<string, unknown> | undefined;
-  
-  const rawItems = res?.items ?? (Array.isArray(res) ? res : []);
+  const rawItems = Array.isArray(response) ? response : (response as Record<string, unknown>)?.items || [];
 
   if (!Array.isArray(rawItems)) {
     console.error("Mapper Error: Dữ liệu không phải là mảng items", rawItems);

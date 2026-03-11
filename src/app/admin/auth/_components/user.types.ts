@@ -18,15 +18,18 @@ export interface RoleOption {
 
 /**
  * Dữ liệu hiển thị trên từng dòng của bảng UserTable
+ * Khớp với backend camelCase response (không cần mapper)
  */
 export interface UserRow {
   id: string;
   username: string;
   email: string;
-  role: string;      // Key của vai trò (ví dụ: 'manager')
-  isActive: boolean; // Trạng thái hoạt động của tài khoản
+  role: string;        // Key của vai trò (ví dụ: 'manager')
+  status: string;      // 'ACTIVE' | 'INACTIVE' — từ backend
+  isActive?: boolean;  // Computed field cho tiện hiển thị
   createdAt: string;
-  phone?: string;    // Số điện thoại (có thể có hoặc không)
+  phone?: string;
+  storeId?: string;    // UUID cửa hàng (nếu là franchise_store_staff)
 }
 
 /**

@@ -1,7 +1,17 @@
 "use client";
 
-import { ClockIcon } from "@heroicons/react/24/outline";
+import { ClockIcon, ArchiveBoxIcon } from "@heroicons/react/24/outline";
 import { format } from "date-fns";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 export interface AgingBatchItem {
   batchCode: string;
@@ -17,6 +27,32 @@ export interface AgingData {
   critical: AgingBatchItem[];
 }
 
+function TableSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <TableRow key={i}>
+          <TableCell className="pl-6">
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </TableCell>
+          <TableCell className="text-center"><Skeleton className="h-6 w-16 mx-auto" /></TableCell>
+          <TableCell className="text-center"><Skeleton className="h-5 w-24 mx-auto" /></TableCell>
+          <TableCell>
+            <div className="flex flex-col items-center gap-2">
+              <Skeleton className="h-2 w-full rounded-full" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          </TableCell>
+          <TableCell className="text-center"><Skeleton className="h-6 w-20 mx-auto" /></TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
 export default function AgingTable({
   data,
   isLoading,
@@ -24,18 +60,6 @@ export default function AgingTable({
   data: AgingData;
   isLoading: boolean;
 }) {
-  // 1. Loading State
-  if (isLoading)
-    return (
-      <div className="p-32 text-center">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-slate-950 mb-4"></div>
-        <p className="font-black text-slate-300 italic uppercase text-[10px] tracking-widest">
-          Đang quét hạn sử dụng lô hàng...
-        </p>
-      </div>
-    );
-
-  // 2. Gộp dữ liệu an toàn (Defensive Merge)
   const warningList = data?.warning || [];
   const criticalList = data?.critical || [];
 
@@ -50,92 +74,86 @@ export default function AgingTable({
     })),
   ];
 
-  // 3. Empty State
-  if (allBatches.length === 0)
+  if (!isLoading && allBatches.length === 0) {
     return (
-      <div className="p-32 text-center flex flex-col items-center gap-4 text-slate-200 uppercase italic font-black text-[10px] tracking-[0.3em]">
-        <ClockIcon className="h-10 w-10 opacity-20" />
-        Tất cả lô hàng đều trong hạn an toàn
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="rounded-full bg-slate-100 p-4 mb-4">
+          <ClockIcon className="h-8 w-8 text-slate-400" />
+        </div>
+        <p className="text-sm font-medium text-slate-500">Tất cả lô hàng đều trong hạn an toàn</p>
       </div>
     );
+  }
 
   return (
-    <div className="w-full overflow-x-auto scrollbar-hide">
-      <table className="w-full min-w-[850px] text-left text-sm border-separate border-spacing-0 table-fixed">
-        <thead className="bg-slate-50/50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-          <tr>
-            <th className="px-4 py-4 border-b border-slate-100 w-[35%]">
-              Lô hàng / Sản phẩm
-            </th>
-            <th className="px-4 py-4 border-b border-slate-100 text-center w-[15%]">
-              Số lượng
-            </th>
-            <th className="px-4 py-4 border-b border-slate-100 text-center w-[15%]">
-              Hết hạn
-            </th>
-            <th className="px-4 py-4 border-b border-slate-100 text-center w-[20%]">
-              Vòng đời
-            </th>
-            <th className="px-4 py-4 border-b border-slate-100 text-center w-[15%]">
-              Mức độ
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-50">
-          {allBatches.map((batch, idx) => (
-            <tr
+    <Table>
+      <TableHeader>
+        <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+          <TableHead className="pl-6 text-xs font-semibold text-slate-500 w-[35%]">Lô hàng / Sản phẩm</TableHead>
+          <TableHead className="text-center text-xs font-semibold text-slate-500 w-[15%]">Số lượng</TableHead>
+          <TableHead className="text-center text-xs font-semibold text-slate-500 w-[15%]">Hết hạn</TableHead>
+          <TableHead className="text-center text-xs font-semibold text-slate-500 w-[20%]">Vòng đời còn lại</TableHead>
+          <TableHead className="text-center text-xs font-semibold text-slate-500 w-[15%]">Mức độ</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {isLoading ? (
+          <TableSkeleton />
+        ) : (
+          allBatches.map((batch, idx) => (
+            <TableRow
               key={`${batch.batchCode}-${idx}`}
-              className="group hover:bg-slate-950 transition-all duration-300"
+              className="group hover:bg-slate-50/50 transition-colors"
             >
-              <td className="px-4 py-5">
-                <div className="flex flex-col gap-1">
-                  <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-500 uppercase tracking-widest leading-none">
-                    {batch.batchCode}
-                  </span>
-                  <span className="font-black text-slate-900 group-hover:text-white transition-colors uppercase italic text-sm tracking-tighter">
-                    {batch.productName}
-                  </span>
+              <TableCell className="pl-6">
+                <div>
+                  <p className="font-semibold text-slate-900">{batch.productName}</p>
+                  <p className="text-xs text-slate-500">Lô: {batch.batchCode}</p>
                 </div>
-              </td>
-              <td className="px-4 py-5 text-center group-hover:text-white font-black italic text-lg tracking-tighter tabular-nums transition-colors">
-                {batch.quantity}
-              </td>
-              <td className="px-4 py-5 text-center group-hover:text-white transition-colors font-bold text-[11px] tabular-nums">
-                {batch.expiryDate
-                  ? format(new Date(batch.expiryDate), "dd/MM/yyyy")
-                  : "---"}
-              </td>
-              <td className="px-4 py-5">
-                <div className="flex flex-col items-center gap-2">
-                  <div className="w-full bg-slate-100 group-hover:bg-white/10 rounded-full h-1.5 overflow-hidden max-w-[120px]">
+              </TableCell>
+              <TableCell className="text-center">
+                <span className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  {batch.quantity.toLocaleString()}
+                </span>
+              </TableCell>
+              <TableCell className="text-center">
+                <p className="font-medium text-slate-700">
+                  {batch.expiryDate
+                    ? format(new Date(batch.expiryDate), "dd/MM/yyyy")
+                    : "---"}
+                </p>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col items-center gap-1.5 px-4">
+                  <div className="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
                     <div
-                      className={`h-full transition-all duration-1000 ${batch.level === "CRITICAL" ? "bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" : "bg-orange-400"}`}
-                      style={{ width: `${batch.percentageLeft}%` }}
+                      className={`h-full transition-all duration-1000 ${
+                        batch.level === "CRITICAL" ? "bg-red-500" : "bg-orange-400"
+                      }`}
+                      style={{ width: `${Math.max(0, Math.min(100, batch.percentageLeft))}%` }}
                     />
                   </div>
-                  <span className="text-[9px] font-black group-hover:text-white/50 italic tracking-widest tabular-nums">
+                  <span className="text-[10px] font-medium text-slate-500">
                     {batch.percentageLeft}% CÒN LẠI
                   </span>
                 </div>
-              </td>
-              <td className="px-4 py-5 text-center">
-                <div className="flex items-center justify-center gap-1.5">
-                  <span
-                    className={`px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all
-                    ${
-                      batch.level === "CRITICAL"
-                        ? "bg-red-100 text-red-600 group-hover:bg-red-600 group-hover:text-white"
-                        : "bg-orange-100 text-orange-600 group-hover:bg-orange-600 group-hover:text-white"
-                    }`}
-                  >
-                    {batch.level}
-                  </span>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+              </TableCell>
+              <TableCell className="text-center">
+                <Badge
+                  variant="outline"
+                  className={
+                    batch.level === "CRITICAL"
+                      ? "bg-red-50 text-red-700 border-red-200"
+                      : "bg-orange-50 text-orange-700 border-orange-200"
+                  }
+                >
+                  {batch.level}
+                </Badge>
+              </TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
   );
 }

@@ -1,18 +1,37 @@
 "use client";
 
 import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { InventoryAdjustBody, InventoryAdjustBodyType } from "@/schemas/inventory";
+import { useInventory } from "@/hooks/useInventory";
+import { handleErrorApi } from "@/lib/errors";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { useInventory } from "@/hooks/useInventory";
-import { useForm } from "react-hook-form";
-import { InventoryAdjustBody, InventoryAdjustBodyType } from "@/schemas/inventory";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { handleErrorApi } from "@/lib/errors";
-
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 import { InventoryDisplayItem } from "./InventoryClient";
 
 interface AdjustStockModalProps {
@@ -24,14 +43,7 @@ interface AdjustStockModalProps {
 export default function AdjustStockModal({ item, isOpen, onClose }: AdjustStockModalProps) {
   const { adjustInventory } = useInventory();
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<InventoryAdjustBodyType>({
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const form = useForm<InventoryAdjustBodyType>({
     resolver: zodResolver(InventoryAdjustBody) as any,
     defaultValues: {
       adjustmentQuantity: 0,
@@ -42,78 +54,122 @@ export default function AdjustStockModal({ item, isOpen, onClose }: AdjustStockM
 
   useEffect(() => {
     if (isOpen && item) {
-      reset({
-        warehouseId: Number(item.warehouseId),
-        batchId: 0,
+      form.reset({
+        warehouseId: Number(item.warehouseId) || 0,
+        batchId: 0, // In reality, they would pick a batch. But following existing code logic.
         adjustmentQuantity: 0,
         reason: "Stock Count",
         note: "",
       });
     }
-  }, [isOpen, item, reset]);
+  }, [isOpen, item, form]);
 
-  const onSubmit = async (data: InventoryAdjustBodyType) => {
+  const onSubmit = async (data: any) => {
     try {
-      await adjustInventory.mutateAsync(data);
-      onClose();
-    } catch (error: unknown) {
-      handleErrorApi({
-        error,
-        setError,
+      await adjustInventory.mutateAsync({
+        ...data,
+        adjustmentQuantity: Number(data.adjustmentQuantity), 
       });
+      onClose();
+    } catch (error) {
+      handleErrorApi({ error, setError: form.setError });
     }
   };
 
+  if (!isOpen) return null;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="rounded-[2.5rem] border-none max-w-md p-10 bg-white shadow-2xl overflow-hidden">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black font-display tracking-wider uppercase text-black">
-            LỆNH ĐIỀU CHỈNH
-          </DialogTitle>
-          <p className="text-[10px] font-black text-text-muted uppercase tracking-widest mt-2">
-            PRODUCT: {item?.productName}
-          </p>
+          <DialogTitle>Lệnh điều chỉnh tồn kho</DialogTitle>
+          <DialogDescription>
+            Sản phẩm: {item?.productName || "Không xác định"}
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
-          <div className="space-y-2">
-            <label className="text-[9px] font-black uppercase text-black ml-2">
-              Số lượng (+/-)
-            </label>
-            <input
-              type="number"
-              {...register("adjustmentQuantity")}
-              className={`w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-6 font-black text-black focus:border-black outline-none transition-all ${errors.adjustmentQuantity ? "border-red-500 bg-red-50" : ""}`}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            
+            <FormField
+              control={form.control}
+              name="adjustmentQuantity"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Số lượng điều chỉnh (+/-)</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      className="bg-slate-50 border-slate-200 text-slate-900 focus:ring-1 focus:ring-blue-400/50"
+                      {...field}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-            {errors.adjustmentQuantity && <p className="text-[10px] text-red-500 ml-2">{errors.adjustmentQuantity.message}</p>}
-          </div>
 
-          <div className="space-y-2">
-            <label className="text-[9px] font-black uppercase text-black ml-2">
-              Lý do
-            </label>
-            <select
-              {...register("reason")}
-              className={`w-full bg-slate-50 border-2 border-slate-100 rounded-2xl py-4 px-6 font-black uppercase text-[10px] text-black focus:border-black outline-none ${errors.reason ? "border-red-500 bg-red-50" : ""}`}
-            >
-              <option value="Stock Count">Kiểm kho</option>
-              <option value="Damage">Hư hỏng</option>
-              <option value="Expired">Hết hạn</option>
-            </select>
-            {errors.reason && <p className="text-[10px] text-red-500 ml-2">{errors.reason.message}</p>}
-          </div>
+            <FormField
+              control={form.control}
+              name="reason"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Lý do điều chỉnh</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="bg-white border-slate-200 text-slate-900">
+                        <SelectValue placeholder="Chọn lý do" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Stock Count">Kiểm kho định kỳ</SelectItem>
+                      <SelectItem value="Damage">Hư hỏng / Lỗi</SelectItem>
+                      <SelectItem value="Expired">Hết hạn sử dụng</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full py-5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-dark transition-all shadow-xl disabled:opacity-50"
-          >
-            {isSubmitting ? "ĐANG XỬ LÝ..." : "XÁC NHẬN CẬP NHẬT"}
-          </button>
-        </form>
+            <FormField
+              control={form.control}
+              name="note"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ghi chú thêm (Tùy chọn)</FormLabel>
+                  <FormControl>
+                    <Input
+                      className="bg-slate-50 border-slate-200 text-slate-900 focus:ring-1 focus:ring-blue-400/50"
+                      placeholder="Chi tiết..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter className="pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={adjustInventory.isPending}
+              >
+                Hủy
+              </Button>
+              <Button type="submit" disabled={adjustInventory.isPending}>
+                {adjustInventory.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Xác nhận
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
 }
-

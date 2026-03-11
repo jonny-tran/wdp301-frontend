@@ -84,14 +84,14 @@ export default function NavSidebar({
             {/* Navigation Items */}
             <nav className="flex-1 flex flex-col gap-2 px-3">
                 {items.map((item) => {
-                    const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                    const isActive = item.href === '/admin' ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/");
                     return (
                         <Link
                             key={item.href}
                             href={item.href}
                             className={`relative group/item flex items-center rounded-2xl transition-all duration-300 py-3 ${isCollapsed ? "justify-center px-0 h-12 w-12 mx-auto" : "px-4 gap-4 w-full"
                                 } ${isActive
-                                    ? "bg-white text-gray-900 shadow-xl"
+                                    ? "bg-blue-50 text-blue-600 font-bold shadow-xl"
                                     : "text-white/40 hover:text-white hover:bg-white/10"
                                 }`}
                             title={isCollapsed ? item.name : ""}

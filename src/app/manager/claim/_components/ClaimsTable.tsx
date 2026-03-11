@@ -1,6 +1,8 @@
-﻿"use client";
+"use client";
 
-import { ClaimRow } from "./claims.types";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -9,113 +11,165 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import {
-  EyeIcon,
-  CheckIcon,
-  ArchiveBoxIcon,
-} from "@heroicons/react/24/outline";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+import { CheckCircle2, Eye, InboxIcon } from "lucide-react";
+import { ClaimRow } from "./claims.types";
 
 interface Props {
   data: ClaimRow[];
   onSelect: (id: string) => void;
-  onResolve: (id: string) => void; // Prop mới để mở Modal xử lý
+  onResolve: (id: string) => void;
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
-export default function ClaimTable({ data, onSelect, onResolve }: Props) {
-  if (!data || data.length === 0)
+function TableSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <TableRow key={i}>
+          <TableCell className="pl-6">
+            <Skeleton className="h-4 w-6" />
+          </TableCell>
+          <TableCell>
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-3 w-36" />
+            </div>
+          </TableCell>
+          <TableCell className="text-center">
+            <Skeleton className="h-6 w-20 mx-auto" />
+          </TableCell>
+          <TableCell className="text-right pr-6">
+            <Skeleton className="h-8 w-8 ml-auto rounded-md inline-block" />
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
+export default function ClaimTable({
+  data,
+  onSelect,
+  onResolve,
+  isLoading,
+  isError,
+}: Props) {
+  if (isError) {
     return (
-      <div className="p-32 text-center flex flex-col items-center gap-4 animate-in fade-in">
-        <ArchiveBoxIcon className="w-12 h-12 text-slate-200" />
-        <p className="font-black text-slate-300 italic uppercase text-[10px] tracking-[0.3em]">
-          Hệ thống chưa ghi nhận khiếu nại nào
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-sm font-medium text-red-500">
+          Lỗi tải dữ liệu khiếu nại
         </p>
       </div>
     );
+  }
+
+  if (!isLoading && (!data || data.length === 0)) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="rounded-full bg-slate-100 p-4 mb-4">
+          <InboxIcon className="h-8 w-8 text-slate-400" />
+        </div>
+        <p className="text-sm font-medium text-slate-500">
+          Chưa có khiếu nại nào
+        </p>
+      </div>
+    );
+  }
 
   return (
     <Table>
-      <TableHeader className="bg-slate-50/50">
-        <TableRow className="border-none">
-          <TableHead className="pl-10 text-[10px] font-black uppercase text-slate-400 py-8 italic w-100px">
+      <TableHeader className="bg-slate-50/80 hover:bg-slate-50/80">
+        <TableRow>
+          <TableHead className="pl-6 text-xs font-semibold text-slate-500 w-[10%]">
             No.
           </TableHead>
-          <TableHead className="text-[10px] font-black uppercase text-slate-400 py-8 italic">
+          <TableHead className="text-xs font-semibold text-slate-500 w-[45%]">
             Khiếu nại / Vận đơn
           </TableHead>
-          <TableHead className="text-center text-[10px] font-black uppercase text-slate-400 py-8 italic">
+          <TableHead className="text-center text-xs font-semibold text-slate-500 w-[20%]">
             Trạng thái
           </TableHead>
-          <TableHead className="text-right pr-10 text-[10px] font-black uppercase text-slate-400 py-8 italic">
+          <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[25%]">
             Thao tác
           </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data.map((row) => {
-          // Chỉ hiển thị nút xử lý nếu trạng thái là pending
-          const isPending = row.status === "pending";
+        {isLoading ? (
+          <TableSkeleton />
+        ) : (
+          data.map((row) => {
+            const isPending = row.status === "pending";
 
-          return (
-            <TableRow
-              key={row.claimId}
-              className="border-slate-50 hover:bg-primary/10/10 transition-all group"
-            >
-              <TableCell className="pl-10 py-8 font-black italic text-slate-300">
-                {row.no}
-              </TableCell>
-              <TableCell className="py-8" onClick={() => onSelect(row.claimId)}>
-                <div className="flex flex-col cursor-pointer">
-                  <span className="text-sm font-black uppercase italic text-slate-900 group-hover:text-primary">
-                    ID: {row.claimId.slice(0, 8)}...
-                  </span>
-                  <span className="text-[9px] font-bold text-slate-400 mt-2 uppercase tracking-tighter">
-                    Shipment: {row.shipmentId.slice(0, 8)}...
-                  </span>
-                </div>
-              </TableCell>
-              <TableCell className="text-center py-8">
-                <Badge
-                  className={cn(
-                    "rounded-full px-4 py-1.5 text-[9px] font-black uppercase tracking-widest border-none",
-                    row.status === "approved"
-                      ? "bg-emerald-100 text-emerald-600"
-                      : row.status === "rejected"
-                        ? "bg-red-100 text-red-600"
-                        : "bg-slate-100 text-slate-400",
-                  )}
-                >
-                  {row.status}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right pr-10 py-8">
-                <div className="flex justify-end gap-3">
-                  <Button
-                    onClick={() => onSelect(row.claimId)}
-                    className="p-3 bg-white border border-slate-100 rounded-xl hover:bg-slate-950 hover:text-white transition-all shadow-sm"
+            return (
+              <TableRow
+                key={row.claimId}
+                className="group hover:bg-slate-50/50 transition-colors cursor-pointer"
+                onClick={() => onSelect(row.claimId)}
+              >
+                <TableCell className="pl-6 py-6 font-semibold text-slate-500">
+                  {row.no}
+                </TableCell>
+                <TableCell className="py-6">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors uppercase">
+                      ID: {row.claimId.slice(0, 8)}
+                    </span>
+                    <span className="text-xs font-medium text-slate-500 uppercase">
+                      Shipment: {row.shipmentId.slice(0, 8)}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell className="text-center py-6">
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      row.status === "approved"
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        : row.status === "rejected"
+                          ? "bg-red-50 text-red-700 border-red-200"
+                          : "bg-amber-50 text-amber-700 border-amber-200",
+                    )}
                   >
-                    <EyeIcon className="w-4 h-4 stroke-[2.5px]" />
-                  </Button>
-
-                  {/* LOGIC: Chỉ hiện nút Resolve nếu chưa xử lý */}
-                  {isPending && (
+                    {(row.status || "UNKNOWN").toUpperCase()}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right pr-6 py-6">
+                  <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                     <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100"
                       onClick={(e) => {
                         e.stopPropagation();
-                        onResolve(row.claimId);
+                        onSelect(row.claimId);
                       }}
-                      className="p-3 bg-primary text-white border-none rounded-xl hover:bg-slate-950 transition-all shadow-lg hover:shadow-primary/100/20 active:scale-95"
                     >
-                      <CheckIcon className="w-4 h-4 stroke-[3px]" />
+                      <Eye className="h-4 w-4" />
                     </Button>
-                  )}
-                </div>
-              </TableCell>
-            </TableRow>
-          );
-        })}
+
+                    {isPending && (
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 text-emerald-600 border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onResolve(row.claimId);
+                        }}
+                      >
+                        <CheckCircle2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            );
+          })
+        )}
       </TableBody>
     </Table>
   );

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import http from "@/lib/http";
+import { ENDPOINT_CLIENT } from "@/utils/endponit";
 import ConfigTable from "./ConfigTable";
 import ConfigEditModal from "./ConfigEditModal";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
@@ -28,24 +29,34 @@ export default function ConfigClient() {
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // 1. Fetch dữ liệu
+  // 1. Fetch dữ liệu — http wrapper đã extract data từ ResponseData<T>
   const { data, isLoading } = useQuery({
     queryKey: ["system-configs"],
     queryFn: () =>
-      http.get<SystemConfig[]>("/system-configs").then((res) => {
-        const source = res.data as { data?: SystemConfig[] } | SystemConfig[];
-        return ((source as { data?: SystemConfig[] })?.data || source || []) as SystemConfig[];
-      }),
+      http
+        .get<SystemConfig[]>(ENDPOINT_CLIENT.SYSTEM_CONFIGS)
+        .then((res) => {
+          // res.data chính là payload thực tế (T) — http.ts đã unwrap ResponseData
+          return Array.isArray(res.data) ? res.data : [];
+        }),
   });
 
-  // 2. Mutation cập nhật
+  // 2. Mutation cập nhật — FIX: URL không còn spaces
   const updateMutation = useMutation({
-    mutationFn: ({ key, payload }: { key: string; payload: UpdateConfigPayload }) =>
-      http.patch(`/ system - configs / ${key} `, payload),
+    mutationFn: ({
+      key,
+      payload,
+    }: {
+      key: string;
+      payload: UpdateConfigPayload;
+    }) => http.patch(ENDPOINT_CLIENT.UPDATE_SYSTEM_CONFIG(key), payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["system-configs"] });
       toast.success("Cấu hình hệ thống đã được cập nhật thành công!");
       setIsModalOpen(false);
+    },
+    onError: () => {
+      toast.error("Cập nhật cấu hình thất bại. Vui lòng thử lại.");
     },
   });
 
@@ -54,43 +65,41 @@ export default function ConfigClient() {
   };
 
   return (
-    <div className="flex flex-col gap-8 pb-20 animate-in fade-in duration-500">
+    <div className="flex flex-col gap-6 pb-20 animate-in fade-in duration-500">
+      {/* HEADER */}
       <div className="flex items-center gap-3 px-1">
-        <div className="p-2.5 bg-primary rounded-2xl shadow-xl shadow-primary/20">
+        <div className="p-2.5 bg-primary rounded-2xl shadow-lg shadow-primary/20">
           <Cog6ToothIcon className="h-6 w-6 text-white" />
         </div>
         <div className="flex flex-col">
-          <h1 className="text-3xl font-black text-slate-900 tracking-tighter uppercase italic leading-none">
+          <h1 className="text-2xl font-bold text-slate-900 leading-none">
             Cấu hình hệ thống
           </h1>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 ml-1">
+          <p className="text-xs text-slate-400 mt-1">
             Điều chỉnh tham số vận hành trung tâm
           </p>
         </div>
       </div>
 
-      <div className="rounded-[3rem] border border-slate-100 bg-white shadow-2xl overflow-hidden flex flex-col min-h-[600px]">
-        <div className="bg-slate-50/50 px-10 py-5 border-b border-slate-100">
-          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 italic">
-            Danh sách tham số Global
+      {/* TABLE CONTAINER */}
+      <div className="rounded-2xl border border-slate-100 bg-white shadow-lg overflow-hidden flex flex-col min-h-[400px]">
+        <div className="bg-slate-50 px-6 py-3.5 border-b border-slate-100">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            Danh sách tham số Global ({data?.length ?? 0} tham số)
           </span>
         </div>
 
         <ConfigTable
           configs={data || []}
+          isLoading={isLoading}
           onEdit={(cfg) => {
             setSelectedConfig(cfg);
             setIsModalOpen(true);
           }}
         />
-
-        {isLoading && (
-          <div className="py-20 text-center animate-pulse font-black text-slate-300">
-            Đang truy xuất dữ liệu...
-          </div>
-        )}
       </div>
 
+      {/* EDIT MODAL */}
       <ConfigEditModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

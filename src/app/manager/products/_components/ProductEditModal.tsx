@@ -1,17 +1,32 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import {
-  XMarkIcon,
-  CheckIcon,
-  ArrowPathIcon,
-  PencilSquareIcon,
-} from "@heroicons/react/24/outline";
+import { useEffect, useMemo } from "react";
+import { useForm, Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { UpdateProductBody, UpdateProductBodyType } from "@/schemas/product";
 import { useProduct } from "@/hooks/useProduct";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
-import { extractBaseUnitOptions, UnitOption } from "./product.mapper";
+import { Product } from "@/types/product";
+import { BaseUnit } from "@/types/base-unit";
 import ImageUpload from "@/components/shared/ImageUpload";
-import { toast } from "sonner";
+import { handleErrorApi } from "@/lib/errors";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -19,223 +34,188 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ProductRow } from "./product.types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react";
 
-interface ProductEditModalProps {
-  product: ProductRow | null; // Nhận dữ liệu sản phẩm cần sửa
+interface Props {
+  product: Product | null;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function ProductEditModal({
-  product,
-  isOpen,
-  onClose,
-}: ProductEditModalProps) {
+export default function ProductEditModal({ product, isOpen, onClose }: Props) {
   const { updateProduct } = useProduct();
-  const { baseUnitList } = useBaseUnit();
+  const { useBaseUnitList } = useBaseUnit();
+  const { data: rawBaseUnits, isLoading: isUnitsLoading } = useBaseUnitList();
 
-  // Khởi tạo state từ dữ liệu product truyền vào
-  const [formData, setFormData] = useState({
-    name: "",
-    baseUnitId: 0,
-    shelfLifeDays: 0,
-    imageUrl: "",
-    isActive: true,
+  const unitOptions = useMemo(() => {
+    const rawData = (rawBaseUnits as { data?: unknown })?.data || rawBaseUnits;
+    const items: BaseUnit[] = Array.isArray(rawData) ? rawData : (rawData as { items?: BaseUnit[] })?.items || [];
+    return items
+      .filter((u) => u.isActive)
+      .map((u) => ({ label: u.name, value: u.id }));
+  }, [rawBaseUnits]);
+
+  const form = useForm<UpdateProductBodyType>({
+    resolver: zodResolver(UpdateProductBody) as unknown as Resolver<UpdateProductBodyType>,
+    defaultValues: {
+      name: "",
+      baseUnitId: 0,
+      shelfLifeDays: 0,
+      imageUrl: "",
+    },
   });
 
-  // Cập nhật form khi product thay đổi hoặc modal mở
+  // Sync form values when product changes
   useEffect(() => {
     if (product && isOpen) {
-      queueMicrotask(() => {
-        setFormData({
-          name: product.name,
-          baseUnitId: 0, // Lưu ý: Cần tìm ID từ tên hoặc API nếu ProductRow chỉ có name
-          shelfLifeDays: product.shelfLifeDays,
-          imageUrl: product.imageUrl || "",
-          isActive: product.isActive,
-        });
+      form.reset({
+        name: product.name,
+        baseUnitId: product.baseUnitId ?? 0,
+        shelfLifeDays: product.shelfLifeDays,
+        imageUrl: product.imageUrl || "",
       });
     }
-  }, [product, isOpen]);
+  }, [product, isOpen, form]);
 
-  const { data: rawBaseUnits, isLoading: isUnitsLoading } = baseUnitList();
-
-  // Chỉ lấy đơn vị tính isActive: true
-  const unitOptions = useMemo<UnitOption[]>(
-    () => extractBaseUnitOptions(rawBaseUnits),
-    [rawBaseUnits],
-  );
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: UpdateProductBodyType) => {
     if (!product) return;
-
     try {
-      await updateProduct.mutateAsync({
-        id: product.id,
-        data: formData,
-      });
-      toast.success("Cập nhật thông tin sản phẩm thành công!");
+      await updateProduct.mutateAsync({ id: product.id, data });
       onClose();
-    } catch {
-      // Lỗi được xử lý trong useProduct hook
+    } catch (error) {
+      handleErrorApi({ error, setError: form.setError });
     }
   };
 
-  if (!isOpen || !product) return null;
+  if (!product) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div
-        className="relative w-full max-w-4xl bg-white rounded-[3.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in duration-300"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-12">
-          {/* CỘT TRÁI: Thông tin cơ bản */}
-          <div className="md:col-span-7 p-10 md:p-14 space-y-10 bg-white border-r border-slate-50">
-            <div className="space-y-4 px-2">
-              <label className="text-[10px] font-black uppercase tracking-[0.2em] text-black">
-                Hình ảnh sản phẩm
-              </label>
-              <ImageUpload
-                value={formData.imageUrl}
-                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Chỉnh sửa sản phẩm</DialogTitle>
+          <DialogDescription>
+            ID: #{product.id} • SKU: {product.sku}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="max-h-[70vh] overflow-y-auto">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              {/* Image Upload */}
+              <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hình ảnh sản phẩm</FormLabel>
+                    <FormControl>
+                      <ImageUpload
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-8">
-              <div className="space-y-3 px-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-black">
-                  Tên sản phẩm
-                </label>
-                <Input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-8 py-5 text-sm font-bold text-black focus:bg-white outline-none transition-all shadow-inner"
-                />
-              </div>
-              <div className="space-y-3 px-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-black">
-                  Hạn bảo quản (Ngày)
-                </label>
-                <Input
-                  type="number"
-                  value={formData.shelfLifeDays || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      shelfLifeDays: Number(e.target.value),
-                    })
-                  }
-                  className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-8 py-5 text-sm font-bold text-black focus:bg-white outline-none transition-all shadow-inner"
-                />
-              </div>
-            </div>
-          </div>
+              {/* Name */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tên sản phẩm</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Tên sản phẩm"
+                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* CỘT PHẢI: Đơn vị & Trạng thái */}
-          <div className="md:col-span-5 flex flex-col justify-between p-10 md:p-14 bg-slate-50/80">
-            <div className="relative p-10 rounded-[2.5rem] bg-white border border-slate-200 text-center shadow-xl mb-6">
-              <div className="h-16 w-16 bg-primary text-white rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-lg -rotate-3">
-                <PencilSquareIcon className="h-8 w-8 stroke-[3px]" />
-              </div>
-              <h3 className="text-3xl font-black text-text-main font-display tracking-wider uppercase">
-                Chỉnh <span className="text-primary">Sửa</span>
-              </h3>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">
-                ID: #{product.id} • {product.sku}
-              </p>
-              <Button
-                onClick={onClose}
-                className="absolute -top-4 -right-4 p-4 bg-white border border-slate-200 text-black rounded-full hover:bg-primary-dark hover:text-white shadow-xl active:scale-90"
-              >
-                <XMarkIcon className="h-5 w-5 stroke-[2.5px]" />
-              </Button>
-            </div>
+              {/* Base Unit Select */}
+              <FormField
+                control={form.control}
+                name="baseUnitId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Đơn vị tính</FormLabel>
+                    <Select
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={(val) => field.onChange(Number(val))}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-white border-slate-200 text-slate-900">
+                          <SelectValue placeholder="Chọn đơn vị tính" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent position="popper" className="z-[150]">
+                        {isUnitsLoading ? (
+                          <div className="p-3 text-sm text-slate-400 text-center">
+                            Đang tải...
+                          </div>
+                        ) : (
+                          unitOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={String(opt.value)}>
+                              {opt.label}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="space-y-8">
-              <div className="space-y-4 px-2">
-                <label className="text-[10px] font-black uppercase text-black tracking-[0.2em]">
-                  Đơn vị đo lường
-                </label>
-                <Select
-                  value={String(formData.baseUnitId)}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, baseUnitId: Number(val) })
-                  }
-                >
-                  <SelectTrigger className="w-full rounded-2xl bg-white border border-slate-200 px-8 py-5 text-sm font-black text-black shadow-sm focus:ring-0">
-                    <SelectValue placeholder="CHỌN ĐƠN VỊ" />
-                  </SelectTrigger>
-                  <SelectContent
-                    position="popper"
-                    className="z-[150] rounded-2xl border-slate-200 shadow-2xl bg-white"
-                  >
-                    {isUnitsLoading ? (
-                      <div className="p-4 text-[10px] font-black text-black animate-pulse text-center uppercase">
-                        Đang tải...
-                      </div>
-                    ) : (
-                      unitOptions.map((opt: UnitOption) => (
-                        <SelectItem
-                          key={opt.value}
-                          value={String(opt.value)}
-                          className="font-black uppercase text-[10px] tracking-widest py-4 focus:bg-primary focus:text-white text-black"
-                        >
-                          {opt.label}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Shelf Life */}
+              <FormField
+                control={form.control}
+                name="shelfLifeDays"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hạn bảo quản (ngày)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        placeholder="Số ngày"
+                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              {/* Chế độ hiển thị (Switch giả lập bằng nút) */}
-              <div className="px-2 flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-100 shadow-sm">
-                <span className="text-[10px] font-black uppercase text-black tracking-widest">
-                  Trạng thái
-                </span>
-                <button
+              <DialogFooter className="pt-2">
+                <Button
                   type="button"
-                  onClick={() =>
-                    setFormData({ ...formData, isActive: !formData.isActive })
-                  }
-                  className={`px-6 py-2 rounded-full text-[9px] font-black uppercase transition-all ${formData.isActive ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"}`}
-                >
-                  {formData.isActive ? "Đang hoạt động" : "Đã ẩn"}
-                </button>
-              </div>
-
-              <div className="flex flex-col gap-4 pt-4">
-                <button
-                  type="submit"
-                  onClick={handleSubmit}
+                  variant="outline"
+                  onClick={onClose}
                   disabled={updateProduct.isPending}
-                  className="flex items-center justify-center gap-4 rounded-full py-6 text-xs font-black text-white transition-all bg-primary hover:bg-primary-dark disabled:bg-slate-300 shadow-2xl active:scale-95"
                 >
-                  {updateProduct.isPending ? (
-                    <ArrowPathIcon className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <CheckIcon className="h-5 w-5 stroke-[3px]" />
+                  Hủy
+                </Button>
+                <Button type="submit" disabled={updateProduct.isPending}>
+                  {updateProduct.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  <span className="uppercase tracking-[0.2em]">
-                    Cập nhật thay đổi
-                  </span>
-                </button>
-              </div>
-            </div>
-          </div>
+                  Cập nhật
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

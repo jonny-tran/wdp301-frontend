@@ -1,25 +1,57 @@
 "use client";
 
 import Image from "next/image";
-import { ProductRow } from "./product.types";
+import { Product } from "@/types/product";
 import {
-  EyeIcon,
-  PencilSquareIcon,
-  TrashIcon,
-  ArrowPathIcon,
-} from "@heroicons/react/24/outline";
-import { clsx } from "clsx";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Eye, Pencil, Trash2, RotateCw, InboxIcon } from "lucide-react";
 
 interface ProductTableProps {
-  items: ProductRow[];
+  items: Product[];
   rowStart: number;
   isLoading: boolean;
-  onEdit: (product: ProductRow) => void;
+  onEdit: (product: Product) => void;
   onDelete: (id: number) => void;
   onRestore: (id: number) => void;
-  onViewDetail: (product: ProductRow) => void;
+  onViewDetail: (product: Product) => void;
 }
+
+function TableSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <TableRow key={i}>
+          <TableCell className="pl-6"><Skeleton className="h-4 w-6" /></TableCell>
+          <TableCell>
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-lg" />
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </div>
+          </TableCell>
+          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+          <TableCell><Skeleton className="h-5 w-14" /></TableCell>
+          <TableCell className="text-right pr-6">
+            <div className="flex justify-end gap-1"><Skeleton className="h-8 w-8 rounded-md" /></div>
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
+const DEFAULT_IMG = "https://res.cloudinary.com/dmhjgnymn/image/upload/v1770135560/OIP_j6j4gz.webp";
 
 export default function ProductTable({
   items,
@@ -30,136 +62,125 @@ export default function ProductTable({
   onRestore,
   onViewDetail,
 }: ProductTableProps) {
+  if (!isLoading && items.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="rounded-full bg-slate-100 p-4 mb-4">
+          <InboxIcon className="h-8 w-8 text-slate-400" />
+        </div>
+        <p className="text-sm font-medium text-slate-500">Chưa có sản phẩm nào</p>
+        <p className="text-xs text-slate-400 mt-1">Nhấn &quot;Thêm sản phẩm&quot; để bắt đầu</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left text-sm border-separate border-spacing-0">
-        <thead className="bg-slate-50/50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-          <tr>
-            <th className="px-10 py-6">No.</th>
-            <th className="px-6 py-6">Sản phẩm định danh</th>
-            <th className="px-6 py-6">Đơn vị & Kho</th>
-            <th className="px-6 py-6 text-center">Trạng thái</th>
-            <th className="px-10 py-6 text-right">Thao tác</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-100 bg-white">
-          {isLoading ? (
-            <tr>
-              <td
-                colSpan={5}
-                className="px-10 py-20 text-center font-bold text-slate-400 italic"
-              >
-                Đang tải Catalog...
-              </td>
-            </tr>
-          ) : (
-            items.map((item, index) => (
-              <tr
-                key={item.id}
-                className="group hover:bg-slate-50/50 transition-colors"
-              >
-                <td className="px-10 py-8 w-24">
-                  <span className="text-sm font-black text-slate-900 italic">
-                    #{rowStart + index + 1}
-                  </span>
-                </td>
-                <td className="px-6 py-8">
-                  <div className="flex items-center gap-6">
-                    <div
-                      className={clsx(
-                        "relative h-16 w-16 overflow-hidden rounded-[1.2rem] border shadow-sm transition-all duration-500",
-                        !item.isActive &&
-                          "grayscale contrast-75 brightness-90 opacity-50",
-                      )}
+    <Table>
+      <TableHeader>
+        <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+          <TableHead className="pl-6 w-[50px] text-xs font-semibold text-slate-500">#</TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500">Sản phẩm</TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[140px]">Đơn vị & Hạn</TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[100px]">Trạng thái</TableHead>
+          <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[140px]">Thao tác</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {isLoading ? (
+          <TableSkeleton />
+        ) : (
+          items.map((item, index) => (
+            <TableRow
+              key={item.id}
+              className="group hover:bg-slate-50/50 transition-colors"
+            >
+              <TableCell className="pl-6 text-sm text-slate-400 font-medium">
+                {rowStart + index + 1}
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-3">
+                  <div className={`relative h-10 w-10 overflow-hidden rounded-lg border border-slate-200 shrink-0 ${!item.isActive ? "opacity-40 grayscale" : ""}`}>
+                    <Image
+                      src={item.imageUrl || DEFAULT_IMG}
+                      alt={item.name}
+                      fill
+                      sizes="40px"
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="min-w-0">
+                    <p className={`text-sm font-semibold truncate max-w-[200px] ${item.isActive ? "text-slate-900" : "text-slate-400"}`}>
+                      {item.name}
+                    </p>
+                    <p className="text-xs text-slate-400">SKU: {item.sku}</p>
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <div className="space-y-1">
+                  <Badge className="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-50 text-[10px]">
+                    {item.baseUnit}
+                  </Badge>
+                  <p className="text-xs text-slate-400">{item.shelfLifeDays} ngày</p>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  className={
+                    item.isActive
+                      ? "bg-green-50 text-green-700 border border-green-200 hover:bg-green-50"
+                      : "bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-50"
+                  }
+                >
+                  {item.isActive ? "Active" : "Ẩn"}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right pr-6">
+                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {item.isActive ? (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                        onClick={() => onViewDetail(item)}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                        onClick={() => onEdit(item)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        onClick={() => onDelete(item.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-xs gap-1.5"
+                      onClick={() => onRestore(item.id)}
                     >
-                      <Image
-                        src={
-                          item.imageUrl ??
-                          "https://res.cloudinary.com/dmhjgnymn/image/upload/v1770135560/OIP_j6j4gz.webp"
-                        }
-                        alt={item.name}
-                        fill
-                        sizes="64px"
-                        priority={index === 0}
-                        className="..."
-                      />
-                    </div>
-                    <div className="flex flex-col">
-                      <span
-                        className={clsx(
-                          "text-base font-black font-display tracking-wider uppercase",
-                          item.isActive ? "text-slate-900" : "text-slate-300",
-                        )}
-                      >
-                        {item.name}
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">
-                        SKU: {item.sku}
-                      </span>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-8">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-[10px] font-black text-primary bg-blue-50 px-3 py-1 rounded-lg w-fit uppercase italic border border-primary/20">
-                      {item.baseUnitName}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400 italic">
-                      Hạn: {item.shelfLifeDays} ngày
-                    </span>
-                  </div>
-                </td>
-                <td className="px-6 py-8 text-center">
-                  <span
-                    className={clsx(
-                      "px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] whitespace-nowrap",
-                      item.isActive
-                        ? "bg-green-50 text-green-600 border border-green-100"
-                        : "bg-slate-100 text-slate-400 border border-slate-200",
-                    )}
-                  >
-                    {item.isActive ? "HOẠT ĐỘNG" : "ĐÃ ẨN"}
-                  </span>
-                </td>
-                <td className="px-10 py-8 text-right">
-                  <div className="flex justify-end gap-3">
-                    {item.isActive ? (
-                      <>
-                        <Button
-                          onClick={() => onViewDetail(item)}
-                          className="p-3 bg-[#a3b18a]/20 text-[#588157] hover:bg-[#588157] hover:text-white rounded-xl transition-all shadow-sm active:scale-90"
-                        >
-                          <EyeIcon className="h-4 w-4 stroke-[3px]" />
-                        </Button>
-                        <Button
-                          onClick={() => onEdit(item)}
-                          className="p-3 bg-[#a3b18a]/20 text-[#588157] hover:bg-[#588157] hover:text-white rounded-xl transition-all shadow-sm active:scale-90"
-                        >
-                          <PencilSquareIcon className="h-4 w-4 stroke-[3px]" />
-                        </Button>
-                        <Button
-                          onClick={() => onDelete(item.id)}
-                          className="p-3 bg-[#a3b18a]/20 text-[#588157] hover:bg-[#588157] hover:text-white rounded-xl transition-all shadow-sm active:scale-90"
-                        >
-                          <TrashIcon className="h-4 w-4 stroke-[3px]" />
-                        </Button>
-                      </>
-                    ) : (
-                      <button
-                        onClick={() => onRestore(item.id)}
-                        className="flex items-center gap-2 px-8 py-3 bg-primary text-white text-[10px] font-black uppercase rounded-full hover:bg-primary-dark transition-all shadow-lg"
-                      >
-                        <ArrowPathIcon className="h-4 w-4 stroke-[3px]" /> KHÔI
-                        PHỤC
-                      </button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
+                      <RotateCw className="h-3.5 w-3.5" />
+                      Khôi phục
+                    </Button>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
   );
 }

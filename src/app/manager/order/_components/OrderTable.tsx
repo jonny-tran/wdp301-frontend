@@ -1,18 +1,23 @@
 "use client";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { OrderRow } from "./order.types";
-import { OrderStatus } from "@/utils/enum";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
-  EyeIcon,
-  TruckIcon,
-  ArchiveBoxIcon,
-} from "@heroicons/react/24/outline";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { OrderStatus } from "@/utils/enum";
 import { clsx } from "clsx";
+import { Eye, InboxIcon } from "lucide-react";
+import { OrderRow } from "./order.types";
 
 interface Props {
   data: OrderRow[];
-  rowStart: number;
   isLoading: boolean;
   isError: boolean;
   onView?: (order: OrderRow) => void;
@@ -21,122 +26,158 @@ interface Props {
 const getStatusStyle = (status: OrderStatus) => {
   switch (status) {
     case OrderStatus.PENDING:
-      return "bg-amber-100 text-amber-600";
+      return "bg-amber-50 text-amber-700 border-amber-200";
     case OrderStatus.APPROVED:
-      return "bg-emerald-100 text-emerald-600";
+    case OrderStatus.COMPLETED:
+      return "bg-emerald-50 text-emerald-700 border-emerald-200";
     case OrderStatus.REJECTED:
-      return "bg-red-100 text-red-600";
     case OrderStatus.CANCELLED:
-      return "bg-slate-100 text-slate-500";
+      return "bg-red-50 text-red-700 border-red-200";
+    case OrderStatus.DELIVERING:
+    case OrderStatus.PICKING:
+      return "bg-blue-50 text-blue-700 border-blue-200";
     default:
-      return "bg-slate-100 text-slate-500";
+      return "bg-slate-50 text-slate-500 border-slate-200";
   }
 };
 
-export default function OrderTable({ data, rowStart, isLoading, isError, onView }: Props) {
-  if (isLoading) {
+function TableSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <TableRow key={i}>
+          <TableCell className="pl-6">
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-16" />
+            </div>
+          </TableCell>
+          <TableCell className="text-right">
+            <Skeleton className="h-5 w-24 ml-auto" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-28" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-5 w-24" />
+          </TableCell>
+          <TableCell className="text-right pr-6">
+            <Skeleton className="h-8 w-8 rounded-md inline-block" />
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
+export default function OrderTable({
+  data,
+  isLoading,
+  isError,
+  onView,
+}: Props) {
+  if (isError) {
     return (
-      <div className="p-32 text-center">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-slate-950 mb-4" />
-        <p className="font-black text-slate-300 italic uppercase text-[10px] tracking-widest">
-          Đang tải thông tin đơn hàng...
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-sm font-medium text-red-500">
+          Lỗi tải dữ liệu đơn hàng
         </p>
       </div>
     );
   }
 
-  if (isError) {
+  if (!isLoading && data.length === 0) {
     return (
-      <div className="p-32 text-center flex flex-col items-center gap-4 text-red-400 uppercase italic font-black text-[10px] tracking-[0.3em]">
-        <ArchiveBoxIcon className="h-10 w-10 opacity-40" />
-        Không thể tải dữ liệu đơn hàng. Vui lòng thử lại.
-      </div>
-    );
-  }
-
-  if (data.length === 0) {
-    return (
-      <div className="p-32 text-center flex flex-col items-center gap-4 text-slate-200 uppercase italic font-black text-[10px] tracking-[0.3em]">
-        <ArchiveBoxIcon className="h-10 w-10 opacity-20" />
-        Không tìm thấy đơn hàng nào
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="rounded-full bg-slate-100 p-4 mb-4">
+          <InboxIcon className="h-8 w-8 text-slate-400" />
+        </div>
+        <p className="text-sm font-medium text-slate-500">
+          Chưa có đơn hàng nào
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="w-full overflow-x-auto scrollbar-hide">
-      <table className="w-full text-left border-collapse min-w-[900px]">
-        <thead className="bg-slate-50/50">
-          <tr className="border-b border-slate-100">
-            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              No.
-            </th>
-            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              Mã Đơn / Cửa Hàng
-            </th>
-            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">
-              Tổng Tiền
-            </th>
-            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              Dự Kiến Giao
-            </th>
-            <th className="px-6 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              Trạng Thái
-            </th>
-            <th className="px-10 py-6 text-[10px] font-black uppercase tracking-widest text-slate-400 text-right">
-              Thao Tác
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          {data.map((order, index) => (
-            <tr
+    <Table>
+      <TableHeader>
+        <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+          <TableHead className="pl-6 text-xs font-semibold text-slate-500 w-[30%]">
+            Mã Đơn / Cửa Hàng
+          </TableHead>
+          <TableHead className="text-right text-xs font-semibold text-slate-500 w-[20%]">
+            Tổng Tiền
+          </TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[20%]">
+            Dự Kiến Giao
+          </TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[15%]">
+            Trạng Thái
+          </TableHead>
+          <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[15%]">
+            Thao Tác
+          </TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {isLoading ? (
+          <TableSkeleton />
+        ) : (
+          data.map((order) => (
+            <TableRow
               key={order.id}
-              className="group hover:bg-slate-50/50 transition-colors border-b border-slate-50 last:border-0"
+              className="group hover:bg-slate-50/50 transition-colors"
             >
-              <td className="px-10 py-6 font-black italic text-slate-900">
-                #{rowStart + index + 1}
-              </td>
-              <td className="px-6 py-6">
-                <div className="flex flex-col">
-                  <span className="font-black text-slate-900 uppercase tracking-tighter italic">
-                    {order.id.split("-")[0]}
-                  </span>
-                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
-                    ID: {order.storeId}
-                  </span>
+              <TableCell className="pl-6">
+                <div>
+                  <p className="font-semibold text-slate-900">
+                    {order.id.split("-")[0].toUpperCase()}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Store ID: {order.storeId}
+                  </p>
                 </div>
-              </td>
-              <td className="px-6 py-6 text-right font-black italic text-primary text-lg">
-                {order.formattedAmount}
-              </td>
-              <td className="px-6 py-6">
-                <div className="flex items-center gap-2 text-slate-600 font-bold text-xs uppercase">
-                  <TruckIcon className="w-4 h-4 stroke-[2.5px] text-slate-400" />
-                  {order.deliveryDateFormatted}
-                </div>
-              </td>
-              <td className="px-6 py-6">
-                <span
-                  className={clsx(
-                    "px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest",
-                    getStatusStyle(order.status as OrderStatus),
-                  )}
-                >
-                  {order.status}
+              </TableCell>
+              <TableCell className="text-right">
+                <span className="font-semibold text-blue-600">
+                  {order.formattedAmount}
                 </span>
-              </td>
-              <td className="px-10 py-6 text-right">
-                <Button 
-                  onClick={() => onView?.(order)}
-                  className="p-3 bg-white border border-slate-100 rounded-2xl shadow-sm hover:bg-primary-dark hover:text-white transition-all group/btn">
-                  <EyeIcon className="w-5 h-5 stroke-[2.5px]" />
-                </Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-slate-700">
+                    {order.deliveryDateFormatted}
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    Created: {order.createdAtFormatted}
+                  </span>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  variant="outline"
+                  className={clsx(getStatusStyle(order.status as OrderStatus))}
+                >
+                  {(order.status || "UNKNOWN").toUpperCase()}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right pr-6">
+                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                    onClick={() => onView?.(order)}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
   );
 }

@@ -1,30 +1,19 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useStore } from "@/hooks/useStore";
-import { extractStoreOptions, extractRoleOptions } from "./user.mapper";
-import { toast } from "sonner";
+import { Role } from "@/utils/enum";
 import {
-  XMarkIcon,
-  ShieldCheckIcon,
-  UserIcon,
+  BuildingStorefrontIcon,
   EnvelopeIcon,
   LockClosedIcon,
-  BuildingStorefrontIcon,
+  ShieldCheckIcon,
+  UserIcon,
 } from "@heroicons/react/24/outline";
-import { Role } from "@/utils/enum";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  SelectPortal,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +21,21 @@ import {
   DialogOverlay,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectPortal,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { RoleOption } from "./user.types";
+
+interface StoreOption {
+  value: string;
+  label: string;
+}
 
 export default function UserCreateModal({
   isOpen,
@@ -43,7 +47,7 @@ export default function UserCreateModal({
   const { createUser, getRoles } = useAuth();
   const { storeList } = useStore();
 
-  // 1. Fetch dữ liệu - Đảm bảo lấy đủ 100 store để không sót UI
+  // 1. Fetch dữ liệu
   const { data: rolesData, isLoading: isLoadingRoles } = getRoles();
   const { data: storesData, isLoading: isLoadingStores } = storeList({
     page: 1,
@@ -51,12 +55,29 @@ export default function UserCreateModal({
     sortOrder: "DESC",
   });
 
-  // 2. Mapping dữ liệu (Đã fix logic bóc tách 3 lớp trong mapper)
-  const roleOptions = useMemo(() => extractRoleOptions(rolesData), [rolesData]);
-  const storeOptions = useMemo(
-    () => extractStoreOptions(storesData),
-    [storesData],
-  );
+  // 2. Mapping dữ liệu — trực tiếp từ typed response
+  const roleOptions: RoleOption[] = useMemo(() => {
+    if (!rolesData) return [];
+    const roles = Array.isArray(rolesData)
+      ? rolesData
+      : Array.isArray((rolesData as { data?: RoleOption[] })?.data)
+        ? (rolesData as { data: RoleOption[] }).data
+        : [];
+    return roles
+      .filter((r) => r.value && r.label)
+      .map((r) => ({ value: String(r.value), label: String(r.label) }));
+  }, [rolesData]);
+
+  const storeOptions: StoreOption[] = useMemo(() => {
+    if (!storesData) return [];
+    const response = storesData as {
+      items?: { id: string; name: string }[];
+      data?: { items?: { id: string; name: string }[] };
+    };
+    const rawItems = response?.items ?? response?.data?.items ?? [];
+    if (!Array.isArray(rawItems)) return [];
+    return rawItems.map((s) => ({ value: s.id, label: s.name }));
+  }, [storesData]);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -66,14 +87,12 @@ export default function UserCreateModal({
     storeId: "",
   });
 
-  // 3. Logic xác định vai trò (Dùng để hiển thị ô chi nhánh)
+  // 3. Logic xác định vai trò
   const activeRole =
     formData.role || (roleOptions.length > 0 ? roleOptions[0].value : "");
 
-  // Ép kiểu chuỗi và kiểm tra cả trường hợp Backend trả về chữ hoa/thường
   const isStoreStaff =
-    activeRole.toString().toLowerCase().trim() === "franchise_store_staff" ||
-    activeRole.toString().toUpperCase() === "STORE_STAFF";
+    activeRole.toLowerCase().trim() === "franchise_store_staff";
 
   const handleClose = () => {
     setFormData({
@@ -88,7 +107,13 @@ export default function UserCreateModal({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const submitData: { username: string; email: string; password: string; role: Role; storeId?: string } = {
+    const submitData: {
+      username: string;
+      email: string;
+      password: string;
+      role: Role;
+      storeId?: string;
+    } = {
       ...formData,
       role: activeRole as Role,
     };
@@ -111,65 +136,59 @@ export default function UserCreateModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-      <DialogOverlay className="z-[100] bg-slate-900/60 backdrop-blur-md" />
-      <DialogContent className="max-w-xl bg-white rounded-[3rem] p-0 border-none shadow-2xl overflow-hidden z-[110]">
+      <DialogOverlay className="z-[100] bg-black/40 backdrop-blur-sm" />
+      <DialogContent className="max-w-xl bg-white rounded-2xl p-0 border-none shadow-2xl overflow-hidden z-[110]">
         {/* HEADER */}
-        <DialogHeader className="bg-slate-50/50 px-10 py-6 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left">
+        <DialogHeader className="bg-slate-50 px-8 py-5 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left">
           <div className="space-y-1">
-            <DialogTitle className="text-2xl font-black font-display tracking-wider uppercase text-text-main leading-none">
-              Ghi danh <span className="text-primary">Nhân sự</span>
+            <DialogTitle className="text-xl font-bold text-slate-900 leading-none">
+              Tạo tài khoản <span className="text-primary">nhân viên</span>
             </DialogTitle>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic mt-1">
-              Account Creation
+            <p className="text-xs text-slate-400 mt-1">
+              Ghi danh tài khoản mới vào hệ thống
             </p>
           </div>
-          <Button
-            onClick={handleClose}
-            className="p-3 bg-white text-slate-400 hover:text-red-500 rounded-2xl transition-all border border-slate-100 shadow-sm"
-          >
-            <XMarkIcon className="h-6 w-6 stroke-[3.5px]" />
-          </Button>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-4">
             {/* USERNAME */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-slate-400 ml-5 flex items-center gap-2 italic">
-                <UserIcon className="h-3.5 w-3.5" /> Tên đăng nhập
+              <label className="text-xs font-bold text-slate-500 ml-1 flex items-center gap-1.5">
+                <UserIcon className="h-3.5 w-3.5" /> Tên người dùng
               </label>
               <Input
                 required
-                placeholder="Tên đăng nhập"
+                placeholder="Nhập tên người dùng"
                 value={formData.username}
                 onChange={(e) =>
                   setFormData({ ...formData, username: e.target.value })
                 }
-                className="rounded-full bg-slate-50 border-slate-100 px-8 py-6 text-sm font-bold text-black italic"
+                className="rounded-xl bg-slate-50 border-slate-100 px-4 py-3 text-sm font-medium text-slate-900"
               />
             </div>
 
             {/* EMAIL */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase ml-5 flex text-black items-center gap-2 italic">
+              <label className="text-xs font-bold text-slate-500 ml-1 flex items-center gap-1.5">
                 <EnvelopeIcon className="h-3.5 w-3.5" /> Email
               </label>
               <Input
                 required
                 type="email"
-                placeholder="@gmail.com"
+                placeholder="user@email.com"
                 value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
-                className="rounded-full bg-slate-50 text-black border-slate-100 px-8 py-6 text-sm font-bold"
+                className="rounded-xl bg-slate-50 border-slate-100 px-4 py-3 text-sm font-medium text-slate-900"
               />
             </div>
 
             {/* PHÂN QUYỀN */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-slate-400 ml-5 flex items-center gap-2 italic">
-                <ShieldCheckIcon className="h-3.5 w-3.5" /> Vai trò hệ thống
+              <label className="text-xs font-bold text-slate-500 ml-1 flex items-center gap-1.5">
+                <ShieldCheckIcon className="h-3.5 w-3.5" /> Vai trò
               </label>
               <Select
                 value={activeRole}
@@ -177,7 +196,7 @@ export default function UserCreateModal({
                   setFormData({ ...formData, role: val, storeId: "" })
                 }
               >
-                <SelectTrigger className="w-full rounded-full bg-white border-2 border-slate-100 px-8 py-6 text-sm font-black text-black uppercase italic">
+                <SelectTrigger className="w-full rounded-xl bg-white border border-slate-200 px-4 py-3 text-sm font-bold text-slate-900">
                   <SelectValue
                     placeholder={
                       isLoadingRoles ? "Đang tải..." : "Chọn vai trò"
@@ -187,14 +206,14 @@ export default function UserCreateModal({
                 <SelectPortal>
                   <SelectContent
                     position="popper"
-                    sideOffset={8}
-                    className="z-[160] min-w-[var(--radix-select-trigger-width)] rounded-[2rem] border-slate-100 bg-slate-900 shadow-2xl p-2 font-bold uppercase italic text-[10px]"
+                    sideOffset={4}
+                    className="z-[160] min-w-[var(--radix-select-trigger-width)] rounded-xl border-slate-100 bg-white shadow-xl p-1"
                   >
                     {roleOptions.map((role) => (
                       <SelectItem
                         key={role.value}
                         value={role.value}
-                        className="py-4 px-6 text-slate-300 focus:bg-primary focus:text-white rounded-2xl cursor-pointer"
+                        className="py-3 px-4 text-sm text-slate-700 font-medium focus:bg-primary/10 focus:text-primary rounded-lg cursor-pointer"
                       >
                         {role.label}
                       </SelectItem>
@@ -204,12 +223,12 @@ export default function UserCreateModal({
               </Select>
             </div>
 
-            {/* CHỌN CHI NHÁNH (Hiển thị dựa trên logic isStoreStaff) */}
+            {/* CHỌN CHI NHÁNH */}
             {isStoreStaff && (
-              <div className="space-y-1.5 animate-in slide-in-from-top-4 duration-500">
-                <label className="text-[9px] font-black uppercase text-primary ml-5 flex items-center gap-2 italic">
-                  <BuildingStorefrontIcon className="h-4 w-4" /> Chi nhánh liên
-                  kết ({storeOptions.length})
+              <div className="space-y-1.5 animate-in slide-in-from-top-2 duration-300">
+                <label className="text-xs font-bold text-primary ml-1 flex items-center gap-1.5">
+                  <BuildingStorefrontIcon className="h-3.5 w-3.5" /> Chi nhánh
+                  liên kết ({storeOptions.length})
                 </label>
                 <Select
                   value={formData.storeId}
@@ -217,11 +236,11 @@ export default function UserCreateModal({
                     setFormData({ ...formData, storeId: val })
                   }
                 >
-                  <SelectTrigger className="w-full rounded-full bg-primary/10/50 border-2 border-primary/20 px-8 py-6 text-sm font-black text-primary-dark focus:border-primary uppercase italic">
+                  <SelectTrigger className="w-full rounded-xl bg-primary/5 border border-primary/20 px-4 py-3 text-sm font-bold text-slate-900">
                     <SelectValue
                       placeholder={
                         isLoadingStores
-                          ? "Đang lấy danh sách..."
+                          ? "Đang tải danh sách..."
                           : "Chọn cơ sở KFC..."
                       }
                     />
@@ -229,16 +248,14 @@ export default function UserCreateModal({
                   <SelectPortal>
                     <SelectContent
                       position="popper"
-                      sideOffset={8}
-                      className="z-[160] min-w-[var(--radix-select-trigger-width)] rounded-[2rem] border-slate-100 bg-white shadow-2xl p-2 font-bold uppercase italic text-[10px]"
+                      sideOffset={4}
+                      className="z-[160] min-w-[var(--radix-select-trigger-width)] rounded-xl border-slate-100 bg-white shadow-xl p-1"
                     >
                       {storeOptions.map((s) => (
                         <SelectItem
                           key={s.value}
                           value={s.value}
-                          className="py-4 px-6 text-slate-700 font-bold uppercase italic text-[10px] 
-               focus:bg-primary focus:text-white rounded-2xl cursor-pointer 
-               data-[state=checked]:bg-primary/10 data-[state=checked]:text-primary-dark"
+                          className="py-3 px-4 text-sm text-slate-700 font-medium focus:bg-primary/10 focus:text-primary rounded-lg cursor-pointer"
                         >
                           {s.label}
                         </SelectItem>
@@ -251,18 +268,18 @@ export default function UserCreateModal({
 
             {/* MẬT KHẨU */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-slate-400 ml-5 flex items-center gap-2 italic">
+              <label className="text-xs font-bold text-slate-500 ml-1 flex items-center gap-1.5">
                 <LockClosedIcon className="h-3.5 w-3.5" /> Mật khẩu
               </label>
               <Input
                 required
                 type="password"
-                placeholder="••••••••"
+                placeholder="Tối thiểu 6 ký tự"
                 value={formData.password}
                 onChange={(e) =>
                   setFormData({ ...formData, password: e.target.value })
                 }
-                className="rounded-full bg-slate-50 text-black border-slate-100 px-8 py-6 text-sm font-bold"
+                className="rounded-xl bg-slate-50 border-slate-100 px-4 py-3 text-sm font-medium text-slate-900"
               />
             </div>
           </div>
@@ -270,11 +287,9 @@ export default function UserCreateModal({
           <Button
             type="submit"
             disabled={createUser.isPending}
-            className="w-full rounded-full bg-primary py-7 text-[10px] font-black uppercase tracking-[0.3em] shadow-xl hover:bg-primary-dark transition-all active:scale-95 italic mt-4"
+            className="w-full rounded-xl bg-primary py-3 text-sm font-bold shadow-lg hover:bg-primary/90 transition-all active:scale-[0.98] mt-4"
           >
-            {createUser.isPending
-              ? "Hệ thống đang lưu..."
-              : "Xác nhận tạo tài khoản"}
+            {createUser.isPending ? "Đang tạo..." : "Tạo tài khoản"}
           </Button>
         </form>
       </DialogContent>

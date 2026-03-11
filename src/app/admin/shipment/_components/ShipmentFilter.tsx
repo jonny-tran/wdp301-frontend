@@ -27,7 +27,7 @@ export default function ShipmentFilter({
   onFilterChange,
 }: ShipmentFilterProps) {
   return (
-    <div className="bg-white p-3 rounded-[2rem] border border-slate-100 shadow-sm flex flex-wrap items-center gap-3 animate-in slide-in-from-top duration-500">
+    <div className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center gap-3 animate-in slide-in-from-top duration-500">
       <div className="relative flex-1 min-w-[300px]">
         <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <input
@@ -35,7 +35,7 @@ export default function ShipmentFilter({
           placeholder="TÌM THEO MÃ SHIPMENT HOẶC MÃ ĐƠN HÀNG..."
           value={filters.search || ""}
           onChange={(e) => onFilterChange({ search: e.target.value })}
-          className="w-full bg-slate-50 border-none rounded-full py-3 pl-10 pr-4 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-slate-900 transition-all placeholder:text-slate-300"
+          className="w-full bg-slate-100/50 border-none rounded-full py-3 pl-10 pr-4 text-xs font-bold text-slate-900 uppercase tracking-widest focus:bg-white focus:ring-2 focus:ring-blue-400/50 transition-all placeholder:text-slate-400"
         />
       </div>
 
@@ -48,7 +48,7 @@ export default function ShipmentFilter({
         }
       >
         {/* Đưa toàn bộ styling cũ từ className của select vào SelectTrigger */}
-        <SelectTrigger className="w-[180px] bg-slate-50 border-none rounded-full py-3 px-6 text-[10px] font-black uppercase tracking-widest cursor-pointer outline-none focus:ring-2 focus:ring-slate-900 shadow-none">
+        <SelectTrigger className="w-[180px] bg-slate-100/50 border-none rounded-full py-3 px-6 text-xs font-bold text-slate-900 uppercase tracking-widest cursor-pointer outline-none focus:ring-2 focus:ring-blue-400/50 shadow-none">
           <SelectValue placeholder="TẤT CẢ TRẠNG THÁI" />
         </SelectTrigger>
 
@@ -58,10 +58,9 @@ export default function ShipmentFilter({
           </SelectItem>
           {[
             { value: "preparing", label: "Đang chuẩn bị" },
-            { value: "picking", label: "Đang lấy hàng" },
-            { value: "delivering", label: "Đang giao" },
+            { value: "in_transit", label: "Đang vận chuyển" },
+            { value: "delivered", label: "Đã giao" },
             { value: "completed", label: "Hoàn thành" },
-            { value: "cancelled", label: "Đã hủy" },
           ].map((s) => (
             <SelectItem
               key={s.value}
@@ -75,10 +74,11 @@ export default function ShipmentFilter({
       </Select>
 
       <Button
+        variant="ghost"
         onClick={() =>
           onFilterChange({ search: "", status: "", fromDate: "", toDate: "" })
         }
-        className="p-3 hover:bg-slate-100 rounded-full transition-colors text-slate-400 active:scale-90"
+        className="h-11 w-11 p-0 text-slate-500 hover:text-slate-700 hover:bg-slate-100/80 rounded-full transition-all active:scale-95 shrink-0"
       >
         <FunnelIcon className="h-5 w-5" />
       </Button>

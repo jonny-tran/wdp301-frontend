@@ -105,4 +105,8 @@ export const ENDPOINT_CLIENT = {
 
     // Upload
     UPLOAD_IMAGE: '/upload/image',
+
+    // System Config
+    SYSTEM_CONFIGS: '/system-configs',
+    UPDATE_SYSTEM_CONFIG: (key: string) => `/system-configs/${key}`,
 }
