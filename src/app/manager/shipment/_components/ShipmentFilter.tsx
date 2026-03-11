@@ -1,6 +1,15 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { MagnifyingGlassIcon, FunnelIcon } from "@heroicons/react/24/outline";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 export default function ShipmentFilter({ filters, onFilterChange }: any) {
   const statusOptions = [
@@ -24,27 +33,42 @@ export default function ShipmentFilter({ filters, onFilterChange }: any) {
         />
       </div>
 
-      <select
-        value={filters.status || ""}
-        onChange={(e) => onFilterChange({ status: e.target.value })}
-        className="bg-slate-50 border-none rounded-full py-3 px-6 text-[10px] font-black uppercase tracking-widest cursor-pointer outline-none focus:ring-2 focus:ring-slate-900"
+      <Select
+        value={filters.status || "all"}
+        onValueChange={(value) =>
+          onFilterChange({ status: value === "all" ? "" : value })
+        }
       >
-        <option value="">TẤT CẢ TRẠNG THÁI</option>
-        {statusOptions.map((s) => (
-          <option key={s} value={s}>
-            {s.toUpperCase()}
-          </option>
-        ))}
-      </select>
+        <SelectTrigger className="w-[200px] bg-slate-100/50 border-none rounded-full py-3 px-6 h-auto text-[10px] font-black uppercase tracking-widest text-slate-600 hover:bg-slate-200/50 transition-colors focus:ring-1 focus:ring-slate-300 outline-none">
+          <SelectValue placeholder="TẤT CẢ TRẠNG THÁI" />
+        </SelectTrigger>
+        <SelectContent className="bg-white border-slate-200 shadow-lg rounded-xl">
+          <SelectItem
+            value="all"
+            className="text-[10px] font-bold uppercase tracking-wider text-slate-500 focus:bg-slate-100 focus:text-slate-900"
+          >
+            TẤT CẢ TRẠNG THÁI
+          </SelectItem>
+          {statusOptions.map((s) => (
+            <SelectItem
+              key={s}
+              value={s}
+              className="text-[10px] font-bold uppercase tracking-wider text-slate-700 focus:bg-blue-50 focus:text-blue-700"
+            >
+              {s.replace(/_/g, " ")}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      <button
+      <Button
         onClick={() =>
           onFilterChange({ search: "", status: "", fromDate: "", toDate: "" })
         }
         className="h-10 w-10 p-0 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100/80 rounded-full transition-all active:scale-95 shrink-0 bg-transparent border-none"
       >
         <FunnelIcon className="h-5 w-5" />
-      </button>
+      </Button>
     </div>
   );
 }
