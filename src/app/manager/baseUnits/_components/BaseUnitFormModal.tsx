@@ -75,7 +75,7 @@ export default function BaseUnitFormModal({
         </DialogHeader>
 
         {/* FORM BODY */}
-        <div className="p-10">
+        <div className="p-10 max-h-[80vh] overflow-y-auto">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {/* Field: Name */}

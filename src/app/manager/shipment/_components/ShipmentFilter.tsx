@@ -41,7 +41,7 @@ export default function ShipmentFilter({ filters, onFilterChange }: any) {
         onClick={() =>
           onFilterChange({ search: "", status: "", fromDate: "", toDate: "" })
         }
-        className="p-3 hover:bg-slate-100 rounded-full transition-colors text-slate-400 active:scale-90"
+        className="h-10 w-10 p-0 flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100/80 rounded-full transition-all active:scale-95 shrink-0 bg-transparent border-none"
       >
         <FunnelIcon className="h-5 w-5" />
       </button>

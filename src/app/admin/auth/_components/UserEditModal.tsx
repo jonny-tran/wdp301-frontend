@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
-  XMarkIcon,
   ShieldCheckIcon,
   EnvelopeIcon,
   CheckCircleIcon,
@@ -106,12 +105,6 @@ export default function UserEditModal({
               Tài khoản: {user.username}
             </p>
           </div>
-          <Button
-            onClick={onClose}
-            className="p-2.5 bg-white text-slate-400 hover:text-red-500 rounded-xl transition-all border border-slate-100"
-          >
-            <XMarkIcon className="h-5 w-5 stroke-[2.5px]" />
-          </Button>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">

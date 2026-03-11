@@ -6,6 +6,7 @@ import {
   ExclamationTriangleIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Props {
   totalUsers: number;
@@ -72,11 +73,11 @@ export default function DashboardSummary({
         const isCritical = card.key === "claims" && value > 0;
 
         return (
-          <div
+          <Card
             key={card.key}
-            className={`relative bg-white rounded-2xl border ${
-              isCritical ? "border-amber-200 shadow-amber-100/50" : "border-slate-100"
-            } shadow-sm p-5 flex flex-col gap-3 hover:shadow-md transition-shadow duration-200 overflow-hidden`}
+            className={`relative rounded-2xl overflow-hidden p-0 border hover:shadow-md transition-shadow duration-200 ${
+              isCritical ? "border-amber-200 shadow-amber-100/50 bg-amber-50/10" : "border-slate-100 shadow-sm bg-white"
+            }`}
           >
             {/* Accent bar */}
             <div
@@ -91,30 +92,32 @@ export default function DashboardSummary({
               }`}
             />
 
-            <div className="flex items-center justify-between">
-              <div
-                className={`p-2.5 rounded-xl ${card.bgColor} ${card.borderColor} border`}
-              >
-                <Icon className={`h-5 w-5 ${card.color}`} />
+            <CardContent className="p-5 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <div
+                  className={`p-2.5 rounded-xl ${card.bgColor} ${card.borderColor} border`}
+                >
+                  <Icon className={`h-5 w-5 ${card.color}`} />
+                </div>
+                {isCritical && (
+                  <span className="px-2 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md border border-amber-100 animate-pulse">
+                    Cần xử lý
+                  </span>
+                )}
               </div>
-              {isCritical && (
-                <span className="px-2 py-1 bg-amber-50 text-amber-700 text-[10px] font-bold rounded-md border border-amber-100 animate-pulse">
-                  Cần xử lý
-                </span>
-              )}
-            </div>
 
-            <div>
-              {isLoading ? (
-                <div className="h-8 w-16 bg-slate-100 rounded-lg animate-pulse" />
-              ) : (
-                <p className="text-2xl font-bold text-slate-900 tabular-nums">
-                  {value.toLocaleString("vi-VN")}
-                </p>
-              )}
-              <p className="text-xs text-slate-400 mt-0.5">{card.label}</p>
-            </div>
-          </div>
+              <div>
+                {isLoading ? (
+                  <div className="h-8 w-16 bg-slate-100 rounded-lg animate-pulse" />
+                ) : (
+                  <p className="text-2xl font-bold text-slate-900 tabular-nums">
+                    {value.toLocaleString("vi-VN")}
+                  </p>
+                )}
+                <p className="text-xs text-slate-400 mt-0.5">{card.label}</p>
+              </div>
+            </CardContent>
+          </Card>
         );
       })}
     </div>

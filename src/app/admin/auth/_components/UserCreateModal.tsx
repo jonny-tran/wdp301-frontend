@@ -9,7 +9,6 @@ import {
   LockClosedIcon,
   ShieldCheckIcon,
   UserIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -149,12 +148,6 @@ export default function UserCreateModal({
               Ghi danh tài khoản mới vào hệ thống
             </p>
           </div>
-          <Button
-            onClick={handleClose}
-            className="p-2.5 bg-white text-slate-400 hover:text-red-500 rounded-xl transition-all border border-slate-100"
-          >
-            <XMarkIcon className="h-5 w-5 stroke-[2.5px]" />
-          </Button>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">

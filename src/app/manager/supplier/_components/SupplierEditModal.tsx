@@ -110,7 +110,7 @@ export default function SupplierEditModal({
           </Button>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-4">
+        <form onSubmit={handleSubmit} className="p-8 space-y-4 max-h-[80vh] overflow-y-auto">
           <div className="space-y-4">
             {/* TÊN CÔNG TY */}
             <div className="space-y-1.5">

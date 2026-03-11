@@ -82,7 +82,7 @@ export default function ResolveClaimModal({
         </DialogHeader>
 
         {/* FORM BODY */}
-        <div className="p-10">
+        <div className="p-10 max-h-[70vh] overflow-y-auto">
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(handleProcess)}

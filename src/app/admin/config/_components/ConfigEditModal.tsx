@@ -24,7 +24,6 @@ import {
 import {
   CheckIcon,
   ExclamationTriangleIcon,
-  XMarkIcon,
 } from "@heroicons/react/24/outline";
 
 interface Props {
@@ -65,9 +64,9 @@ export default function ConfigEditModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-md bg-white rounded-2xl p-0 border-none shadow-2xl overflow-hidden">
+        <DialogContent className="max-w-md bg-white rounded-2xl p-0 border-slate-200 shadow-xl overflow-hidden z-[120]">
           {/* HEADER */}
-          <DialogHeader className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left">
+          <DialogHeader className="bg-slate-50 px-6 py-4 border-b border-slate-200 flex flex-col justify-center space-y-0 text-left pr-10">
             <div className="flex flex-col">
               <DialogTitle className="text-lg font-bold text-slate-900">
                 Sửa cấu hình
@@ -76,12 +75,6 @@ export default function ConfigEditModal({
                 {config.key}
               </span>
             </div>
-            <Button
-              onClick={onClose}
-              className="p-2 text-slate-400 hover:text-red-500 hover:bg-slate-100 rounded-lg transition-colors"
-            >
-              <XMarkIcon className="h-5 w-5" />
-            </Button>
           </DialogHeader>
 
           <div className="p-6 space-y-5">
@@ -103,7 +96,7 @@ export default function ConfigEditModal({
                 <Input
                   value={value}
                   onChange={(e) => setValue(e.target.value)}
-                  className="rounded-xl bg-slate-50 border-slate-100 px-4 py-3 text-sm font-bold text-slate-900"
+                  className="rounded-xl bg-slate-50 border-slate-200 px-4 py-3 text-sm font-bold text-slate-900"
                 />
               </div>
               <div className="space-y-1.5">
@@ -114,7 +107,7 @@ export default function ConfigEditModal({
                   rows={3}
                   value={desc}
                   onChange={(e) => setDesc(e.target.value)}
-                  className="rounded-xl bg-slate-50 border-slate-100 px-4 py-3 text-sm font-medium text-slate-900 resize-none"
+                  className="rounded-xl bg-slate-50 border-slate-200 px-4 py-3 text-sm font-medium text-slate-900 resize-none"
                 />
               </div>
             </div>

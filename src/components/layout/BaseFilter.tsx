@@ -11,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { Button } from "../ui/button";
+import { XMarkIcon } from "@heroicons/react/24/outline";
 
 export type FilterType = "text" | "select" | "date" | "number";
 
@@ -42,7 +44,7 @@ export default function BaseFilter({ filters }: Props) {
   const [local, setLocal] = useState<Record<string, string>>({});
 
   const control =
-    "h-9 rounded-lg border border-slate-300 bg-white px-3 text-sm outline-none transition focus:border-primary/50 focus:ring-2 focus:ring-primary/15 text-slate-700";
+    "h-9 rounded-lg border border-slate-200 bg-slate-50 px-3 text-sm outline-none transition text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-blue-400 focus:ring-1 focus:ring-blue-400/50";
 
   const updateURL = (updates: Record<string, string | number | null>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -97,7 +99,7 @@ export default function BaseFilter({ filters }: Props) {
             }
           >
             <SelectTrigger
-              className={cn("bg-white", filter.width || "w-[140px]")}
+              className={cn("bg-white border-slate-200 text-slate-900", filter.width || "w-[140px]")}
             >
               <SelectValue placeholder={filter.placeholder || "All"} />
             </SelectTrigger>
@@ -157,7 +159,7 @@ export default function BaseFilter({ filters }: Props) {
   };
 
   return (
-    <div className="mb-4 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+    <div className="mb-4 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
       <div className="flex flex-row flex-wrap items-end gap-3 justify-between">
         <div className="flex flex-1 flex-wrap items-end gap-3">
           {filters.map((filter) => {
@@ -176,7 +178,7 @@ export default function BaseFilter({ filters }: Props) {
                   filter.className,
                 )}
               >
-                <label className="text-[11px] font-bold uppercase tracking-wide text-slate-600">
+                <label className="text-[11px] font-bold uppercase tracking-wide text-slate-500">
                   {filter.label}
                 </label>
 
@@ -186,12 +188,14 @@ export default function BaseFilter({ filters }: Props) {
           })}
         </div>
 
-        <button
+        <Button
+          variant="outline"
           onClick={clearFilters}
-          className="h-9 px-4 rounded-lg border border-slate-300 bg-white text-sm font-bold text-slate-600 hover:bg-gray-50 transition-all hover:border-primary/50 uppercase tracking-widest text-[10px] shrink-0"
+          className="h-9 px-4 rounded-lg flex items-center justify-center gap-2 text-slate-500 hover:text-slate-700 transition-all uppercase tracking-widest text-[10px] shrink-0"
         >
+          <XMarkIcon className="h-4 w-4" />
           Clear Filters
-        </button>
+        </Button>
       </div>
     </div>
   );

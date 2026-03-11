@@ -12,6 +12,7 @@ import { useMemo } from "react";
 import { SystemConfig } from "../config/_components/ConfigClient";
 import DashboardSummary from "./DashboardSummary";
 import RecentActivity from "./RecentActivity";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 /** Shared response wrapper type */
 interface PaginatedResponse<T> {
@@ -200,64 +201,66 @@ export default function DashboardClient() {
         />
 
         {/* PENDING CLAIMS PREVIEW */}
-        <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-sm font-bold text-slate-900">
+        <Card className="rounded-2xl border-slate-100 shadow-sm bg-white p-0 overflow-hidden">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b border-slate-100/50 px-6 py-4 bg-slate-50/50">
+            <CardTitle className="text-sm font-bold text-slate-900">
               Khiếu nại chờ xử lý
-            </h2>
+            </CardTitle>
             <a
               href="/admin/claim"
               className="text-xs font-bold text-primary hover:underline"
             >
               Xem tất cả →
             </a>
-          </div>
+          </CardHeader>
 
-          {pendingClaims.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-slate-300">
-              <svg
-                className="h-8 w-8 mb-2"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={1.5}
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p className="text-xs font-medium">Không có khiếu nại đang chờ</p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {pendingClaims.slice(0, 5).map((claim, i) => (
-                <div
-                  key={claim.claimId ?? i}
-                  className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-amber-50 transition-colors group"
+          <CardContent className="p-6">
+            {pendingClaims.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                <svg
+                  className="h-8 w-8 mb-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
                 >
-                  <div className="flex flex-col min-w-0">
-                    <span
-                      className="text-xs font-bold text-slate-700 font-mono truncate max-w-[200px]"
-                      title={claim.shipmentId}
-                    >
-                      Ship: {claim.shipmentId?.slice(0, 12)}...
-                    </span>
-                    <span className="text-[10px] text-slate-400">
-                      {claim.createdAt
-                        ? new Date(claim.createdAt).toLocaleDateString("vi-VN")
-                        : "---"}
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-xs font-medium">Không có khiếu nại đang chờ</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {pendingClaims.slice(0, 5).map((claim, i) => (
+                  <div
+                    key={claim.claimId ?? i}
+                    className="flex items-center justify-between p-3 bg-slate-50 rounded-xl hover:bg-amber-50 transition-colors group"
+                  >
+                    <div className="flex flex-col min-w-0">
+                      <span
+                        className="text-xs font-bold text-slate-700 font-mono truncate max-w-[200px]"
+                        title={claim.shipmentId}
+                      >
+                        Ship: {claim.shipmentId?.slice(0, 12)}...
+                      </span>
+                      <span className="text-[10px] text-slate-400">
+                        {claim.createdAt
+                          ? new Date(claim.createdAt).toLocaleDateString("vi-VN")
+                          : "---"}
+                      </span>
+                    </div>
+                    <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-lg shrink-0 ml-2">
+                      Chờ duyệt
                     </span>
                   </div>
-                  <span className="px-2.5 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-lg">
-                    Chờ duyệt
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
