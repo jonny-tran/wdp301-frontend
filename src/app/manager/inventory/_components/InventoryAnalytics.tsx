@@ -20,43 +20,43 @@ export default function InventoryAnalytics({ data }: { data: InventoryStats }) {
       label: "Tổng sản phẩm",
       value: data.totalProducts,
       icon: InboxIcon,
-      color: "text-primary",
+      color: "text-blue-600 bg-blue-50",
     },
     {
       label: "Sắp hết hàng",
       value: data.lowStockCount,
       icon: ExclamationTriangleIcon,
-      color: "text-orange-500",
+      color: "text-orange-600 bg-orange-50",
     },
     {
       label: "Sắp hết hạn",
       value: data.expiringBatches,
       icon: ClockIcon,
-      color: "text-red-500",
+      color: "text-red-600 bg-red-50",
     },
     {
       label: "Thiệt hại dự kiến",
-      value: `${data.estimatedLossVnd.toLocaleString()}đ`,
+      value: `${data.estimatedLossVnd.toLocaleString('vi-VN')}đ`,
       icon: BanknotesIcon,
-      color: "text-slate-900",
+      color: "text-slate-700 bg-slate-100",
     },
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       {stats.map((s, i) => (
         <div
           key={i}
-          className="bg-white p-5 rounded-[2rem] border border-slate-100 shadow-sm flex items-center gap-4"
+          className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4 transition-all hover:shadow-md"
         >
-          <div className={`p-3 rounded-2xl bg-slate-50 ${s.color}`}>
-            <s.icon className="h-5 w-5" />
+          <div className={`p-3 rounded-lg ${s.color}`}>
+            <s.icon className="h-6 w-6" />
           </div>
           <div>
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-tight">
               {s.label}
             </p>
-            <p className="text-lg font-black italic tracking-tighter text-text-main leading-none">
+            <p className="text-xl font-bold text-slate-900 mt-1">
               {s.value}
             </p>
           </div>

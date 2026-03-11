@@ -23,17 +23,14 @@ import AdjustStockModal from "./AdjustStockModal";
    Types — View Models (decoupled from API DTOs)
    ───────────────────────────────────────────── */
 
-/** Tab ID union type */
 type InventoryTab = "summary" | "low-stock" | "aging" | "waste";
 
-/** Re-export for AdjustStockModal compatibility */
 export type InventoryDisplayItem = InventoryRowItem & {
     warehouseId?: number;
     currentQuantity?: number;
     minStockLevel?: number;
 };
 
-/** Response wrapper — defensive for various API shapes */
 interface ResponseWrapper<T> {
     data?: { items?: T[]; meta?: unknown; buckets?: AgingBuckets; kpi?: WasteKpi; details?: WasteDetail[] };
     items?: T[];
@@ -124,10 +121,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
         [searchParams],
     );
 
-    // Tab state — kept as local state as it's UI-only (not shareable via URL for this dashboard)
     const [activeTab, setActiveTab] = useState<InventoryTab>("summary");
-
-    // Modal state
     const [adjustModal, setAdjustModal] = useState<{ isOpen: boolean; item: InventoryDisplayItem | null }>({
         isOpen: false,
         item: null,
@@ -163,13 +157,13 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
 
     // ── 3. Mapping API response → View Models ──
     const { items, meta } = useMemo(() => {
-        const rawData = (activeTab === "summary" ? summaryQuery.data : lowStockQuery.data) as ResponseWrapper<Record<string, unknown>> | undefined;
-        const data = rawData?.data?.items || rawData?.items || [];
-        const rawMeta = rawData?.data?.meta || rawData?.meta;
+        const rawResponse = (activeTab === "summary" ? summaryQuery.data : lowStockQuery.data) as Record<string, unknown> | undefined;
+        const rawData = rawResponse?.data || rawResponse;
+        const data = Array.isArray(rawData) ? rawData : (rawData as { items?: Record<string, unknown>[] })?.items || [];
+        const rawMeta = Array.isArray(rawData) ? undefined : (rawData as { meta?: unknown })?.meta;
 
         const mapped: InventoryDisplayItem[] = Array.isArray(data) ? data.map(mapToDisplayItem) : [];
 
-        // Client-side search (filter by search from URL)
         const search = parsedQuery.search?.toLowerCase().trim();
         const filtered = search
             ? mapped.filter(
@@ -222,7 +216,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
         return { kpi, details };
     }, [wasteQuery.data]);
 
-    // ── 4. URL-Driven Handlers ──
+    // ── 4. Handlers ──
     const handlePageChange = (nextPage: number) => {
         const query = createPaginationSearchParams(searchParamsHook, nextPage);
         router.push(`${pathname}?${query}`);
@@ -232,15 +226,15 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
     const isTableError = activeTab === "summary" ? summaryQuery.isError : lowStockQuery.isError;
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Header */}
-            <div className="flex items-end justify-between px-2">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                    <h1 className="text-2xl font-black font-display tracking-wider uppercase text-text-main leading-none">
-                        Inventory Dashboard
+                    <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+                        Kiểm soát Tồn kho
                     </h1>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">
-                        Manager Portal &bull; Điều phối &amp; Kiểm soát lãng phí
+                    <p className="text-sm text-slate-500 mt-1">
+                        Theo dõi tổng sản phẩm, kho bãi và lãng phí trực tuyến
                     </p>
                 </div>
             </div>
@@ -249,7 +243,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
             <InventoryAnalytics data={stats} />
 
             {/* Tabs Navigation Capsule */}
-            <div className="flex gap-2 p-1.5 bg-slate-50 border border-slate-100 rounded-[2rem] w-fit shadow-sm">
+            <div className="flex bg-slate-100/80 p-1.5 rounded-lg w-fit border border-slate-200/60 shadow-sm">
                 {([
                     { id: "summary" as const, label: "Tồn kho tổng" },
                     { id: "low-stock" as const, label: "Cảnh báo hết" },
@@ -259,10 +253,10 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-300
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200
                             ${activeTab === tab.id
-                                ? "bg-slate-950 text-white shadow-xl scale-[1.05]"
-                                : "text-slate-400 hover:text-slate-900"
+                                ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+                                : "text-slate-500 hover:text-slate-700"
                             }`}
                     >
                         {tab.label}
@@ -270,13 +264,13 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                 ))}
             </div>
 
-            {/* Filter Bar — Only show for list tabs (URL-driven via BaseFilter) */}
+            {/* Filter Bar */}
             {["summary", "low-stock"].includes(activeTab) && (
                 <InventoryFilter currentLimit={parsedQuery.limit} />
             )}
 
             {/* Main Content Area */}
-            <section className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden min-h-[550px]">
+            <section className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[500px]">
                 {(activeTab === "summary" || activeTab === "low-stock") && (
                     <>
                         <InventoryTable
@@ -288,16 +282,18 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                             }
                         />
 
-                        {/* Pagination — Đồng bộ với BasePagination pattern */}
-                        <div className="border-t border-slate-100 px-8 py-5 bg-white">
-                            <BasePagination
-                                currentPage={meta.currentPage}
-                                totalPages={meta.totalPages}
-                                onPageChange={handlePageChange}
-                                totalItems={meta.totalItems}
-                                itemsPerPage={meta.itemsPerPage}
-                            />
-                        </div>
+                        {/* Pagination */}
+                        {!isTableLoading && meta.totalPages > 1 && (
+                            <div className="border-t border-slate-100 px-6 py-4 bg-slate-50/50">
+                                <BasePagination
+                                    currentPage={meta.currentPage}
+                                    totalPages={meta.totalPages}
+                                    onPageChange={handlePageChange}
+                                    totalItems={meta.totalItems}
+                                    itemsPerPage={meta.itemsPerPage}
+                                />
+                            </div>
+                        )}
                     </>
                 )}
                 {activeTab === "aging" && (
@@ -308,7 +304,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                 )}
             </section>
 
-            {/* Modal điều chỉnh tồn kho */}
+            {/* Adjust Stock Modal */}
             <AdjustStockModal
                 isOpen={adjustModal.isOpen}
                 item={adjustModal.item}

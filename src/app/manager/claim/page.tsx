@@ -1,7 +1,13 @@
 import { Suspense } from "react";
 import ClaimClient from "./_components/ClaimsClient";
+import { RawSearchParams } from "@/app/manager/_components/query";
 
-export default function ClaimPage() {
+type Props = {
+  searchParams: Promise<RawSearchParams>;
+};
+
+export default async function ClaimPage({ searchParams }: Props) {
+  const resolvedParams = await searchParams;
   return (
     <Suspense
       fallback={
@@ -10,7 +16,7 @@ export default function ClaimPage() {
         </div>
       }
     >
-      <ClaimClient />
+      <ClaimClient searchParams={resolvedParams} />
     </Suspense>
   );
 }

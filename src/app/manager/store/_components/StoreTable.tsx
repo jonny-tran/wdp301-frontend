@@ -1,147 +1,144 @@
 "use client";
 
-import {
-  MapPinIcon,
-  PhoneIcon,
-  UserIcon,
-  PencilSquareIcon,
-  TrashIcon,
-  InboxIcon,
-} from "@heroicons/react/24/outline";
 import { Store } from "@/types/store";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import Can from "@/components/shared/Can";
 import { P } from "@/lib/authz";
 import { Resource } from "@/utils/constant";
+import { Pencil, Trash2, InboxIcon } from "lucide-react";
 
-interface StoreTableProps {
+interface Props {
   items: Store[];
   isLoading: boolean;
   onEdit: (store: Store) => void;
-  onDelete: (id: string) => void;
+  onDelete: (store: Store) => void;
 }
 
-export default function StoreTable({
-  items = [],
-  isLoading,
-  onEdit,
-  onDelete,
-}: StoreTableProps) {
-  // 1. Loading State
-  if (isLoading)
-    return (
-      <div className="p-32 text-center">
-        <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-black mb-4"></div>
-        <p className="font-black text-black/20 italic uppercase text-[10px] tracking-widest">
-          Đang tải danh sách Store...
-        </p>
-      </div>
-    );
+function TableSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <TableRow key={i}>
+          <TableCell className="pl-6">
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-36" />
+              <Skeleton className="h-3 w-48" />
+            </div>
+          </TableCell>
+          <TableCell>
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          </TableCell>
+          <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+          <TableCell className="text-right pr-6">
+            <div className="flex justify-end gap-1">
+              <Skeleton className="h-8 w-8 rounded-md" />
+              <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
 
-  // 2. Empty State - Nếu items rỗng dù đã fetch xong
-  if (!items || items.length === 0)
+export default function StoreTable({ items, isLoading, onEdit, onDelete }: Props) {
+  if (!isLoading && (!items || items.length === 0)) {
     return (
-      <div className="p-32 text-center flex flex-col items-center gap-4 text-black/10 uppercase italic font-black text-[10px] tracking-[0.4em]">
-        <InboxIcon className="h-12 w-12 opacity-10" />
-        Chưa có cửa hàng nào được đăng ký
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="rounded-full bg-slate-100 p-4 mb-4">
+          <InboxIcon className="h-8 w-8 text-slate-400" />
+        </div>
+        <p className="text-sm font-medium text-slate-500">Chưa có cửa hàng nào</p>
+        <p className="text-xs text-slate-400 mt-1">Nhấn &quot;Thêm Store&quot; để bắt đầu</p>
       </div>
     );
+  }
 
   return (
-    <div className="w-full overflow-hidden">
-      <table className="w-full text-left text-sm border-separate border-spacing-0">
-        <thead className="bg-slate-50/80 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
-          <tr>
-            <th className="px-8 py-5 border-b border-slate-100 w-[35%]">
-              Thông tin Cửa hàng
-            </th>
-            <th className="px-8 py-5 border-b border-slate-100 w-[25%]">
-              Quản lý / Liên hệ
-            </th>
-            <th className="px-8 py-5 border-b border-slate-100 text-center w-[15%]">
-              Trạng thái
-            </th>
-            <th className="px-8 py-5 border-b border-slate-100 text-right w-[25%]">
-              Thao tác
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-50 bg-white">
-          {items.map((store) => (
-            <tr
+    <Table>
+      <TableHeader>
+        <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+          <TableHead className="pl-6 text-xs font-semibold text-slate-500">Cửa hàng</TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500">Quản lý / Liên hệ</TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[100px]">Trạng thái</TableHead>
+          <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[100px]">Thao tác</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {isLoading ? (
+          <TableSkeleton />
+        ) : (
+          items.map((store) => (
+            <TableRow
               key={store.id}
-              className="group hover:bg-primary-dark transition-all duration-300 ease-in-out"
+              className="group hover:bg-slate-50/50 transition-colors"
             >
-              {/* Tên & Địa chỉ */}
-              <td className="px-8 py-6">
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-black text-black group-hover:text-white font-display tracking-wider uppercase transition-colors">
-                    {store.name}
-                  </span>
-                  <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-60 transition-opacity">
-                    <MapPinIcon className="h-3 w-3 text-black group-hover:text-white" />
-                    <span className="text-[10px] font-bold text-black group-hover:text-white truncate max-w-[250px]">
-                      {store.address}
-                    </span>
-                  </div>
+              <TableCell className="pl-6">
+                <div>
+                  <p className="font-semibold text-slate-900">{store.name}</p>
+                  <p className="text-xs text-slate-400 truncate max-w-[250px]">
+                    {store.address || "—"}
+                  </p>
                 </div>
-              </td>
-
-              {/* Quản lý & Phone */}
-              <td className="px-8 py-6">
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <UserIcon className="h-3 w-3 text-black group-hover:text-white opacity-40" />
-                    <span className="text-[11px] font-black text-black group-hover:text-white uppercase italic">
-                      {store.managerName || "Chưa có quản lý"}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <PhoneIcon className="h-3 w-3 text-black group-hover:text-white opacity-40" />
-                    <span className="text-[10px] font-bold text-text-muted group-hover:text-white/40">
-                      {store.phone}
-                    </span>
-                  </div>
+              </TableCell>
+              <TableCell>
+                <div>
+                  <p className="text-sm text-slate-700">
+                    {store.managerName || "Chưa bổ nhiệm"}
+                  </p>
+                  <p className="text-xs text-slate-400">{store.phone || "—"}</p>
                 </div>
-              </td>
-
-              {/* Status Badge */}
-              <td className="px-8 py-6 text-center">
-                <div className="flex justify-center">
-                  <span
-                    className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all
-                    ${store.isActive
-                        ? "bg-green-50 text-green-700 group-hover:bg-green-600 group-hover:text-white"
-                        : "bg-slate-100 text-slate-400 group-hover:bg-slate-700 group-hover:text-white"
-                      }`}
-                  >
-                    {store.isActive ? "Active" : "Inactive"}
-                  </span>
-                </div>
-              </td>
-
-              {/* Action Buttons */}
-              <td className="px-8 py-6 text-right">
-                <div className="flex justify-end gap-2">
+              </TableCell>
+              <TableCell>
+                <Badge
+                  className={
+                    store.isActive
+                      ? "bg-green-50 text-green-700 border border-green-200 hover:bg-green-50"
+                      : "bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-50"
+                  }
+                >
+                  {store.isActive ? "Active" : "Inactive"}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right pr-6">
+                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Can I={P.STORE_UPDATE} on={Resource.STORE}>
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100"
                       onClick={() => onEdit(store)}
-                      className="p-2.5 bg-slate-50 group-hover:bg-white/10 text-black group-hover:text-white rounded-xl transition-all active:scale-95"
                     >
-                      <PencilSquareIcon className="h-4 w-4 stroke-[2.5px]" />
-                    </button>
-                    <button
-                      onClick={() => onDelete(store.id)}
-                      className="p-2.5 bg-red-50 group-hover:bg-red-600/20 text-red-600 rounded-xl transition-all active:scale-95"
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                      onClick={() => onDelete(store)}
                     >
-                      <TrashIcon className="h-4 w-4 stroke-[2.5px]" />
-                    </button>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </Can>
                 </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+              </TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
   );
 }

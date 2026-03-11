@@ -37,6 +37,11 @@ const nextConfig = {
         hostname: "file.hstatic.net",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "cdn.com",
+        pathname: "/**",
+      },
     ],
   },
 };

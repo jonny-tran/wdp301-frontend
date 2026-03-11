@@ -1,58 +1,70 @@
 "use client";
 
 import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CreateStoreBody, CreateStoreBodyType, UpdateStoreBodyType } from "@/schemas/store";
+import { Store } from "@/types/store";
+import { useStore } from "@/hooks/useStore";
+import { handleErrorApi } from "@/lib/errors";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
-import { useStore } from "@/hooks/useStore";
-import { useForm } from "react-hook-form";
-import { Store } from "@/types/store";
-import { CreateStoreBody, CreateStoreBodyType, UpdateStoreBodyType } from "@/schemas/store";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { handleErrorApi } from "@/lib/errors";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
-interface StoreModalProps {
+interface Props {
   isOpen: boolean;
-  onClose: () => void;
   editingStore: Store | null;
+  onClose: () => void;
 }
 
-export default function StoreModal({ isOpen, onClose, editingStore }: StoreModalProps) {
+export default function StoreModal({ isOpen, editingStore, onClose }: Props) {
+  const isEdit = !!editingStore;
   const { createStore, updateStore } = useStore();
+  const isPending = createStore.isPending || updateStore.isPending;
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    setError,
-    formState: { errors, isSubmitting },
-  } = useForm<CreateStoreBodyType>({
+  const form = useForm<CreateStoreBodyType>({
     resolver: zodResolver(CreateStoreBody),
+    defaultValues: {
+      name: "",
+      address: "",
+      phone: "",
+      managerName: "",
+    },
   });
 
-  // Đổ dữ liệu vào form khi chế độ Edit được kích hoạt
   useEffect(() => {
-    if (editingStore && isOpen) {
-      reset({
-        name: editingStore.name || "",
-        address: editingStore.address || "",
-        phone: editingStore.phone || "",
+    if (isOpen) {
+      form.reset({
+        name: editingStore?.name ?? "",
+        address: editingStore?.address ?? "",
+        phone: editingStore?.phone ?? "",
         managerName:
-          editingStore.managerName === "Chưa bổ nhiệm"
+          editingStore?.managerName === "Chưa bổ nhiệm"
             ? ""
-            : editingStore.managerName,
+            : (editingStore?.managerName ?? ""),
       });
-    } else if (isOpen) {
-      reset({ name: "", address: "", phone: "", managerName: "" });
     }
-  }, [editingStore, isOpen, reset]);
+  }, [isOpen, editingStore, form]);
 
   const onSubmit = async (data: CreateStoreBodyType) => {
     try {
-      if (editingStore) {
+      if (isEdit && editingStore) {
         await updateStore.mutateAsync({
           id: editingStore.id,
           data: data as UpdateStoreBodyType,
@@ -61,93 +73,128 @@ export default function StoreModal({ isOpen, onClose, editingStore }: StoreModal
         await createStore.mutateAsync(data);
       }
       onClose();
-    } catch (e: any) {
-      handleErrorApi({
-        error: e,
-        setError,
-      });
+    } catch (error) {
+      handleErrorApi({ error, setError: form.setError });
     }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md rounded-[2.5rem] p-10 bg-white border-none shadow-2xl outline-none">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase italic text-black tracking-tighter">
-            {editingStore ? "Chỉnh sửa Store" : "Thêm Store mới"}
+          <DialogTitle>
+            {isEdit ? "Chỉnh sửa cửa hàng" : "Thêm cửa hàng mới"}
           </DialogTitle>
-          <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest italic">
-            {editingStore
+          <DialogDescription>
+            {isEdit
               ? `ID: ${editingStore.id}`
-              : "Nhập thông tin hệ thống"}
-          </p>
+              : "Đăng ký chi nhánh mới trong hệ thống"}
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-5">
-          {/* Tên Store */}
-          <div className="space-y-1.5">
-            <label className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] ml-2">
-              Tên chi nhánh
-            </label>
-            <input
-              {...register("name")}
-              className={`w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4 text-xs font-bold text-black focus:border-black focus:bg-white transition-all outline-none ${errors.name ? "border-red-500 bg-red-50" : ""}`}
-              placeholder="VD: KFC Quận 1..."
-            />
-            {errors.name && <p className="text-[10px] text-red-500 ml-2">{errors.name.message}</p>}
-          </div>
-
-          {/* Quản lý */}
-          <div className="space-y-1.5">
-            <label className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] ml-2">
-              Người quản lý
-            </label>
-            <input
-              {...register("managerName")}
-              className={`w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4 text-xs font-bold text-black focus:border-black focus:bg-white transition-all outline-none ${errors.managerName ? "border-red-500 bg-red-50" : ""}`}
-              placeholder="Họ và tên..."
-            />
-            {errors.managerName && <p className="text-[10px] text-red-500 ml-2">{errors.managerName.message}</p>}
-          </div>
-
-          {/* Phone & Address */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] ml-2">
-                Hotline
-              </label>
-              <input
-                {...register("phone")}
-                className={`w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4 text-xs font-bold text-black focus:border-black focus:bg-white transition-all outline-none ${errors.phone ? "border-red-500 bg-red-50" : ""}`}
+        <div className="max-h-[70vh] overflow-y-auto">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {/* Name */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Tên chi nhánh <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="VD: KFC Quận 1..."
+                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-              {errors.phone && <p className="text-[10px] text-red-500 ml-2">{errors.phone.message}</p>}
-            </div>
-            <div className="space-y-1.5">
-              <label className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] ml-2">
-                Địa chỉ
-              </label>
-              <input
-                {...register("address")}
-                className={`w-full bg-slate-50 border-2 border-slate-50 rounded-2xl p-4 text-xs font-bold text-black focus:border-black focus:bg-white transition-all outline-none ${errors.address ? "border-red-500 bg-red-50" : ""}`}
-              />
-              {errors.address && <p className="text-[10px] text-red-500 ml-2">{errors.address.message}</p>}
-            </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full py-5 bg-primary text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-primary-dark transition-all shadow-xl active:scale-95 disabled:bg-slate-200"
-          >
-            {isSubmitting
-              ? "Đang xử lý..."
-              : editingStore
-                ? "Cập nhật ngay"
-                : "Xác nhận tạo"}
-          </button>
-        </form>
+              {/* Manager Name */}
+              <FormField
+                control={form.control}
+                name="managerName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Người quản lý</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Họ và tên..."
+                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Phone */}
+                <FormField
+                  control={form.control}
+                  name="phone"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Hotline</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="09xx xxx xxx"
+                          className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Address */}
+                <FormField
+                  control={form.control}
+                  name="address"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Địa chỉ</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Quận, TP..."
+                          className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <DialogFooter className="pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={isPending}
+                >
+                  Hủy
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {isEdit ? "Cập nhật" : "Tạo mới"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );
 }
-

@@ -1,18 +1,31 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import {
-  XMarkIcon,
-  CheckIcon,
-  ArrowPathIcon,
-  PlusIcon,
-  PhotoIcon,
-} from "@heroicons/react/24/outline";
+import { useMemo } from "react";
+import { useForm, Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CreateProductBody, CreateProductBodyType } from "@/schemas/product";
 import { useProduct } from "@/hooks/useProduct";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
-import { extractBaseUnitOptions, UnitOption } from "./product.mapper";
+import { BaseUnit } from "@/types/base-unit";
 import ImageUpload from "@/components/shared/ImageUpload";
-import { toast } from "sonner";
+import { handleErrorApi } from "@/lib/errors";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -21,215 +34,189 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 const DEFAULT_IMAGE_URL =
   "https://res.cloudinary.com/dmhjgnymn/image/upload/v1770135560/OIP_j6j4gz.webp";
-const INITIAL_STATE = {
-  name: "",
-  baseUnitId: 0,
-  shelfLifeDays: 0,
-  imageUrl: "",
-};
 
-interface ProductCreateModalProps {
+interface Props {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function ProductCreateModal({
-  isOpen,
-  onClose,
-}: ProductCreateModalProps) {
+export default function ProductCreateModal({ isOpen, onClose }: Props) {
   const { createProduct } = useProduct();
-  const { baseUnitList } = useBaseUnit();
+  const { useBaseUnitList } = useBaseUnit();
+  const { data: rawBaseUnits, isLoading: isUnitsLoading } = useBaseUnitList();
 
-  // State quản lý form
-  const [formData, setFormData] = useState(INITIAL_STATE);
+  // Extract base unit options
+  const unitOptions = useMemo(() => {
+    const rawData = (rawBaseUnits as { data?: unknown })?.data || rawBaseUnits;
+    const items: BaseUnit[] = Array.isArray(rawData) ? rawData : (rawData as { items?: BaseUnit[] })?.items || [];
+    return items
+      .filter((u) => u.isActive)
+      .map((u) => ({ label: u.name, value: u.id }));
+  }, [rawBaseUnits]);
 
-  // Lấy dữ liệu Đơn vị tính từ API
-  const { data: rawBaseUnits, isLoading: isUnitsLoading } = baseUnitList();
+  const form = useForm<CreateProductBodyType>({
+    resolver: zodResolver(CreateProductBody) as unknown as Resolver<CreateProductBodyType>,
+    defaultValues: {
+      name: "",
+      baseUnitId: 0,
+      shelfLifeDays: 0,
+      imageUrl: DEFAULT_IMAGE_URL,
+    },
+  });
 
-  // Map dữ liệu với kiểu UnitOption rõ ràng (Fix lỗi opt: any)
-  const unitOptions = useMemo<UnitOption[]>(
-    () => extractBaseUnitOptions(rawBaseUnits),
-    [rawBaseUnits],
-  );
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (formData.baseUnitId === 0) {
-      toast.error("Vui lòng chọn đơn vị tính hệ thống!");
-      return;
-    }
-
+  const onSubmit = async (data: CreateProductBodyType) => {
     try {
       await createProduct.mutateAsync({
-        ...formData,
-        imageUrl: formData.imageUrl.trim() || DEFAULT_IMAGE_URL,
+        ...data,
+        imageUrl: data.imageUrl?.trim() || DEFAULT_IMAGE_URL,
       });
-      toast.success("Đã thêm sản phẩm mới vào danh mục!");
+      form.reset();
       onClose();
-    } catch {
-      // Lỗi được xử lý tại useProduct
+    } catch (error) {
+      handleErrorApi({ error, setError: form.setError });
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-6 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300"
-      onClick={(e) => e.target === e.currentTarget && onClose()}
-    >
-      <div
-        className="relative w-full max-w-4xl bg-white rounded-[3.5rem] shadow-2xl overflow-hidden border border-slate-100 animate-in zoom-in duration-300 max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="grid grid-cols-1 md:grid-cols-12">
-          {/* CỘT TRÁI: Media & Tên */}
-          <div className="md:col-span-7 p-10 md:p-14 space-y-10 bg-white border-r border-slate-50">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2 ml-2">
-                <PhotoIcon className="h-4 w-4 text-slate-400" />
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                  Hình ảnh sản phẩm
-                </label>
-              </div>
-              <ImageUpload
-                value={formData.imageUrl}
-                onChange={(url) => setFormData({ ...formData, imageUrl: url })}
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Thêm sản phẩm mới</DialogTitle>
+          <DialogDescription>
+            Khởi tạo sản phẩm mới trong hệ thống quản lý kho
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="max-h-[70vh] overflow-y-auto">
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+              {/* Image Upload */}
+              <FormField
+                control={form.control}
+                name="imageUrl"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Hình ảnh sản phẩm</FormLabel>
+                    <FormControl>
+                      <ImageUpload
+                        value={field.value}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
 
-            <div className="space-y-8">
-              <div className="space-y-3 px-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
-                  Tên thương mại
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-8 py-5 text-sm font-bold text-slate-900 focus:bg-white outline-none transition-all shadow-inner"
-                  placeholder="Ví dụ: Gà Rán KFC..."
-                />
-              </div>
+              {/* Name */}
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Tên sản phẩm <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Ví dụ: Gà Rán KFC Original..."
+                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <div className="space-y-3 px-2">
-                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1">
-                  Hạn bảo quản (Ngày)
-                </label>
-                <input
-                  type="number"
-                  required
-                  min={1}
-                  value={formData.shelfLifeDays || ""}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      shelfLifeDays: Number(e.target.value),
-                    })
-                  }
-                  className="w-full rounded-2xl border border-slate-100 bg-slate-50 px-8 py-5 text-sm font-bold text-slate-900 focus:bg-white outline-none transition-all shadow-inner"
-                  placeholder="Nhập số ngày..."
-                />
-              </div>
-            </div>
-          </div>
+              {/* Base Unit Select */}
+              <FormField
+                control={form.control}
+                name="baseUnitId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Đơn vị tính <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Select
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={(val) => field.onChange(Number(val))}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-white border-slate-200 text-slate-900">
+                          <SelectValue placeholder="Chọn đơn vị tính" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent position="popper" className="z-[150]">
+                        {isUnitsLoading ? (
+                          <div className="p-3 text-sm text-slate-400 text-center">
+                            Đang tải...
+                          </div>
+                        ) : unitOptions.length === 0 ? (
+                          <div className="p-3 text-sm text-red-400 text-center">
+                            Không có đơn vị nào
+                          </div>
+                        ) : (
+                          unitOptions.map((opt) => (
+                            <SelectItem key={opt.value} value={String(opt.value)}>
+                              {opt.label}
+                            </SelectItem>
+                          ))
+                        )}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-          {/* CỘT PHẢI: Logistics & Actions */}
-          <div className="md:col-span-5 flex flex-col justify-between p-10 md:p-14 bg-slate-50/50">
-            <div className="relative p-10 rounded-[2.5rem] bg-white border border-slate-200 text-center shadow-xl mb-10">
-              <div className="h-16 w-16 bg-primary text-white rounded-[1.5rem] flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3">
-                <PlusIcon className="h-8 w-8 stroke-[3px]" />
-              </div>
-              <h3 className="text-3xl font-black text-text-main font-display tracking-wider uppercase leading-tight">
-                Tạo <span className="text-primary">Sản phẩm</span>
-              </h3>
-              <Button
-                onClick={onClose}
-                className="absolute -top-4 -right-4 p-4 bg-white border border-slate-100 text-slate-400 rounded-full hover:bg-primary hover:text-white transition-all shadow-xl active:scale-90"
-              >
-                <XMarkIcon className="h-5 w-5 stroke-[2.5px]" />
-              </Button>
-            </div>
+              {/* Shelf Life */}
+              <FormField
+                control={form.control}
+                name="shelfLifeDays"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Hạn bảo quản (ngày) <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min={1}
+                        placeholder="Nhập số ngày..."
+                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <div className="space-y-10">
-              <div className="space-y-4 px-2">
-                <label className="text-[10px] font-black uppercase text-slate-500 ml-1 tracking-[0.2em]">
-                  Đơn vị tính
-                </label>
-
-                {/* Sửa lỗi hiển thị: Thêm position="popper" và ép kiểu String */}
-                <Select
-                  value={
-                    formData.baseUnitId === 0 ? "" : String(formData.baseUnitId)
-                  }
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, baseUnitId: Number(val) })
-                  }
-                >
-                  <SelectTrigger className="w-full rounded-2xl bg-white border border-slate-200 px-8 py-5 text-sm font-black text-slate-900 shadow-sm focus:ring-0">
-                    <SelectValue placeholder="--- CHỌN ĐƠN VỊ ---" />
-                  </SelectTrigger>
-                  <SelectContent
-                    position="popper"
-                    className="z-[150] rounded-2xl border-slate-100 shadow-2xl bg-white overflow-hidden"
-                  >
-                    {isUnitsLoading ? (
-                      <div className="p-4 text-[10px] font-black text-slate-400 animate-pulse text-center">
-                        ĐANG TẢI...
-                      </div>
-                    ) : unitOptions.length === 0 ? (
-                      <div className="p-4 text-[10px] font-black text-red-400 text-center">
-                        TRỐNG DỮ LIỆU ĐƠN VỊ
-                      </div>
-                    ) : (
-                      unitOptions.map((opt: UnitOption) => (
-                        <SelectItem
-                          key={opt.value}
-                          value={String(opt.value)}
-                          className="font-bold uppercase text-[10px] tracking-widest py-4 cursor-pointer focus:bg-primary focus:text-white"
-                        >
-                          {opt.label}
-                        </SelectItem>
-                      ))
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex flex-col gap-4">
-                <button
-                  type="submit"
-                  onClick={handleSubmit}
-                  disabled={createProduct.isPending}
-                  className="flex items-center justify-center gap-4 rounded-full py-6 text-xs font-black text-white transition-all bg-primary hover:bg-primary-dark disabled:bg-slate-300 shadow-lg active:scale-95"
-                >
-                  {createProduct.isPending ? (
-                    <ArrowPathIcon className="h-5 w-5 animate-spin" />
-                  ) : (
-                    <CheckIcon className="h-5 w-5 stroke-[3px]" />
-                  )}
-                  <span className="uppercase tracking-[0.2em]">
-                    Lưu vào Danh mục
-                  </span>
-                </button>
-                <button
+              <DialogFooter className="pt-2">
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={onClose}
-                  className="w-full py-2 text-[10px] font-black text-slate-400 hover:text-red-500 uppercase tracking-[0.3em] transition-colors"
+                  disabled={createProduct.isPending}
                 >
-                  Hủy bỏ
-                </button>
-              </div>
-            </div>
-          </div>
+                  Hủy
+                </Button>
+                <Button type="submit" disabled={createProduct.isPending}>
+                  {createProduct.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Tạo sản phẩm
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }

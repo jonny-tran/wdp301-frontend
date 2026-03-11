@@ -1,56 +1,90 @@
 "use client";
 
-import { useState } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import { useClaim } from "@/hooks/useClaim";
-import { extractClaims } from "./claims.mapper";
-import ClaimTable from "./ClaimsTable";
-import ClaimDetailView from "./ClaimDetailView";
 import {
-  ArrowPathIcon,
-  MagnifyingGlassIcon,
-  ShieldCheckIcon,
-} from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
+  createPaginationSearchParams,
+  normalizeMeta,
+  parseManagerListQuery,
+  type RawSearchParams,
+} from "@/app/manager/_components/query";
+import { BasePagination } from "@/components/layout/BasePagination";
+import { Input } from "@/components/ui/input";
+import { useClaim } from "@/hooks/useClaim";
+import { SearchIcon } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
+import { extractClaims } from "./claims.mapper";
 
-export default function ClaimClient() {
-  const searchParams = useSearchParams();
+import ClaimDetailView from "./ClaimDetailView";
+import ClaimTable from "./ClaimsTable";
+
+interface Props {
+  searchParams: RawSearchParams;
+}
+
+export default function ClaimClient({ searchParams }: Props) {
+  const searchParamsHook = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
   // 1. Quản lý ID để chuyển đổi giữa View Danh sách và View Chi tiết
   const [selectedClaimId, setSelectedClaimId] = useState<string | null>(null);
 
-  // 2. Bóc tách params từ URL để đồng bộ hóa filter
-  const page = Number(searchParams.get("page")) || 1;
-  const search = searchParams.get("search") || "";
-  const limit = 10;
+  // 2. URL-Driven State cho Pagination
+  const parsedQuery = useMemo(
+    () =>
+      parseManagerListQuery(searchParams, {
+        page: 1,
+        limit: 10,
+        sortOrder: "DESC",
+      }),
+    [searchParams],
+  );
 
   // 3. Khởi tạo Hook và Queries
   const { claimList, resolveClaim } = useClaim();
   const {
     data: response,
     isLoading,
-    refetch,
+    isError,
   } = claimList({
-    page,
-    limit,
-    search,
-    sortOrder: "DESC", // Thêm trường này để fix lỗi TypeScript
+    page: parsedQuery.page,
+    limit: parsedQuery.limit,
+    search: parsedQuery.search,
+    sortOrder: parsedQuery.sortOrder,
   });
-  // 4. Mapping dữ liệu từ data.items của API
-  const claims = extractClaims(response, (page - 1) * limit);
 
-  // 5. Logic xử lý tìm kiếm cập nhật URL
+  const claims = useMemo(() => {
+    const rawData = (response as { data?: unknown })?.data || response;
+    const sourceItems = Array.isArray(rawData) ? rawData : (rawData as { items?: unknown })?.items || [];
+    return extractClaims(sourceItems, (parsedQuery.page - 1) * parsedQuery.limit);
+  }, [response, parsedQuery.page, parsedQuery.limit]);
+
+  const meta = useMemo(() => {
+    const rawData = (response as { data?: unknown })?.data || response;
+    const rawMeta = Array.isArray(rawData) ? undefined : (rawData as { meta?: unknown })?.meta;
+    return normalizeMeta(
+      rawMeta,
+      parsedQuery.page,
+      parsedQuery.limit,
+      claims.length,
+    );
+  }, [response, claims.length, parsedQuery.page, parsedQuery.limit]);
+
+  // Handle Search Input Component
   const handleSearch = (val: string) => {
-    const params = new URLSearchParams(searchParams.toString());
+    const params = new URLSearchParams(searchParamsHook.toString());
     if (val) params.set("search", val);
     else params.delete("search");
     params.set("page", "1");
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  // 6. Logic xử lý Phê duyệt nhanh (Resolve PATCH API)
+  const handlePageChange = (nextPage: number) => {
+    const query = createPaginationSearchParams(searchParamsHook, nextPage);
+    router.push(`${pathname}?${query}`);
+  };
+
+  // 6. Logic xử lý Phê duyệt nhanh
   const handleResolve = (id: string) => {
     resolveClaim.mutate({
       id,
@@ -61,7 +95,6 @@ export default function ClaimClient() {
     });
   };
 
-  // --- LUỒNG 1: HIỂN THỊ CHI TIẾT KHIẾU NẠI (KHI CÓ ID) ---
   if (selectedClaimId) {
     return (
       <ClaimDetailView
@@ -71,81 +104,58 @@ export default function ClaimClient() {
     );
   }
 
-  // --- LUỒNG 2: HIỂN THỊ DANH SÁCH TỔNG HỢP ---
   return (
-    <div className="space-y-10 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-black font-display tracking-wider uppercase text-text-main leading-none">
-            Quản lý <span className="text-primary">Khiếu nại</span>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Quản lý Khiếu nại
           </h1>
-          <p className="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase mt-3 italic">
-            Theo dõi và xử lý thất thoát vận hành
+          <p className="text-sm text-slate-500 mt-1">
+            Theo dõi và giải quyết {meta.totalItems} vấn đề vận hành
           </p>
         </div>
       </div>
 
       {/* MAIN DATA CONTAINER */}
-      <div className="bg-white rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden relative mx-4">
-        {/* TOP BAR: SEARCH & STATUS FILTER */}
-        <div className="bg-slate-50/50 px-10 py-8 border-b border-slate-100 flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="relative w-full md:w-96">
-            <MagnifyingGlassIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 stroke-[2.5px]" />
-            <input
-              type="text"
-              defaultValue={search}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+        {/* TOP BAR: SEARCH */}
+        <div className="bg-white px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row gap-4 items-center">
+          <div className="relative w-full sm:max-w-md">
+            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <Input
+              defaultValue={parsedQuery.search || ""}
               onChange={(e) => handleSearch(e.target.value)}
               placeholder="Tìm mã vận đơn (Shipment ID)..."
-              className="w-full bg-white border border-slate-200 rounded-[1.5rem] py-4 pl-14 pr-6 text-sm font-bold text-slate-900 focus:outline-none focus:ring-4 ring-primary/10 transition-all shadow-sm italic placeholder:text-slate-300"
+              className="pl-9 bg-slate-50 border-slate-200 focus-visible:ring-1 focus-visible:ring-blue-400/50"
             />
-          </div>
-
-          <div className="flex items-center gap-4">
-            <div className="px-6 py-4 bg-white border border-slate-200 rounded-2xl flex items-center gap-3 shadow-sm">
-              <ShieldCheckIcon className="w-4 h-4 text-primary stroke-[2.5px]" />
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                Tất cả trạng thái
-              </span>
-            </div>
-            <Button
-              onClick={() => refetch()}
-              className="p-4 bg-white border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors shadow-sm"
-            >
-              <ArrowPathIcon
-                className={`w-5 h-5 text-slate-500 stroke-[2.5px] ${isLoading ? "animate-spin" : ""}`}
-              />
-            </Button>
           </div>
         </div>
 
         {/* DATA TABLE */}
-        {isLoading ? (
-          <div className="py-40 text-center">
-            <p className="font-black text-slate-200 italic uppercase text-[10px] tracking-[0.4em] animate-pulse">
-              Đang đồng bộ hồ sơ khiếu nại...
-            </p>
-          </div>
-        ) : (
+        <div className="flex-1 min-h-[400px]">
           <ClaimTable
             data={claims}
+            isLoading={isLoading}
+            isError={isError}
             onSelect={(id: string) => setSelectedClaimId(id)}
             onResolve={handleResolve}
           />
-        )}
-
-        {/* FOOTER BAR */}
-        <div className="bg-slate-50/50 px-10 py-6 border-t border-slate-50 flex justify-between items-center italic">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-            Tổng cộng: {response?.meta?.totalItems || 0} hồ sơ vận hành
-          </p>
-          <div className="flex gap-2 items-center">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[9px] font-black text-emerald-600 uppercase">
-              Hệ thống thời gian thực
-            </span>
-          </div>
         </div>
+
+        {/* FOOTER: Pagination */}
+        {!isLoading && meta.totalPages > 1 && (
+          <div className="border-t border-slate-100 px-6 py-4 bg-slate-50/50">
+            <BasePagination
+              currentPage={meta.currentPage}
+              totalPages={meta.totalPages}
+              onPageChange={handlePageChange}
+              totalItems={meta.totalItems}
+              itemsPerPage={meta.itemsPerPage}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

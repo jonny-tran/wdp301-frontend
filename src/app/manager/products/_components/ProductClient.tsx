@@ -9,14 +9,14 @@ import {
   createPaginationSearchParams,
   type RawSearchParams,
 } from "@/app/manager/_components/query";
-import { extractProducts } from "./product.mapper";
+import { Product } from "@/types/product";
 import ProductTable from "./ProductTable";
 import ProductCreateModal from "./ProductCreateModal";
 import ProductEditModal from "./ProductEditModal";
 import ProductFilter from "./ProductFilter";
 import { BasePagination } from "@/components/layout/BasePagination";
-import { PlusIcon, CubeIcon, SparklesIcon } from "@heroicons/react/24/outline";
-import { ProductRow } from "./product.types";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
 export default function ProductClient({
   searchParams,
@@ -27,11 +27,11 @@ export default function ProductClient({
   const pathname = usePathname();
   const searchParamsHook = useSearchParams();
 
-  // 1. Quản lý trạng thái Modal (Thêm & Sửa)
+  // Modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<ProductRow | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
-  // 2. URL-Driven State
+  // URL-Driven State
   const parsedQuery = useMemo(
     () => parseManagerListQuery(searchParams, { page: 1, limit: 10, sortOrder: "DESC" }),
     [searchParams],
@@ -39,7 +39,7 @@ export default function ProductClient({
 
   const { productList, deleteProduct, restoreProduct } = useProduct();
 
-  // Bóc tách isActive từ chuỗi (vì ProductList Query expects boolean | undefined)
+  // Parse isActive from URL string
   let isActiveBool: boolean | undefined = undefined;
   if (searchParams.isActive === "true") isActiveBool = true;
   else if (searchParams.isActive === "false") isActiveBool = false;
@@ -52,22 +52,21 @@ export default function ProductClient({
     sortOrder: parsedQuery.sortOrder,
   });
 
-  // 3. Logic Chuyển sang trang Chi tiết Lô hàng
   const handleViewDetail = (id: number) => {
     router.push(`/manager/products/${id}`);
   };
 
-  const items = useMemo(
-    () => extractProducts(listQuery.data),
-    [listQuery.data],
-  );
+  // Unwrap items directly — no mapper needed, backend returns camelCase
+  const items: Product[] = useMemo(() => {
+    const rawData = (listQuery.data as { data?: unknown })?.data || listQuery.data;
+    return Array.isArray(rawData) ? rawData : (rawData as { items?: Product[] })?.items || [];
+  }, [listQuery.data]);
 
   const meta = useMemo(() => {
-    const rawMeta = listQuery.data?.meta;
+    const rawData = (listQuery.data as { data?: unknown })?.data || listQuery.data;
+    const rawMeta = Array.isArray(rawData) ? undefined : (rawData as { meta?: unknown })?.meta;
     return normalizeMeta(rawMeta, parsedQuery.page, parsedQuery.limit, items.length);
   }, [listQuery.data, items.length, parsedQuery.page, parsedQuery.limit]);
-
-  const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
 
   const handlePageChange = (nextPage: number) => {
     const query = createPaginationSearchParams(searchParamsHook, nextPage);
@@ -75,56 +74,41 @@ export default function ProductClient({
   };
 
   return (
-    <div className="space-y-10 pb-20 animate-in fade-in duration-700">
-      {/* Header Section */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-1">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-primary rounded-[1.5rem] shadow-xl">
-              <CubeIcon className="h-7 w-7 text-white" />
-            </div>
-            <h1 className="text-4xl font-black font-display tracking-wider uppercase text-text-main leading-none">
-              Danh mục <span className="text-primary">Sản phẩm</span>
-            </h1>
-          </div>
-          <div className="flex items-center gap-2 mt-2 ml-1">
-            <SparklesIcon className="h-4 w-4 text-primary animate-pulse" />
-            <p className="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase">
-              Hệ thống Quản lý Kho • {meta.totalItems} sản phẩm
-            </p>
-          </div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Danh mục sản phẩm
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            {meta.totalItems} sản phẩm trong hệ thống
+          </p>
         </div>
 
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="group flex items-center gap-4 rounded-full bg-primary px-10 py-5 text-xs font-black text-white hover:bg-primary-dark transition-all active:scale-95 shadow-2xl border-b-4 border-primary-dark"
-        >
-          <PlusIcon className="h-5 w-5 stroke-[3px]" />
-          THÊM SẢN PHẨM MỚI
-        </button>
+        <Button onClick={() => setIsCreateModalOpen(true)} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Thêm sản phẩm
+        </Button>
       </div>
 
+      {/* Filter */}
       <ProductFilter currentLimit={parsedQuery.limit} />
 
-      {/* Bảng dữ liệu chính */}
-      <div className="rounded-[3.5rem] border border-slate-100 bg-white shadow-2xl overflow-hidden flex flex-col min-h-[650px]">
-        <div className="flex-1">
-          <ProductTable
-            items={items}
-            rowStart={rowStart}
-            isLoading={listQuery.isLoading}
-            onEdit={(product) => setEditingProduct(product)}
-            onDelete={(id) => deleteProduct.mutate(id)}
-            onRestore={(id) => restoreProduct.mutate(id)}
-            onViewDetail={(product) => handleViewDetail(product.id)}
-          />
-        </div>
+      {/* Table */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <ProductTable
+          items={items}
+          rowStart={(meta.currentPage - 1) * meta.itemsPerPage}
+          isLoading={listQuery.isLoading}
+          onEdit={(product) => setEditingProduct(product)}
+          onDelete={(id) => deleteProduct.mutate(id)}
+          onRestore={(id) => restoreProduct.mutate(id)}
+          onViewDetail={(product) => handleViewDetail(product.id)}
+        />
 
-        {/* Footer Phân trang */}
-        <div className="border-t border-slate-50 px-12 py-10 bg-white/50 flex justify-between items-center">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">
-            HIỂN THỊ {items.length} / {meta.totalItems} MẶT HÀNG
-          </p>
+        {/* Pagination Footer */}
+        <div className="border-t border-slate-100 px-6 py-4 bg-slate-50/50">
           <BasePagination
             currentPage={meta.currentPage}
             totalPages={meta.totalPages}
@@ -135,8 +119,7 @@ export default function ProductClient({
         </div>
       </div>
 
-      {/* MODALS QUẢN TRỊ */}
-
+      {/* Modals */}
       <ProductCreateModal
         key={isCreateModalOpen ? "create-open" : "create-closed"}
         isOpen={isCreateModalOpen}
