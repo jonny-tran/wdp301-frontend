@@ -32,7 +32,7 @@ export default function RejectAllocationModal({
                         rows={4}
                         required
                         placeholder="Nhập lý do từ chối"
-                        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
+                        className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
                     />
 
                     <div className="flex items-center justify-end gap-2">

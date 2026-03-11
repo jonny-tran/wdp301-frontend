@@ -11,7 +11,7 @@ interface OrdersTableProps {
     rowStart: number;
     isLoading: boolean;
     isError: boolean;
-    isMutating: boolean;
+    mutatingOrderId: string | null;
     onView: (orderId: string) => void;
     onApprove: (order: Order) => void;
     onReject: (order: Order) => void;
@@ -22,7 +22,7 @@ export default function OrdersTable({
     rowStart,
     isLoading,
     isError,
-    isMutating,
+    mutatingOrderId,
     onView,
     onApprove,
     onReject,
@@ -60,7 +60,7 @@ export default function OrdersTable({
                                     <p className="font-bold text-text-main">#{rowStart + index + 1}</p>
                                     <p className="text-xs text-text-muted">Tạo lúc: {formatDate(order.createdAt)}</p>
                                 </td>
-                                <td className="px-6 py-4 text-text-main">{order.storeId}</td>
+                                <td className="px-6 py-4 text-text-main">{order.store?.name}</td>
                                 <td className="px-6 py-4 text-text-muted">{formatDate(order.deliveryDate)}</td>
                                 <td className="px-6 py-4 text-right text-text-main">{formatAmount(order.totalAmount)}</td>
                                 <td className="px-6 py-4 text-center">
@@ -83,19 +83,19 @@ export default function OrdersTable({
                                                 <Can I={P.ORDER_APPROVE} on={Resource.ORDER}>
                                                     <button
                                                         onClick={() => onApprove(order)}
-                                                        disabled={isMutating}
+                                                        disabled={!!mutatingOrderId && mutatingOrderId === order.id}
                                                         className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-60"
                                                     >
-                                                        Approve
+                                                        {mutatingOrderId === order.id ? "..." : "Approve"}
                                                     </button>
                                                 </Can>
                                                 <Can I={P.ORDER_REJECT} on={Resource.ORDER}>
                                                     <button
                                                         onClick={() => onReject(order)}
-                                                        disabled={isMutating}
+                                                        disabled={!!mutatingOrderId && mutatingOrderId === order.id}
                                                         className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 disabled:opacity-60"
                                                     >
-                                                        Reject
+                                                        {mutatingOrderId === order.id ? "..." : "Reject"}
                                                     </button>
                                                 </Can>
                                             </>

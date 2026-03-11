@@ -11,6 +11,7 @@ export type Order = {
     priority: string
     createdAt: string
     updatedAt: string
+    store?: Store
 };
 export type OrderReview = {
     orderId: string;
