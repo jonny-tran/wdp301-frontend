@@ -1,11 +1,11 @@
 "use client";
 
 import { SyntheticEvent, useEffect, useState } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon, CalendarIcon, CubeIcon } from "@heroicons/react/24/outline";
 import { UpdateBatchBodyType } from "@/schemas/product";
 import { Batch } from "@/types/product";
 import { BatchStatus } from "@/utils/enum";
-import ImageUpload from "@/components/shared/ImageUpload";
+import { useUpload } from "@/hooks/useUpload";
 
 interface BatchModalProps {
     isOpen: boolean;
@@ -27,6 +27,7 @@ export function BatchModal({ isOpen, onClose, onSubmit, initialData, isPending, 
     const [initialQuantity, setInitialQuantity] = useState("");
     const [imageUrl, setImageUrl] = useState("");
     const [status, setStatus] = useState<BatchStatus | "">("");
+    const { uploadImage } = useUpload();
 
     useEffect(() => {
         if (!initialData) {
@@ -53,11 +54,12 @@ export function BatchModal({ isOpen, onClose, onSubmit, initialData, isPending, 
             payload.initialQuantity = Number(initialQuantity);
         }
 
-        if (imageUrl.trim()) {
+        if (imageUrl.trim() && imageUrl !== initialData?.imageUrl) {
             payload.imageUrl = imageUrl.trim();
         }
 
-        if (status) {
+        // Only update status if user selected a new one
+        if (status && status !== initialData?.status) {
             payload.status = status as BatchStatus;
         }
 
@@ -65,119 +67,145 @@ export function BatchModal({ isOpen, onClose, onSubmit, initialData, isPending, 
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 transition-all animate-in fade-in duration-300">
-            <div className="w-full max-w-4xl rounded-[3rem] bg-white shadow-2xl overflow-hidden animate-in zoom-in duration-300 relative">
-                {isLoadingData && (
-                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
-                        <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
-                        <p className="mt-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Đang tải dữ liệu lô hàng...</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-black">
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b-2 border-black">
+                    <div className="flex items-center gap-2">
+                        <CubeIcon className="h-5 w-5" />
+                        <span className="text-sm font-bold uppercase">Cập nhật lô hàng - {initialData?.batchCode}</span>
                     </div>
-                )}
-                <div className="flex items-center justify-between border-b border-gray-100 px-10 py-6 bg-slate-50/50">
-                    <div>
-                        <h3 className="text-2xl font-black text-text-main uppercase italic">Update Batch</h3>
-                        <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest mt-1">
-                            {initialData?.productName ? `ID: ${initialData.id} • ${initialData.productName}` : "Refining warehouse stock details"}
-                        </p>
-                    </div>
-                    <button onClick={onClose} className="rounded-full p-3 hover:bg-white hover:shadow-md transition-all active:scale-90">
-                        <XMarkIcon className="h-6 w-6 text-text-main" />
+                    <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+                        <XMarkIcon className="h-5 w-5" />
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-10">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
-                        {/* LEFT COLUMN: IMAGE & CODE */}
-                        <div className="md:col-span-5 space-y-6">
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-2">Hình ảnh (Editable)</label>
-                                <div className="rounded-[2.5rem] overflow-hidden border border-slate-100 bg-slate-50/50 p-1 shadow-sm">
-                                    <ImageUpload
-                                        value={imageUrl}
-                                        onChange={(url) => setImageUrl(url)}
-                                    />
+                {/* Loading overlay */}
+                {isLoadingData && (
+                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/80">
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-black border-t-transparent"></div>
+                    </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                    {/* Image - Circular placeholder */}
+                    <div className="flex justify-center">
+                        <div className="w-32 h-32 rounded-full border-2 border-black flex items-center justify-center overflow-hidden bg-gray-50">
+                            {imageUrl ? (
+                                <img src={imageUrl} alt="Batch" className="w-full h-full object-cover" />
+                            ) : (
+                                <span className="text-xs font-bold text-gray-400">Ảnh</span>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* 2 Columns: Left + Right */}
+                    <div className="grid grid-cols-2 gap-3">
+                        {/* Left Column */}
+                        <div className="space-y-3">
+                            {/* Expiry Date */}
+                            <div className="border-2 border-black rounded-lg p-2">
+                                <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 mb-1">
+                                    <CalendarIcon className="h-3 w-3" />
+                                    Hạn sử dụng
                                 </div>
+                                <p className="text-sm font-bold text-red-600">
+                                    {initialData?.expiryDate
+                                        ? new Date(initialData.expiryDate).toLocaleDateString('vi-VN')
+                                        : "N/A"}
+                                </p>
                             </div>
 
-                            <div className="space-y-3">
-                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted ml-2">Batch Code (ReadOnly)</label>
-                                <div className="rounded-full border border-slate-200 bg-slate-50 px-8 py-4 text-sm font-bold text-slate-900 shadow-inner">
-                                    {initialData?.batchCode ?? "N/A"}
+                            {/* Status */}
+                            <div className="border-2 border-black rounded-lg p-2">
+                                <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 mb-1">
+                                    Status
                                 </div>
+                                <select
+                                    value={status || initialData?.status || ""}
+                                    onChange={(e) => setStatus(e.target.value as BatchStatus | "")}
+                                    className="w-full text-sm font-medium bg-transparent outline-none cursor-pointer"
+                                >
+                                    {BATCH_STATUS_OPTIONS.map((opt) => (
+                                        <option key={opt.value} value={opt.value}>
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
                             </div>
                         </div>
 
-                        {/* RIGHT COLUMN: METADATA & INPUTS */}
-                        <div className="md:col-span-7 flex flex-col justify-between space-y-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted ml-2">Expiry Date</label>
-                                    <div className="rounded-full border border-slate-200 bg-slate-50 px-8 py-4 text-sm font-bold text-red-500 shadow-inner">
-                                        {initialData?.expiryDate ? new Date(initialData.expiryDate).toLocaleDateString('vi-VN') : "N/A"}
-                                    </div>
+                        {/* Right Column */}
+                        <div className="space-y-3">
+                            {/* Current Quantity */}
+                            <div className="border-2 border-black rounded-lg p-2">
+                                <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 mb-1">
+                                    Số lượng
                                 </div>
-
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted ml-2">Current Qty</label>
-                                    <div className="rounded-full border border-slate-200 bg-slate-50 px-8 py-4 text-sm font-bold text-primary shadow-inner">
-                                        {initialData?.currentQuantity ?? 0}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-2">Update Initial Qty</label>
-                                    <input
-                                        type="number"
-                                        min="0.1"
-                                        step="0.1"
-                                        value={initialQuantity}
-                                        onChange={(event) => setInitialQuantity(event.target.value)}
-                                        className="w-full rounded-full border border-slate-200 bg-white px-8 py-4 text-sm font-bold text-slate-900 outline-none shadow-sm focus:ring-4 focus:ring-primary/5 transition-all placeholder:text-slate-300"
-                                        placeholder="Enter new quantity..."
-                                    />
-                                </div>
-
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-primary ml-2">Trạng thái lô</label>
-                                    <div className="relative">
-                                        <select
-                                            value={status}
-                                            onChange={(e) => setStatus(e.target.value as BatchStatus | "")}
-                                            className="w-full rounded-full border border-slate-200 bg-white px-8 py-4 text-sm font-bold text-slate-900 outline-none appearance-none cursor-pointer shadow-sm focus:ring-4 focus:ring-primary/5 transition-all"
-                                        >
-                                            <option value="">-- Giữ nguyên --</option>
-                                            {BATCH_STATUS_OPTIONS.map((opt) => (
-                                                <option key={opt.value} value={opt.value}>
-                                                    {opt.label}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M19 9l-7 7-7-7"></path>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                </div>
+                                <p className="text-sm font-bold text-green-600">
+                                    {initialData?.currentQuantity ?? 0}
+                                </p>
                             </div>
 
-                            <div className="pt-8 border-t border-slate-50 flex items-center justify-end gap-4">
-                                <button
-                                    type="button"
-                                    onClick={onClose}
-                                    className="px-8 py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    disabled={isPending}
-                                    className="flex items-center justify-center gap-3 rounded-full bg-primary px-10 py-4 text-[10px] font-black uppercase tracking-[0.3em] text-white hover:bg-primary-dark shadow-xl shadow-primary/20 disabled:bg-slate-300 transition-all active:scale-95"
-                                >
-                                    {isPending ? "Updating..." : "Save Changes"}
-                                </button>
+                            {/* Change Quantity */}
+                            <div className="border-2 border-black rounded-lg p-2">
+                                <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 mb-1">
+                                    Thay đổi SL
+                                </div>
+                                <input
+                                    type="number"
+                                    min="0.1"
+                                    step="0.1"
+                                    value={initialQuantity}
+                                    onChange={(event) => setInitialQuantity(event.target.value)}
+                                    className="w-full text-sm font-medium bg-transparent outline-none placeholder:text-gray-300"
+                                    placeholder="0"
+                                />
                             </div>
                         </div>
+                    </div>
+
+                    {/* Image Upload Button */}
+                    <div className="flex justify-center">
+                        <label className="cursor-pointer text-xs font-bold underline">
+                            {uploadImage.isPending ? "Đang tải..." : "Thay đổi ảnh"}
+                            <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                        try {
+                                            const response = await uploadImage.mutateAsync(file);
+                                            if (response?.url) {
+                                                setImageUrl(response.url);
+                                            }
+                                        } catch (error) {
+                                            console.error("Upload failed:", error);
+                                        }
+                                    }
+                                }}
+                            />
+                        </label>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-2">
+                        <button
+                            type="button"
+                            onClick={onClose}
+                            className="flex-1 py-2 text-sm font-bold uppercase border-2 border-black rounded-lg hover:bg-gray-100 transition-colors"
+                        >
+                            Hủy
+                        </button>
+                        <button
+                            type="submit"
+                            disabled={isPending}
+                            className="flex-1 py-2 text-sm font-bold uppercase text-white bg-black rounded-lg hover:bg-gray-800 transition-colors disabled:bg-gray-400"
+                        >
+                            {isPending ? "Đang lưu..." : "Lưu thay đổi"}
+                        </button>
                     </div>
                 </form>
             </div>

@@ -129,7 +129,17 @@ export default function BatchesClient({ searchParams }: BatchesClientProps) {
                 isOpen={Boolean(editingBatchId)}
                 onClose={() => setEditingBatchId(null)}
                 onSubmit={handleSubmitUpdate}
-                initialData={(detailQuery.data as Batch) ?? null}
+                initialData={
+                    (() => {
+                        const detail = detailQuery.data as Batch | null;
+                        const listItem = batches.find(b => b.id === editingBatchId);
+                        if (!detail) return null;
+                        return {
+                            ...detail,
+                            status: listItem?.status ?? detail.status
+                        };
+                    })()
+                }
                 isPending={updateBatch.isPending}
                 isLoadingData={detailQuery.isLoading}
             />

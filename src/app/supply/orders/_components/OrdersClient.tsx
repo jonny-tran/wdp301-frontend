@@ -85,6 +85,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
     const [rejectReason, setRejectReason] = useState("");
     const [forceTarget, setForceTarget] = useState<Order | null>(null);
     const [forceMessage, setForceMessage] = useState("");
+    const [mutatingOrderId, setMutatingOrderId] = useState<string | null>(null);
 
     const detailQuery = orderDetail(detailTargetId);
     const reviewQuery = reviewOrder(detailTargetId);
@@ -94,13 +95,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
     }, [detailTargetId, orders, rowStart]);
 
     const filterConfig: FilterConfig[] = [
-        {
-            key: "search",
-            label: "Tìm kiếm",
-            type: "text",
-            placeholder: "Mã đơn hàng...",
-            className: "md:col-span-2",
-        },
+// Search removed as requested
         {
             key: "status",
             label: "Trạng thái",
@@ -166,6 +161,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
 
     const handleApprove = async (order: Order, force = false) => {
         try {
+            setMutatingOrderId(order.id);
             await approveOrder.mutateAsync({
                 id: order.id,
                 data: force ? { force_approve: true } : {},
@@ -186,6 +182,8 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
             }
 
             handleErrorApi({ error });
+        } finally {
+            setMutatingOrderId(null);
         }
     };
 
@@ -195,6 +193,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         if (!rejectTarget || !rejectReason.trim()) return;
 
         try {
+            setMutatingOrderId(rejectTarget.id);
             await rejectOrder.mutateAsync({
                 id: rejectTarget.id,
                 data: { reason: rejectReason.trim() },
@@ -210,6 +209,8 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
             setRejectTarget(null);
         } catch (error) {
             handleErrorApi({ error });
+        } finally {
+            setMutatingOrderId(null);
         }
     };
 
@@ -217,8 +218,6 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
     const detailItems = Array.isArray(detailData.items) ? detailData.items : [];
     const detailStore = detailData.store as Record<string, unknown> | undefined;
     const reviewData = (reviewQuery.data ?? {}) as OrderReview;
-
-    const isMutating = approveOrder.isPending || rejectOrder.isPending;
 
     return (
         <div className="space-y-6">
@@ -254,7 +253,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
                     rowStart={rowStart}
                     isLoading={listQuery.isLoading}
                     isError={listQuery.isError}
-                    isMutating={isMutating}
+                    mutatingOrderId={mutatingOrderId}
                     onView={setDetailTargetId}
                     onApprove={(order) => handleApprove(order)}
                     onReject={setRejectTarget}
@@ -280,6 +279,7 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
                     isReviewError={reviewQuery.isError}
                     detailData={detailData}
                     detailItemsCount={detailItems.length}
+                    detailItems={detailItems}
                     detailStoreName={String(detailStore?.name ?? detailData.storeId ?? "-")}
                     reviewData={reviewData}
                 />
