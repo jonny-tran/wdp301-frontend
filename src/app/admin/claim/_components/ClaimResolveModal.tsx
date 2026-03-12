@@ -201,6 +201,7 @@ export default function ClaimResolveModal({
                             width={128}
                             height={128}
                             className="aspect-square h-28 w-28 rounded-md object-cover border border-slate-200 shadow-sm"
+                            unoptimized
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.src = "/about.png";
