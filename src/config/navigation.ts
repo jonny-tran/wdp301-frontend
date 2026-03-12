@@ -11,7 +11,6 @@ import {
     BuildingStorefrontIcon,
     HomeIcon,
     InboxArrowDownIcon,
-    Squares2X2Icon,
     ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Role } from "@/utils/enum";
@@ -28,7 +27,7 @@ export interface ProtectedNavItem extends NavItem {
 
 export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
     [Role.ADMIN]: [
-        { name: "Dashboard", href: "/admin", icon: ChartBarIcon },
+        
         {
             name: "Người dùng",
             href: "/admin/auth",
@@ -55,7 +54,7 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
         },
     ],
     [Role.MANAGER]: [
-        { name: "Dashboard", href: "/manager", icon: ChartBarIcon },
+       
         {
             name: "Sản phẩm",
             href: "/manager/products",
