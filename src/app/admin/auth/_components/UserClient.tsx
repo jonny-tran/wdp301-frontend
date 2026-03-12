@@ -4,7 +4,6 @@ import { useMemo, useState, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { authRequest } from "@/apiRequest/auth";
-import { extractUserItems, extractRoleOptions } from "./user.mapper";
 import {
   RawSearchParams,
   createPaginationSearchParams,
@@ -19,9 +18,10 @@ import { UserGroupIcon, UserPlusIcon } from "@heroicons/react/24/outline";
 import Can from "@/components/shared/Can";
 import { P } from "@/lib/authz";
 import { Resource } from "@/utils/constant";
-import { UserRow } from "./user.types";
+import { UserRow, RoleOption } from "./user.types";
 import { Role } from "@/utils/enum";
 import { PaginationMeta } from "@/types/base";
+import { User } from "@/types/user";
 
 export default function UserClient({
   searchParams,
@@ -48,7 +48,7 @@ export default function UserClient({
     [searchParams],
   );
 
-  // 2. Fetch dữ liệu
+  // 2. Fetch dữ liệu — Backend trả về camelCase, không cần mapper
   const userQuery = useQuery({
     queryKey: ["users", queryParams],
     queryFn: () => authRequest.getUsers(queryParams).then((res) => res.data),
@@ -60,20 +60,45 @@ export default function UserClient({
     queryFn: () => authRequest.getRoles().then((res) => res.data),
   });
 
-  // 3. Sử dụng Mapper để làm sạch dữ liệu (Loại bỏ logic mapping rườm rà)
-  const items = useMemo(
-    () => extractUserItems(userQuery.data),
-    [userQuery.data],
-  );
+  // 3. Trích xuất danh sách user — trực tiếp từ typed response
+  const items: UserRow[] = useMemo(() => {
+    const data = userQuery.data as
+      | { items?: User[]; data?: { items?: User[] } }
+      | undefined;
+    const rawItems = data?.items ?? data?.data?.items ?? [];
+    return rawItems.map((u) => ({
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      role: u.role,
+      status: u.isActive === false ? "INACTIVE" : "ACTIVE",
+      isActive: u.isActive !== false,
+      createdAt: u.createdAt,
+      phone: u.phone,
+      storeId: u.storeId,
+    }));
+  }, [userQuery.data]);
 
-  const roleOptions = useMemo(
-    () => extractRoleOptions(rolesQuery.data),
-    [rolesQuery.data],
-  );
+  // 4. Trích xuất role options — API trả về mảng trực tiếp
+  const roleOptions: RoleOption[] = useMemo(() => {
+    const data = rolesQuery.data;
+    if (!data) return [];
+    // Xử lý cả trường hợp data.data hoặc data trực tiếp
+    const roles = Array.isArray(data)
+      ? data
+      : Array.isArray((data as { data?: RoleOption[] })?.data)
+        ? (data as { data: RoleOption[] }).data
+        : [];
+    return roles
+      .filter((r) => r.value && r.label)
+      .map((r) => ({ value: String(r.value), label: String(r.label) }));
+  }, [rolesQuery.data]);
 
-  // 4. Bóc tách Metadata phân trang an toàn
+  // 5. Bóc tách Metadata phân trang an toàn
   const meta = useMemo(() => {
-    const rawData = userQuery.data as { data?: { meta?: PaginationMeta }; meta?: PaginationMeta } | undefined;
+    const rawData = userQuery.data as
+      | { data?: { meta?: PaginationMeta }; meta?: PaginationMeta }
+      | undefined;
     const m = rawData?.data?.meta || rawData?.meta;
     return {
       currentPage: m?.currentPage ?? 1,
@@ -89,10 +114,8 @@ export default function UserClient({
         searchParamsHook,
         { page: params.page },
       );
-      // Đảm bảo giữ lại các filter hiện tại khi chuyển trang
       if (queryParams.search) newSearchParams.set("search", queryParams.search);
       if (queryParams.role) newSearchParams.set("role", queryParams.role);
-
       router.push(`${pathname}?${newSearchParams.toString()}`);
     },
     [pathname, router, searchParamsHook, queryParams],
@@ -116,7 +139,7 @@ export default function UserClient({
   ];
 
   return (
-    <div className="flex flex-col gap-8 pb-20 animate-in fade-in duration-500">
+    <div className="flex flex-col gap-6 pb-20 animate-in fade-in duration-500">
       {/* HEADER */}
       <div className="flex justify-between items-end px-1">
         <div className="space-y-1">
@@ -135,7 +158,7 @@ export default function UserClient({
         <Can I={P.USER_CREATE} on={Resource.USER}>
           <button
             onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-[11px] font-black text-white hover:bg-primary transition-all shadow-xl active:scale-95 italic"
+            className="flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-[11px] font-black text-white hover:bg-primary/90 transition-all shadow-xl active:scale-95"
           >
             <UserPlusIcon className="h-4 w-4 stroke-[3px]" /> THÊM NHÂN VIÊN
           </button>
@@ -143,12 +166,12 @@ export default function UserClient({
       </div>
 
       {/* FILTERS */}
-      <div className="rounded-[2.5rem] bg-white p-2 shadow-sm border border-slate-100">
+      <div className="rounded-2xl bg-white p-2 shadow-sm border border-slate-100">
         <BaseFilter filters={filters} />
       </div>
 
       {/* TABLE */}
-      <div className="rounded-[3rem] border border-slate-100 bg-white shadow-2xl overflow-hidden flex flex-col min-h-[600px]">
+      <div className="rounded-2xl border border-slate-100 bg-white shadow-lg overflow-hidden flex flex-col min-h-[500px]">
         <UserTable
           items={items}
           isLoading={userQuery.isLoading}
@@ -158,7 +181,7 @@ export default function UserClient({
             setIsEditModalOpen(true);
           }}
         />
-        <div className="mt-auto border-t border-slate-50 px-10 py-8">
+        <div className="mt-auto border-t border-slate-100 px-6 py-4">
           <BasePagination
             currentPage={meta.currentPage}
             totalPages={meta.totalPages}

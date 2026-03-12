@@ -4,14 +4,12 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import {
-  XMarkIcon,
   ShieldCheckIcon,
   EnvelopeIcon,
   CheckCircleIcon,
   PhoneIcon,
 } from "@heroicons/react/24/outline";
 
-// UI Components
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,8 +30,8 @@ import { UserRow, RoleOption } from "./user.types";
 interface UserEditModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: UserRow | null; // Dữ liệu user được chọn từ bảng
-  roleOptions: RoleOption[]; // Nhận từ Client để tránh fetch lặp lại
+  user: UserRow | null;
+  roleOptions: RoleOption[];
 }
 
 export default function UserEditModal({
@@ -44,7 +42,6 @@ export default function UserEditModal({
 }: UserEditModalProps) {
   const { updateUser } = useAuth();
 
-  // 1. Khởi tạo State sạch
   const [formData, setFormData] = useState({
     role: "",
     email: "",
@@ -52,7 +49,7 @@ export default function UserEditModal({
     status: "ACTIVE",
   });
 
-  // 2. Đồng bộ dữ liệu khi mở Modal
+  // Đồng bộ dữ liệu khi mở Modal
   /* eslint-disable react-hooks/set-state-in-effect -- Safe: syncs props to local state for modal form */
   useEffect(() => {
     if (isOpen && user) {
@@ -60,7 +57,7 @@ export default function UserEditModal({
         role: user.role || "",
         email: user.email || "",
         phone: user.phone || "",
-        status: user.isActive ? "ACTIVE" : "INACTIVE",
+        status: user.status === "INACTIVE" ? "INACTIVE" : "ACTIVE",
       });
     }
   }, [isOpen, user]);
@@ -69,9 +66,8 @@ export default function UserEditModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // CHUẨN HÓA DỮ LIỆU GỬI ĐI (FIX LỖI 400)
     const submitPayload = {
-      status: formData.status.toUpperCase(), // Backend yêu cầu viết hoa
+      status: formData.status.toUpperCase(),
       role: formData.role,
       email: formData.email,
       phone: formData.phone || "",
@@ -95,31 +91,28 @@ export default function UserEditModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-xl bg-white rounded-[3rem] p-0 border-none shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 z-[120]">
-        {/* HEADER SECTION */}
-        <DialogHeader className="bg-slate-50/50 px-10 py-6 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left">
+      <DialogContent className="max-w-xl bg-white rounded-2xl p-0 border-none shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 z-[120]">
+        {/* HEADER */}
+        <DialogHeader className="bg-slate-50 px-8 py-5 border-b border-slate-100 flex flex-row items-center justify-between space-y-0 text-left">
           <div className="space-y-0.5">
-            <DialogTitle className="text-xl font-black font-display tracking-wider uppercase text-text-main leading-none">
-              Cập nhật <span className="text-primary">Hồ sơ nhân sự</span>
+            <DialogTitle className="text-xl font-bold text-slate-900 leading-none">
+              Cập nhật <span className="text-primary">hồ sơ nhân sự</span>
             </DialogTitle>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest italic truncate max-w-[200px]">
+            <p
+              className="text-xs text-slate-400 truncate max-w-[250px]"
+              title={user.username}
+            >
               Tài khoản: {user.username}
             </p>
           </div>
-          <Button
-            onClick={onClose}
-            className="p-2.5 bg-white text-slate-400 hover:text-red-500 rounded-xl transition-all border border-slate-100 shadow-sm"
-          >
-            <XMarkIcon className="h-5 w-5 stroke-[2.5px]" />
-          </Button>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="p-8 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-4">
-            {/* EMAIL ĐỊNH DANH */}
+            {/* EMAIL */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
-                <EnvelopeIcon className="h-3 w-3" /> Email hệ thống
+              <label className="text-xs font-bold text-slate-500 ml-1 flex items-center gap-1.5">
+                <EnvelopeIcon className="h-3.5 w-3.5" /> Email hệ thống
               </label>
               <Input
                 required
@@ -128,15 +121,15 @@ export default function UserEditModal({
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
-                className="rounded-full bg-slate-50 border-slate-100 px-6 py-5 text-sm font-bold shadow-sm italic"
+                className="rounded-xl bg-slate-50 border-slate-100 px-4 py-3 text-sm font-medium text-slate-900"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               {/* SỐ ĐIỆN THOẠI */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
-                  <PhoneIcon className="h-3 w-3" /> Liên lạc
+                <label className="text-xs font-bold text-slate-500 ml-1 flex items-center gap-1.5">
+                  <PhoneIcon className="h-3.5 w-3.5" /> Liên lạc
                 </label>
                 <Input
                   placeholder="09xx xxx xxx"
@@ -144,14 +137,14 @@ export default function UserEditModal({
                   onChange={(e) =>
                     setFormData({ ...formData, phone: e.target.value })
                   }
-                  className="rounded-full bg-slate-50 border-slate-100 px-6 py-5 text-sm font-bold shadow-sm"
+                  className="rounded-xl bg-slate-50 border-slate-100 px-4 py-3 text-sm font-medium text-slate-900"
                 />
               </div>
 
               {/* TRẠNG THÁI TÀI KHOẢN */}
               <div className="space-y-1.5">
-                <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
-                  <CheckCircleIcon className="h-3 w-3" /> Tình trạng
+                <label className="text-xs font-bold text-slate-500 ml-1 flex items-center gap-1.5">
+                  <CheckCircleIcon className="h-3.5 w-3.5" /> Trạng thái
                 </label>
                 <Select
                   value={formData.status}
@@ -159,46 +152,51 @@ export default function UserEditModal({
                     setFormData({ ...formData, status: val })
                   }
                 >
-                  <SelectTrigger className="w-full rounded-full bg-white border border-slate-100 px-6 py-5 text-sm font-black text-slate-900">
+                  <SelectTrigger className="w-full rounded-xl bg-white border border-slate-200 px-4 py-3 text-sm font-bold text-slate-900">
                     <SelectValue placeholder="Trạng thái" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-slate-100 shadow-xl font-bold uppercase italic text-[10px]">
+                  <SelectContent className="rounded-xl border-slate-100 shadow-lg">
                     <SelectItem
                       value="ACTIVE"
-                      className="py-3 text-emerald-600"
+                      className="py-2.5 text-emerald-600 font-medium"
                     >
                       Đang hoạt động
                     </SelectItem>
-                    <SelectItem value="INACTIVE" className="py-3 text-red-600">
-                      Đang tạm khóa
+                    <SelectItem
+                      value="INACTIVE"
+                      className="py-2.5 text-red-600 font-medium"
+                    >
+                      Tạm khóa
                     </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            {/* PHÂN QUYỀN VAI TRÒ (DYNAMIC) */}
+            {/* PHÂN QUYỀN VAI TRÒ */}
             <div className="space-y-1.5">
-              <label className="text-[9px] font-black uppercase text-slate-400 ml-4 flex items-center gap-2 italic">
-                <ShieldCheckIcon className="h-3 w-3" /> Quyền hạn truy cập
+              <label className="text-xs font-bold text-slate-500 ml-1 flex items-center gap-1.5">
+                <ShieldCheckIcon className="h-3.5 w-3.5" /> Vai trò
               </label>
               <Select
                 value={formData.role}
-                onValueChange={(val) => setFormData({ ...formData, role: val })}
+                onValueChange={(val) =>
+                  setFormData({ ...formData, role: val })
+                }
               >
-                <SelectTrigger className="w-full rounded-full bg-white border-2 border-slate-100 px-6 py-6 text-sm font-black text-slate-900 uppercase italic">
+                <SelectTrigger className="w-full rounded-xl bg-white border border-slate-200 px-4 py-3 text-sm font-bold text-slate-900">
                   <SelectValue placeholder="Chọn vai trò" />
                 </SelectTrigger>
                 <SelectContent
                   position="popper"
-                  sideOffset={8}
-                  className="z-[130] min-w-[var(--radix-select-trigger-width)] rounded-[2rem] border-slate-100 bg-slate-900 shadow-2xl p-2"
+                  sideOffset={4}
+                  className="z-[130] min-w-[var(--radix-select-trigger-width)] rounded-xl border-slate-100 bg-white shadow-xl p-1"
                 >
                   {roleOptions.map((role) => (
                     <SelectItem
                       key={role.value}
                       value={role.value}
-                      className="py-4 px-6 text-slate-300 focus:bg-primary rounded-2xl italic font-black uppercase text-[10px]"
+                      className="py-3 px-4 text-sm text-slate-700 font-medium focus:bg-primary/10 focus:text-primary rounded-lg"
                     >
                       {role.label}
                     </SelectItem>
@@ -211,11 +209,9 @@ export default function UserEditModal({
           <Button
             type="submit"
             disabled={updateUser.isPending}
-            className="w-full rounded-full bg-primary py-6 text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:bg-primary-dark transition-all active:scale-95 disabled:bg-slate-200 mt-2 italic"
+            className="w-full rounded-xl bg-primary py-3 text-sm font-bold shadow-lg hover:bg-primary/90 transition-all active:scale-[0.98] disabled:bg-slate-200 mt-2"
           >
-            {updateUser.isPending
-              ? "Đang lưu hệ thống..."
-              : "LƯU THAY ĐỔI NHÂN SỰ"}
+            {updateUser.isPending ? "Đang lưu..." : "Lưu thay đổi"}
           </Button>
         </form>
       </DialogContent>

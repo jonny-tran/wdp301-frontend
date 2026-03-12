@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useStore } from "@/hooks/useStore";
 import { Store, StoreReliabilityAnalytics, StoreDemandPatternAnalytics } from "@/types/store";
 
@@ -12,34 +13,75 @@ import DemandPattern from "./DemandPattern";
 import Can from "@/components/shared/Can";
 import { P } from "@/lib/authz";
 import { Resource } from "@/utils/constant";
-
-// Icons
+import { normalizeMeta } from "@/app/manager/_components/query";
+import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
+import { BasePagination } from "@/components/layout/BasePagination";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import {
-  PlusIcon,
-  BuildingStorefrontIcon,
-  MagnifyingGlassIcon,
-  FunnelIcon,
-  ArrowsUpDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-} from "@heroicons/react/24/outline";
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+const filterConfig: FilterConfig[] = [
+  {
+    key: "search",
+    label: "Tìm kiếm",
+    type: "text",
+    placeholder: "Tìm tên cửa hàng...",
+  },
+  {
+    key: "isActive",
+    label: "Trạng thái",
+    type: "select",
+    options: [
+      { label: "Active", value: "true" },
+      { label: "Inactive", value: "false" },
+    ],
+    width: "w-[140px]",
+  },
+  {
+    key: "sortOrder",
+    label: "Sắp xếp",
+    type: "select",
+    defaultValue: "DESC",
+    options: [
+      { label: "Mới nhất", value: "DESC" },
+      { label: "Cũ nhất", value: "ASC" },
+    ],
+    width: "w-[140px]",
+  },
+];
 
 export default function StoreClient() {
-  // 1. Quản lý Params theo cấu trúc Query API của Hàn
-  const [params, setParams] = useState({
-    page: 1,
-    limit: 10,
-    search: "",
-    isActive: undefined as boolean | undefined,
-    sortOrder: "DESC" as "ASC" | "DESC",
-    sortBy: "createdAt",
-  });
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-  // ID sản phẩm để soi biểu đồ nhu cầu
+  // Parse URL params
+  const page = Number(searchParams.get("page") || "1");
+  const limit = Number(searchParams.get("limit") || "10");
+  const search = searchParams.get("search") || "";
+  const sortOrder = (searchParams.get("sortOrder") as "ASC" | "DESC") || "DESC";
+  const isActiveRaw = searchParams.get("isActive");
+  const isActive = isActiveRaw === "true" ? true : isActiveRaw === "false" ? false : undefined;
+
+  // Demand pattern product ID
   const [demandProductId, setDemandProductId] = useState<number>(1);
-  const [modal, setModal] = useState({ isOpen: false, editingStore: null });
 
-  // 2. Gọi đúng tên hàm từ useStore.ts của Hàn
+  // Modal state
+  const [modal, setModal] = useState<{ isOpen: boolean; editingStore: Store | null }>({
+    isOpen: false,
+    editingStore: null,
+  });
+  const [deleteTarget, setDeleteTarget] = useState<Store | null>(null);
+
   const {
     storeList,
     deleteStore,
@@ -47,69 +89,79 @@ export default function StoreClient() {
     storeDemandPatternAnalytics,
   } = useStore();
 
-  const { data: listData, isLoading: isListLoading } = storeList(params);
+  const { data: listData, isLoading: isListLoading } = storeList({
+    page,
+    limit,
+    search,
+    isActive,
+    sortOrder,
+    sortBy: "createdAt",
+  });
+
   const { data: reliabilityRaw } = storeReliabilityAnalytics();
   const { data: demandRaw, isLoading: isDemandLoading } =
-    storeDemandPatternAnalytics({
-      productId: demandProductId,
-    });
+    storeDemandPatternAnalytics({ productId: demandProductId });
 
-  // 3. Sử dụng Raw data trực tiếp
-  const stores: Store[] = useMemo(() => (listData as any)?.items || listData?.items || [], [listData]);
+  // Unwrap data directly
+  const stores: Store[] = useMemo(() => {
+    const rawData = (listData as { data?: unknown })?.data || listData;
+    return Array.isArray(rawData) ? rawData : (rawData as { items?: Store[] })?.items || [];
+  }, [listData]);
+
   const reliabilityStats: StoreReliabilityAnalytics = useMemo(
-    () => (reliabilityRaw as any)?.data || reliabilityRaw || [],
+    () => (reliabilityRaw as StoreReliabilityAnalytics) ?? [],
     [reliabilityRaw],
   );
   const demandPattern: StoreDemandPatternAnalytics = useMemo(
-    () => (demandRaw as any)?.data || demandRaw || [],
+    () => (demandRaw as StoreDemandPatternAnalytics) ?? [],
     [demandRaw],
   );
 
-  const meta = (listData as any)?.meta || (listData as any)?.data?.meta || {
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
+  const meta = useMemo(() => {
+    const rawData = (listData as { data?: unknown })?.data || listData;
+    const rawMeta = Array.isArray(rawData) ? undefined : (rawData as { meta?: unknown })?.meta;
+    return normalizeMeta(rawMeta, page, limit, stores.length);
+  }, [listData, page, limit, stores.length]);
+
+  const handlePageChange = (nextPage: number) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", String(nextPage));
+    router.push(`${pathname}?${params.toString()}`);
   };
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= meta.totalPages) {
-      setParams({ ...params, page: newPage });
-      window.scrollTo({ top: 0, behavior: "smooth" });
+  const handleConfirmDelete = () => {
+    if (deleteTarget) {
+      deleteStore.mutate(deleteTarget.id);
+      setDeleteTarget(null);
     }
   };
 
   return (
-    <div className="flex flex-col gap-10 animate-in fade-in duration-700 pb-20 p-1 md:p-6">
-      {/* HEADER SECTION */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-primary rounded-xl">
-              <BuildingStorefrontIcon className="h-5 w-5 text-white" />
-            </div>
-            <h1 className="text-3xl font-black font-display tracking-wider uppercase text-black">
-              Store Intel
-            </h1>
-          </div>
-          <p className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] italic ml-1">
-            Quản lý mạng lưới chi nhánh & Phân tích
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Quản lý cửa hàng
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            {isListLoading ? "Đang tải..." : `${meta.totalItems} chi nhánh trong mạng lưới`}
           </p>
         </div>
 
         <Can I={P.STORE_CREATE} on={Resource.STORE}>
-          <button
+          <Button
             onClick={() => setModal({ isOpen: true, editingStore: null })}
-            className="flex items-center gap-2 px-8 py-4 bg-primary text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all shadow-2xl active:scale-95"
+            className="gap-2"
           >
-            <PlusIcon className="h-4 w-4 stroke-[3px]" />
-            Add Store
-          </button>
+            <Plus className="h-4 w-4" />
+            Thêm Store
+          </Button>
         </Can>
       </div>
 
-      {/* ANALYTICS SECTION */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* Render an toàn: Chỉ render khi có dữ liệu chartData */}
+      {/* Analytics Section */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         <DemandPattern
           data={demandPattern}
           isLoading={isDemandLoading}
@@ -118,116 +170,60 @@ export default function StoreClient() {
         <StoreReliability stats={reliabilityStats} />
       </div>
 
-      {/* FILTER BAR SECTION */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 p-6 rounded-[2.5rem] border border-slate-100 shadow-sm">
-        <div className="md:col-span-2 relative group">
-          <MagnifyingGlassIcon className="h-4 w-4 absolute left-4 top-1/2 -translate-y-1/2 text-black/20 group-focus-within:text-black transition-colors" />
-          <input
-            type="text"
-            placeholder="Search by name..."
-            value={params.search}
-            onChange={(e) =>
-              setParams({ ...params, search: e.target.value, page: 1 })
-            }
-            className="w-full bg-white border-none rounded-2xl py-3.5 pl-11 pr-4 text-xs font-bold text-black focus:ring-2 focus:ring-black/5 outline-none transition-all shadow-sm"
-          />
-        </div>
+      {/* Filter */}
+      <BaseFilter filters={filterConfig} />
 
-        <select
-          value={
-            params.isActive === undefined ? "" : params.isActive.toString()
-          }
-          onChange={(e) =>
-            setParams({
-              ...params,
-              isActive:
-                e.target.value === "" ? undefined : e.target.value === "true",
-              page: 1,
-            })
-          }
-          className="bg-white border-none rounded-2xl py-3.5 px-6 text-[10px] font-black uppercase tracking-widest text-black outline-none shadow-sm cursor-pointer appearance-none"
-        >
-          <option value="">-- Trạng thái --</option>
-          <option value="true">Active</option>
-          <option value="false">Inactive</option>
-        </select>
+      {/* Table */}
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <StoreTable
+          items={stores}
+          isLoading={isListLoading}
+          onEdit={(s) => setModal({ isOpen: true, editingStore: s })}
+          onDelete={(store) => setDeleteTarget(store)}
+        />
 
-        <select
-          value={params.sortOrder}
-          onChange={(e) =>
-            setParams({ ...params, sortOrder: e.target.value as any, page: 1 })
-          }
-          className="bg-white border-none rounded-2xl py-3.5 px-6 text-[10px] font-black uppercase tracking-widest text-black outline-none shadow-sm cursor-pointer appearance-none"
-        >
-          <option value="DESC">DESC (Mới nhất)</option>
-          <option value="ASC">ASC (Cũ nhất)</option>
-        </select>
+        {/* Pagination */}
+        {!isListLoading && meta.totalPages > 1 && (
+          <div className="border-t border-slate-100 px-6 py-4 bg-slate-50/50">
+            <BasePagination
+              currentPage={meta.currentPage}
+              totalPages={meta.totalPages}
+              onPageChange={handlePageChange}
+              totalItems={meta.totalItems}
+              itemsPerPage={meta.itemsPerPage}
+            />
+          </div>
+        )}
       </div>
 
-      {/* TABLE SECTION */}
-      <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden min-h-[550px] flex flex-col">
-        <div className="flex-1">
-          <StoreTable
-            items={stores}
-            isLoading={isListLoading}
-            onEdit={(s: any) => setModal({ isOpen: true, editingStore: s })}
-            onDelete={(id: string) =>
-              confirm("Xóa store?") && deleteStore.mutate(id)
-            }
-          />
-        </div>
-
-        {/* PAGINATION */}
-        <div className="px-10 py-8 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center gap-6 bg-white/80">
-          <div className="text-[10px] font-black uppercase tracking-[0.2em]">
-            <p>
-              Trang {meta.currentPage} / {meta.totalPages}
-            </p>
-            <p className="text-[9px] font-bold text-text-muted mt-1 uppercase italic">
-              Total {meta.totalItems} stores found
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(params.page - 1)}
-              disabled={params.page === 1 || isListLoading}
-              className="p-3 rounded-xl border border-slate-100 hover:bg-primary-dark hover:text-white disabled:opacity-10 transition-all shadow-sm"
-            >
-              <ChevronLeftIcon className="h-4 w-4 stroke-[3px]" />
-            </button>
-
-            <div className="flex gap-1.5">
-              {[...Array(meta.totalPages)].map((_, i) => (
-                <button
-                  key={i + 1}
-                  onClick={() => handlePageChange(i + 1)}
-                  className={`w-11 h-11 rounded-xl text-[10px] font-black transition-all ${params.page === i + 1
-                    ? "bg-primary text-white shadow-xl"
-                    : "bg-slate-50 text-text-muted hover:bg-slate-100"
-                    }`}
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-
-            <button
-              onClick={() => handlePageChange(params.page + 1)}
-              disabled={params.page === meta.totalPages || isListLoading}
-              className="p-3 rounded-xl border border-slate-100 hover:bg-primary-dark hover:text-white disabled:opacity-10 transition-all shadow-sm"
-            >
-              <ChevronRightIcon className="h-4 w-4 stroke-[3px]" />
-            </button>
-          </div>
-        </div>
-      </div>
-
+      {/* Store Modal */}
       <StoreModal
         isOpen={modal.isOpen}
         editingStore={modal.editingStore}
         onClose={() => setModal({ isOpen: false, editingStore: null })}
       />
+
+      {/* Delete Confirmation */}
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Xác nhận xóa cửa hàng</AlertDialogTitle>
+            <AlertDialogDescription>
+              Bạn có chắc chắn muốn xóa &quot;{deleteTarget?.name}&quot;?
+              Hành động này không thể hoàn tác.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Hủy</AlertDialogCancel>
+            <AlertDialogAction variant="destructive" onClick={handleConfirmDelete}>
+              Xóa
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -1,92 +1,123 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useShipment } from "@/hooks/useShipment";
 import { Shipment } from "@/types/shipment";
+import { ShipmentStatus } from "@/utils/enum";
 import ShipmentTable from "./ShipmentTable";
 import ShipmentFilter from "./ShipmentFilter";
+import {
+  createPaginationSearchParams,
+  normalizeMeta,
+  parseManagerListQuery,
+  type RawSearchParams,
+} from "@/app/manager/_components/query";
+import { BasePagination } from "@/components/layout/BasePagination";
 
 const isValidUUID = (id: string) =>
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     id,
   );
 
-export default function ShipmentClient() {
+interface Props {
+  searchParams: RawSearchParams;
+}
+
+export default function ShipmentClient({ searchParams }: Props) {
+  const router = useRouter();
+  const searchParamsHook = useSearchParams();
+  const pathname = usePathname();
+
   const { shipmentList } = useShipment();
 
-  // Khởi tạo state theo đúng tài liệu API
-  const [queryParams, setQueryParams] = useState({
-    page: 1,
-    limit: 10,
-    sortOrder: "DESC",
-    sortBy: "createdAt",
-    search: "",
-    status: "",
-    storeId: "",
-    fromDate: "",
-    toDate: "",
-  });
-
-  const [debouncedParams, setDebouncedParams] = useState(queryParams);
-
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedParams(queryParams), 400);
-    return () => clearTimeout(handler);
-  }, [queryParams]);
+  // 1. URL-driven query
+  const parsedQuery = useMemo(
+    () => parseManagerListQuery(searchParams, { page: 1, limit: 10, sortOrder: "DESC" }),
+    [searchParams],
+  );
 
   /**
    * Safe Query: Vệ sinh dữ liệu trước khi gửi lên API
    */
   const safeQuery = useMemo(() => {
-    const cleaned: any = { ...debouncedParams };
-
     // Lọc ký tự đặc biệt trong Search
-    if (cleaned.search)
-      cleaned.search = cleaned.search.replace(/[#%]/g, "").trim();
+    const search = parsedQuery.search ? parsedQuery.search.replace(/[#%]/g, "").trim() : undefined;
 
     // Chỉ gửi storeId nếu là UUID hợp lệ
-    if (cleaned.storeId && !isValidUUID(cleaned.storeId))
-      delete cleaned.storeId;
+    const storeId = parsedQuery.storeId && isValidUUID(parsedQuery.storeId) ? parsedQuery.storeId : undefined;
 
-    // Xóa các trường rỗng
-    Object.keys(cleaned).forEach((key) => {
-      if (cleaned[key] === "" || cleaned[key] === undefined)
-        delete cleaned[key];
-    });
+    return {
+      page: parsedQuery.page,
+      limit: parsedQuery.limit,
+      sortOrder: parsedQuery.sortOrder,
+      sortBy: "createdAt",
+      search,
+      status: parsedQuery.status as ShipmentStatus | undefined,
+      storeId,
+      fromDate: parsedQuery.fromDate,
+      toDate: parsedQuery.toDate,
+    };
+  }, [parsedQuery]);
 
-    return cleaned;
-  }, [debouncedParams]);
+  const { data: rawData, isLoading, isError, isPlaceholderData } = shipmentList(safeQuery);
+  const items: Shipment[] = useMemo(() => {
+    const rawDataOuter = (rawData as { data?: unknown })?.data || rawData;
+    return Array.isArray(rawDataOuter) ? rawDataOuter : (rawDataOuter as { items?: Shipment[] })?.items || [];
+  }, [rawData]);
 
-  const { data: rawData, isLoading } = shipmentList(safeQuery);
-  const items: Shipment[] = useMemo(() => (rawData as any)?.items || (rawData as any)?.data?.items || [], [rawData]);
+  const meta = useMemo(() => {
+    const rawDataOuter = (rawData as { data?: unknown })?.data || rawData;
+    const rawMeta = Array.isArray(rawDataOuter) ? undefined : (rawDataOuter as { meta?: unknown })?.meta;
+    return normalizeMeta(rawMeta, parsedQuery.page, parsedQuery.limit, items.length);
+  }, [rawData, items.length, parsedQuery.page, parsedQuery.limit]);
+
+  const handlePageChange = (nextPage: number) => {
+    const query = createPaginationSearchParams(searchParamsHook, nextPage);
+    router.push(`${pathname}?${query}`);
+  };
 
   return (
-    <div className="flex flex-col gap-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* HEADER SECTION */}
-      <div className="flex justify-between items-end px-1">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-black font-display tracking-wider uppercase text-text-main leading-none">
-            Shipment Portal
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Quản lý Vận đơn (Shipments)
           </h1>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest italic">
+          <p className="text-sm text-slate-500 mt-1">
             {isLoading
               ? "Đang đồng bộ..."
-              : `Hệ thống tìm thấy ${(rawData as any)?.meta?.totalItems || (rawData as any)?.data?.meta?.totalItems || 0} vận đơn`}
+              : `Theo dõi và điều phối ${meta.totalItems} chuyến hàng`}
           </p>
         </div>
       </div>
 
       {/* FILTER BAR */}
-      <ShipmentFilter
-        filters={queryParams}
-        onFilterChange={(updates: any) =>
-          setQueryParams((prev) => ({ ...prev, ...updates, page: 1 }))
-        }
-      />
+      <ShipmentFilter currentLimit={parsedQuery.limit} />
 
       {/* TABLE SECTION */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden min-h-[500px]">
-        <ShipmentTable items={items} isLoading={isLoading} />
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden min-h-[500px] flex flex-col">
+        <div className="flex-1">
+          <ShipmentTable
+            items={items}
+            isLoading={isLoading && !isPlaceholderData}
+            isError={isError}
+          />
+        </div>
+
+        {/* Pagination Section */}
+        {!isLoading && meta.totalPages > 1 && (
+          <div className="border-t border-slate-100 px-6 py-4 bg-slate-50/50">
+            <BasePagination
+              currentPage={meta.currentPage}
+              totalPages={meta.totalPages}
+              onPageChange={handlePageChange}
+              totalItems={meta.totalItems}
+              itemsPerPage={meta.itemsPerPage}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,22 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useState, useMemo } from "react";
-import { useProduct } from "@/hooks/useProduct";
-import { Batch } from "@/types/product";
-import BatchTable from "./BatchTable";
-import BatchFormModal from "./BatchFormModal";
-import BatchFilter from "./BatchFilter";
 import {
-  parseManagerListQuery,
-  normalizeMeta,
   createPaginationSearchParams,
+  normalizeMeta,
+  parseManagerListQuery,
   type RawSearchParams,
 } from "@/app/manager/_components/query";
 import { BasePagination } from "@/components/layout/BasePagination";
-import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import {
-  InboxStackIcon,
-} from "@heroicons/react/24/outline";
+import { useProduct } from "@/hooks/useProduct";
+import { Batch } from "@/types/product";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
+import BatchFilter from "./BatchFilter";
+import BatchFormModal from "./BatchFormModal";
+import BatchTable from "./BatchTable";
 
 export default function BatchClient({
   searchParams,
@@ -29,13 +27,18 @@ export default function BatchClient({
 
   const { batchList } = useProduct();
 
-  // 1. URL-driven query
+  // URL-driven query
   const parsedQuery = useMemo(
-    () => parseManagerListQuery(searchParams, { page: 1, limit: 10, sortOrder: "DESC" }),
+    () =>
+      parseManagerListQuery(searchParams, {
+        page: 1,
+        limit: 10,
+        sortOrder: "DESC",
+      }),
     [searchParams],
   );
 
-  // 2. State modal
+  // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null);
 
@@ -43,25 +46,34 @@ export default function BatchClient({
     page: parsedQuery.page,
     limit: parsedQuery.limit,
     sortOrder: parsedQuery.sortOrder,
-    search: parsedQuery.search, 
+    search: parsedQuery.search,
     productId: parsedQuery.productId,
   });
 
-  const responseData = data as Record<string, unknown> | undefined;
-
   const items: Batch[] = useMemo(() => {
-    const all = (responseData?.items || responseData || []) as Batch[];
-    return all.map((b) => ({
+    const rawData = (data as { data?: unknown })?.data || data;
+    const sourceItems = Array.isArray(rawData)
+      ? rawData
+      : (rawData as { items?: unknown[] })?.items || [];
+    return sourceItems.map((b: any) => ({
       ...b,
-      currentQuantity: Number(b.currentQuantity) || 0,
-      initialQuantity: Number(b.initialQuantity) || 0,
+      currentQuantity: Number(b?.currentQuantity) || 0,
+      initialQuantity: Number(b?.initialQuantity) || 0,
     }));
-  }, [responseData]);
+  }, [data]);
 
   const meta = useMemo(() => {
-    const rawMeta = responseData?.meta;
-    return normalizeMeta(rawMeta, parsedQuery.page, parsedQuery.limit, items.length);
-  }, [responseData, items.length, parsedQuery.page, parsedQuery.limit]);
+    const rawData = (data as { data?: unknown })?.data || data;
+    const rawMeta = Array.isArray(rawData)
+      ? undefined
+      : (rawData as { meta?: unknown })?.meta;
+    return normalizeMeta(
+      rawMeta,
+      parsedQuery.page,
+      parsedQuery.limit,
+      items.length,
+    );
+  }, [data, items.length, parsedQuery.page, parsedQuery.limit]);
 
   const handleOpenEdit = (batch: Batch) => {
     setSelectedBatch(batch);
@@ -73,54 +85,48 @@ export default function BatchClient({
     router.push(`${pathname}?${query}`);
   };
 
+  // Lô hàng có thể được tạo từ Shipment/Receiving, nên ở đây chỉ có Edit info.
+  // We keep + functionality hidden unless there's an actual direct create endpoint. (Original code mostly handled edit)
+
   return (
-    <div className="flex flex-col gap-8 pb-20 animate-in fade-in duration-500">
-      {/* Header & Search Bar */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1">
-        <div className="flex items-center gap-4">
-          <div className="h-14 w-14 bg-primary rounded-[2rem] flex items-center justify-center shadow-xl shadow-slate-200">
-            <InboxStackIcon className="h-7 w-7 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <h1 className="text-4xl font-black text-slate-900 font-display tracking-tighter uppercase italic leading-none">
-              Inventory Batches
-            </h1>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 ml-1">
-              Manager Portal • Batch & Expiry Control
-            </p>
-          </div>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Kho & Lô Hàng
+          </h1>
+          <p className="text-sm text-slate-500 mt-1">
+            {isLoading
+              ? "Đang tải..."
+              : `${meta.totalItems} lô hàng đang được quản lý`}
+          </p>
         </div>
       </div>
 
       <BatchFilter currentLimit={parsedQuery.limit} />
 
       {/* Main Table Content */}
-      <div className="rounded-[3.5rem] border border-slate-100 bg-white shadow-2xl overflow-hidden min-h-[550px] flex flex-col relative">
-        <div className="flex-1">
-          <BatchTable
-            items={items}
-            isLoading={isLoading && !isPlaceholderData}
-            isError={isError}
-            onEdit={handleOpenEdit}
-          />
-        </div>
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <BatchTable
+          items={items}
+          isLoading={isLoading && !isPlaceholderData}
+          isError={isError}
+          onEdit={handleOpenEdit}
+        />
 
         {/* Pagination Section */}
-        <div className="px-12 py-6 border-t border-slate-50 flex justify-between items-center bg-slate-50/30">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-black text-slate-900 uppercase tracking-widest italic">
-              HIỂN THỊ {items.length} / {meta.totalItems} LÔ HÀNG
-            </span>
+        {!isLoading && meta.totalPages > 1 && (
+          <div className="border-t border-slate-100 px-6 py-4 bg-slate-50/50">
+            <BasePagination
+              currentPage={meta.currentPage}
+              totalPages={meta.totalPages}
+              onPageChange={handlePageChange}
+              totalItems={meta.totalItems}
+              itemsPerPage={meta.itemsPerPage}
+            />
           </div>
-
-          <BasePagination
-            currentPage={meta.currentPage}
-            totalPages={meta.totalPages}
-            onPageChange={handlePageChange}
-            totalItems={meta.totalItems}
-            itemsPerPage={meta.itemsPerPage}
-          />
-        </div>
+        )}
       </div>
 
       <BatchFormModal

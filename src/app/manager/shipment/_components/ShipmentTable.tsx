@@ -1,153 +1,193 @@
 "use client";
 
 import {
-  DocumentDuplicateIcon,
-  ClockIcon,
-} from "@heroicons/react/24/outline";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { Shipment } from "@/types/shipment";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { CopyIcon, InboxIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export default function ShipmentTable({
-  items = [],
-  isLoading,
-}: {
+interface Props {
   items: Shipment[];
   isLoading: boolean;
-}) {
+  isError: boolean;
+}
+
+function TableSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <TableRow key={i}>
+          <TableCell className="pl-6">
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-3 w-36" />
+            </div>
+          </TableCell>
+          <TableCell>
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </TableCell>
+          <TableCell className="text-center">
+            <Skeleton className="h-4 w-20 mx-auto" />
+            <Skeleton className="h-3 w-12 mx-auto mt-1" />
+          </TableCell>
+          <TableCell className="text-center">
+            <Skeleton className="h-4 w-20 mx-auto" />
+          </TableCell>
+          <TableCell className="text-center">
+            <Skeleton className="h-6 w-20 mx-auto" />
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
+export default function ShipmentTable({
+  items,
+  isLoading,
+  isError,
+}: Props) {
   const handleCopy = (e: React.MouseEvent, text: string, label: string) => {
     e.stopPropagation();
     navigator.clipboard.writeText(text);
-    toast.success(`Đã sao chép ${label} đầy đủ`);
+    toast.success(`Đã sao chép ${label}`);
   };
 
-  if (isLoading)
+  if (isError) {
     return (
-      <div className="p-20 text-center font-black text-slate-300 italic uppercase text-[10px] tracking-widest">
-        Đang đồng bộ vận đơn...
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <p className="text-sm font-medium text-red-500">Lỗi tải dữ liệu vận đơn</p>
       </div>
     );
+  }
+
+  if (!isLoading && items.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="rounded-full bg-slate-100 p-4 mb-4">
+          <InboxIcon className="h-8 w-8 text-slate-400" />
+        </div>
+        <p className="text-sm font-medium text-slate-500">Chưa có vận đơn nào</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full overflow-x-auto scrollbar-hide">
-      {/* Table Fixed & Compact: Ngăn tràn màn hình */}
-      <table className="w-full min-w-[850px] text-left text-sm border-separate border-spacing-0 table-fixed">
-        <thead className="bg-slate-50/50 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-          <tr>
-            <th className="px-4 py-4 border-b border-slate-100 w-[25%]">
-              Vận đơn / Đơn hàng
-            </th>
-            <th className="px-4 py-4 border-b border-slate-100 w-[25%]">
-              Cửa hàng
-            </th>
-            <th className="px-4 py-4 border-b border-slate-100 text-center w-[15%]">
-              Ngày tạo
-            </th>
-            <th className="px-4 py-4 border-b border-slate-100 text-center w-[15%]">
-              Ngày xuất
-            </th>
-            <th className="px-4 py-4 border-b border-slate-100 text-center w-[12%]">
-              Trạng thái
-            </th>
-            <th className="px-4 py-4 border-b border-slate-100 text-right w-[8%]"></th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-50 bg-white">
-          {items.map((ship) => {
-            // Tách tên cửa hàng theo phong cách Order
-            const [brand, branch] = ship.storeName
-              .split("-")
-              .map((s) => s.trim());
+    <div className="w-full">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+            <TableHead className="pl-6 text-xs font-semibold text-slate-500 w-[25%]">Vận đơn / Đơn hàng</TableHead>
+            <TableHead className="text-xs font-semibold text-slate-500 w-[25%]">Cửa hàng</TableHead>
+            <TableHead className="text-center text-xs font-semibold text-slate-500 w-[15%]">Ngày tạo</TableHead>
+            <TableHead className="text-center text-xs font-semibold text-slate-500 w-[15%]">Ngày xuất</TableHead>
+            <TableHead className="text-center text-xs font-semibold text-slate-500 w-[20%]">Trạng thái</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {isLoading ? (
+            <TableSkeleton />
+          ) : (
+            items.map((ship) => {
+              // Extract store formatting logic safely
+              const splitName = ship.storeName ? ship.storeName.split("-") : ["Cửa hàng nhánh"];
+              const brand = splitName[0]?.trim();
+              const branch = splitName.slice(1).join("-").trim();
 
-            return (
-              <tr
-                key={ship.id}
-                className="group hover:bg-slate-950 transition-all duration-300 ease-in-out cursor-default"
-              >
-                {/* 1. Định danh ID: Rút gọn nhưng copy đủ 36 ký tự */}
-                <td className="px-4 py-5">
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center gap-2 group/ship w-fit">
-                      <span className="font-black text-slate-900 group-hover:text-white transition-colors italic text-sm tracking-tighter">
-                        #{ship.id.slice(0, 8).toUpperCase()}
-                      </span>
-                      <button
-                        onClick={(e) => handleCopy(e, ship.id, "Mã vận đơn")}
-                        className="opacity-0 group-hover/ship:opacity-100 p-1.5 bg-slate-50 rounded-lg hover:bg-white active:scale-90 transition-all shadow-sm"
-                      >
-                        <DocumentDuplicateIcon className="h-3 w-3 text-slate-400" />
-                      </button>
+              return (
+                <TableRow
+                  key={ship.id}
+                  className="group hover:bg-slate-50/50 transition-colors"
+                >
+                  <TableCell className="pl-6">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 group/id">
+                        <p className="font-semibold text-slate-900 uppercase">
+                          #{ship.id.slice(0, 8)}
+                        </p>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 opacity-0 group-hover/id:opacity-100"
+                          onClick={(e) => handleCopy(e, ship.id, "Mã Vận Đơn")}
+                        >
+                          <CopyIcon className="h-3 w-3 text-slate-400" />
+                        </Button>
+                      </div>
+                      <p className="text-xs text-slate-500 uppercase">
+                        ORD: {ship.orderId.slice(0, 8)}
+                      </p>
                     </div>
-                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest group-hover:text-slate-500">
-                      ORD: {ship.orderId.slice(0, 8).toUpperCase()}
-                    </span>
-                  </div>
-                </td>
-
-                {/* 2. Cửa hàng: Ngắt dòng thông minh */}
-                <td className="px-4 py-5">
-                  <div className="flex flex-col leading-tight gap-1">
-                    <span className="font-black text-slate-900 group-hover:text-white transition-colors text-[11px] uppercase tracking-tight truncate">
-                      {brand}
-                    </span>
-                    {branch && (
-                      <span className="text-[10px] font-bold text-slate-400 group-hover:text-slate-500 uppercase italic truncate">
-                        {branch}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col gap-0.5">
+                      <p className="font-medium text-slate-900 truncate max-w-[200px]" title={brand}>
+                        {brand}
+                      </p>
+                      {branch && (
+                        <p className="text-xs text-slate-500 truncate max-w-[200px]" title={branch}>
+                          {branch}
+                        </p>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <p className="text-sm font-medium text-slate-700">
+                      {format(new Date(ship.createdAt), "dd/MM/yyyy")}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {format(new Date(ship.createdAt), "HH:mm")}
+                    </p>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {ship.shipDate ? (
+                      <div>
+                        <p className="text-sm font-medium text-slate-700">
+                          {format(new Date(ship.shipDate), "dd/MM/yyyy")}
+                        </p>
+                        <p className="text-xs text-slate-400">
+                          {format(new Date(ship.shipDate), "HH:mm")}
+                        </p>
+                      </div>
+                    ) : (
+                      <span className="text-xs font-semibold text-slate-300 uppercase tracking-widest">
+                        Pending
                       </span>
                     )}
-                  </div>
-                </td>
-
-                {/* 3. Ngày tạo: Hiển thị 2 dòng để tiết kiệm chiều ngang */}
-                <td className="px-4 py-5 text-center group-hover:text-white transition-colors font-bold text-[11px] tabular-nums">
-                  <div className="flex flex-col items-center gap-0.5">
-                    <ClockIcon className="h-3 w-3 text-slate-200 group-hover:text-slate-500" />
-                    <span>
-                      {format(new Date(ship.createdAt), "dd/MM/yyyy")}
-                    </span>
-                    <span className="text-[8px] opacity-40 font-medium tracking-widest">
-                      {format(new Date(ship.createdAt), "HH:mm")}
-                    </span>
-                  </div>
-                </td>
-
-                {/* 4. Ngày xuất kho */}
-                <td className="px-4 py-5 text-center group-hover:text-white transition-colors font-bold text-[11px] tabular-nums">
-                  {ship.shipDate ? (
-                    <div className="flex flex-col items-center">
-                      <span>
-                        {format(new Date(ship.shipDate), "dd/MM/yyyy")}
-                      </span>
-                      <span className="text-[8px] opacity-40 font-medium tracking-widest">
-                        {format(new Date(ship.shipDate), "HH:mm")}
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-slate-300 text-[9px] uppercase font-black italic tracking-[0.2em]">
-                      Pending
-                    </span>
-                  )}
-                </td>
-
-                {/* 5. Trạng thái: Capsule màu sắc rực rỡ */}
-                <td className="px-4 py-5 text-center">
-                  <span
-                    className={`inline-block w-full py-1 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all duration-300
-                    ${ship.status === "completed"
-                        ? "bg-green-100 text-green-700 group-hover:bg-green-600 group-hover:text-white"
-                        : ship.status === "preparing"
-                          ? "bg-orange-100 text-orange-700 group-hover:bg-orange-600 group-hover:text-white"
-                          : "bg-blue-100 text-blue-700 group-hover:bg-blue-600 group-hover:text-white"
-                      }`}
-                  >
-                    {ship.status}
-                  </span>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Badge
+                      variant="outline"
+                      className={
+                        ship.status === "completed"
+                          ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                          : ship.status === "preparing" || ship.status === "picking" || ship.status === "delivering"
+                          ? "bg-blue-50 text-blue-700 border-blue-200"
+                          : "bg-amber-50 text-amber-700 border-amber-200"
+                      }
+                    >
+                      {(ship.status || "UNKNOWN").toUpperCase()}
+                    </Badge>
+                  </TableCell>
+                </TableRow>
+              );
+            })
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 }

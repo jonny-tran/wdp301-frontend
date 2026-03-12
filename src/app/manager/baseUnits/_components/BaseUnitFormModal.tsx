@@ -1,17 +1,20 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   CreateBaseUnitBody,
   CreateBaseUnitBodyType,
 } from "@/schemas/base-unit";
+import { BaseUnit } from "@/types/base-unit";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -23,14 +26,15 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { XMarkIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@/components/ui/button";
+import { Loader2 } from "lucide-react";
 
 interface Props {
   isOpen: boolean;
-  unit: any | null; // Nếu null là POST, nếu có data là PATCH
+  unit: BaseUnit | null;
   onClose: () => void;
   onSubmit: (data: CreateBaseUnitBodyType) => void;
+  isSubmitting?: boolean;
 }
 
 export default function BaseUnitFormModal({
@@ -38,63 +42,70 @@ export default function BaseUnitFormModal({
   unit,
   onClose,
   onSubmit,
+  isSubmitting = false,
 }: Props) {
-  // 1. Khởi tạo Form với Zod validation
+  const isEdit = !!unit;
+
   const form = useForm<CreateBaseUnitBodyType>({
     resolver: zodResolver(CreateBaseUnitBody),
     defaultValues: {
-      name: unit?.name || "",
-      description: unit?.description || "",
+      name: "",
+      description: "",
     },
   });
 
-  const isEdit = !!unit;
+  // Sync form when opening in edit mode
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        name: unit?.name ?? "",
+        description: unit?.description ?? "",
+      });
+    }
+  }, [isOpen, unit, form]);
+
+  const handleSubmit = (data: CreateBaseUnitBodyType) => {
+    onSubmit(data);
+  };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-xl bg-white rounded-[3rem] border-none shadow-2xl p-0 overflow-hidden">
-        {/* HEADER MODAL */}
-        <DialogHeader className="bg-slate-50/50 px-10 py-8 border-b border-slate-100 flex flex-row items-center justify-between space-y-0">
-          <div>
-            <DialogTitle className="text-2xl font-black font-display tracking-wider uppercase text-text-main">
-              {isEdit ? "Cập nhật" : "Thêm mới"}{" "}
-              <span className="text-primary">Đơn vị</span>
-            </DialogTitle>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1 italic">
-              {isEdit
-                ? `Chỉnh sửa mã ID: #${unit.id}`
-                : "Khởi tạo đơn vị tính mới cho hệ thống"}
-            </p>
-          </div>
-          <Button
-            onClick={onClose}
-            className="p-2 hover:bg-white rounded-full transition-colors border border-transparent hover:border-slate-200"
-          >
-            <XMarkIcon className="w-5 h-5 text-slate-400 stroke-[3px]" />
-          </Button>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-md">
+        {/* DialogHeader inherits pr-12 from component definition — safe from [X] overlap */}
+        <DialogHeader>
+          <DialogTitle>
+            {isEdit ? "Cập nhật đơn vị" : "Thêm đơn vị mới"}
+          </DialogTitle>
+          <DialogDescription>
+            {isEdit
+              ? `Chỉnh sửa thông tin đơn vị #${unit.id}`
+              : "Tạo đơn vị tính mới cho hệ thống sản phẩm"}
+          </DialogDescription>
         </DialogHeader>
 
-        {/* FORM BODY */}
-        <div className="p-10">
+        <div className="max-h-[70vh] overflow-y-auto">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <form
+              onSubmit={form.handleSubmit(handleSubmit)}
+              className="space-y-5"
+            >
               {/* Field: Name */}
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel className="text-[10px] font-black uppercase italic text-slate-400 tracking-widest ml-1">
-                      Tên đơn vị tính <span className="text-red-500">*</span>
+                  <FormItem>
+                    <FormLabel>
+                      Tên đơn vị <span className="text-red-500">*</span>
                     </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Ví dụ: Kg, Bao, Miếng, Lít..."
-                        className="rounded-[1.2rem] py-6 px-6 font-bold text-slate-900 border-slate-200 focus:ring-4 ring-primary/10 transition-all placeholder:text-slate-300 placeholder:italic"
+                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50"
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage className="text-[10px] font-bold italic text-red-500 ml-1" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
@@ -104,39 +115,37 @@ export default function BaseUnitFormModal({
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <FormItem className="space-y-3">
-                    <FormLabel className="text-[10px] font-black uppercase italic text-slate-400 tracking-widest ml-1">
-                      Mô tả chi tiết
-                    </FormLabel>
+                  <FormItem>
+                    <FormLabel>Mô tả</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Nhập mô tả định lượng hoặc cách sử dụng đơn vị này..."
-                        className="rounded-[1.5rem] p-6 font-bold text-slate-900 border-slate-200 focus:ring-4 ring-primary/10 transition-all min-h-120px placeholder:text-slate-300 placeholder:italic"
+                        placeholder="Nhập mô tả đơn vị tính..."
+                        rows={3}
+                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50 resize-none"
                         {...field}
                       />
                     </FormControl>
-                    <FormMessage className="text-[10px] font-bold italic text-red-500 ml-1" />
+                    <FormMessage />
                   </FormItem>
                 )}
               />
 
-              {/* ACTION BUTTONS */}
-              <div className="flex gap-4 pt-4">
-                <button
+              <DialogFooter className="pt-2">
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={onClose}
-                  className="flex-1 py-5 rounded-full border border-slate-200 text-slate-400 font-black text-[11px] uppercase tracking-widest hover:bg-slate-50 transition-all italic"
+                  disabled={isSubmitting}
                 >
-                  Hủy bỏ
-                </button>
-                <button
-                  type="submit"
-                  className="flex-2 px-12 py-5 rounded-full bg-primary text-white font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-primary shadow-xl transition-all group"
-                >
-                  <CheckIcon className="w-4 h-4 stroke-[4px] group-hover:scale-110 transition-transform" />
-                  {isEdit ? "Cập nhật dữ liệu" : "Tạo đơn vị mới"}
-                </button>
-              </div>
+                  Hủy
+                </Button>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {isEdit ? "Cập nhật" : "Tạo mới"}
+                </Button>
+              </DialogFooter>
             </form>
           </Form>
         </div>

@@ -1,121 +1,142 @@
 "use client";
 
-import {
-  PencilSquareIcon,
-  TrashIcon,
-  UserGroupIcon,
-} from "@heroicons/react/24/outline";
 import { Supplier } from "@/types/supplier";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import Can from "@/components/shared/Can";
 import { P } from "@/lib/authz";
 import { Resource } from "@/utils/constant";
+import { Pencil, Trash2, InboxIcon } from "lucide-react";
 
-interface SupplierTableProps {
+interface Props {
   items: Supplier[];
   isLoading: boolean;
   onEdit: (supplier: Supplier) => void;
-  onDelete: (id: number) => void;
+  onDelete: (supplier: Supplier) => void;
 }
 
-export default function SupplierTable({
-  items,
-  isLoading,
-  onEdit,
-  onDelete,
-}: SupplierTableProps) {
-  if (isLoading)
+function TableSkeleton() {
+  return (
+    <>
+      {Array.from({ length: 5 }).map((_, i) => (
+        <TableRow key={i}>
+          <TableCell className="pl-6">
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="h-3 w-24" />
+            </div>
+          </TableCell>
+          <TableCell>
+            <div className="space-y-1.5">
+              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          </TableCell>
+          <TableCell><Skeleton className="h-5 w-16" /></TableCell>
+          <TableCell className="text-right pr-6">
+            <div className="flex justify-end gap-1">
+              <Skeleton className="h-8 w-8 rounded-md" />
+              <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
+          </TableCell>
+        </TableRow>
+      ))}
+    </>
+  );
+}
+
+export default function SupplierTable({ items, isLoading, onEdit, onDelete }: Props) {
+  if (!isLoading && items.length === 0) {
     return (
-      <div className="p-10 text-center animate-pulse font-black text-slate-300">
-        Đang tải...
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="rounded-full bg-slate-100 p-4 mb-4">
+          <InboxIcon className="h-8 w-8 text-slate-400" />
+        </div>
+        <p className="text-sm font-medium text-slate-500">Chưa có nhà cung cấp nào</p>
+        <p className="text-xs text-slate-400 mt-1">Nhấn &quot;Thêm NCC&quot; để bắt đầu</p>
       </div>
     );
+  }
 
   return (
-    // FIX 1: Thêm overflow-x-auto và chặn co bóp nội dung
-    <div className="w-full overflow-x-auto scrollbar-hide">
-      <table className="w-full min-w-[800px] text-left text-sm border-separate border-spacing-0">
-        <thead className="bg-slate-50 sticky top-0 z-10">
-          <tr>
-            {/* FIX 2: Giảm padding px-6 xuống px-4 để khớp Layout nhỏ */}
-            <th className="px-4 py-3 border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              Nhà cung cấp
-            </th>
-            <th className="px-4 py-3 border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400">
-              Thông tin liên hệ
-            </th>
-            <th className="px-4 py-3 border-b border-slate-100 text-[10px] font-black uppercase tracking-widest text-slate-400 text-center">
-              Trạng thái
-            </th>
-            <th className="px-4 py-3 border-b border-slate-100 text-right text-[8px] text-slate-300 italic">
-              Thao tác
-            </th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-slate-50">
-          {items.map((item) => (
-            <tr
+    <Table>
+      <TableHeader>
+        <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+          <TableHead className="pl-6 text-xs font-semibold text-slate-500">Nhà cung cấp</TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500">Liên hệ</TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[100px]">Trạng thái</TableHead>
+          <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[100px]">Thao tác</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {isLoading ? (
+          <TableSkeleton />
+        ) : (
+          items.map((item) => (
+            <TableRow
               key={item.id}
-              className="group hover:bg-primary transition-all duration-200 ease-in-out cursor-pointer"
+              className="group hover:bg-slate-50/50 transition-colors"
             >
-              <td className="px-4 py-4">
-                <p className="font-black text-text-main font-display tracking-wider uppercase group-hover:text-white leading-tight transition-colors">
-                  {item.name}
-                </p>
-                {/* FIX 3: Đảm bảo text phụ cũng đổi màu khi hover */}
-                <p className="text-[9px] font-bold text-slate-400 mt-1 uppercase group-hover:text-slate-500 transition-colors">
-                  {item.address}
-                </p>
-              </td>
-              <td className="px-4 py-4 group-hover:text-white transition-colors">
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[11px] font-bold flex items-center gap-1.5">
-                    <UserGroupIcon className="h-3 w-3 text-slate-400 group-hover:text-blue-400" />
-                    {item.contactName}
-                  </span>
-                  <span className="text-[10px] text-slate-400 font-medium group-hover:text-slate-400">
-                    {item.phone}
-                  </span>
+              <TableCell className="pl-6">
+                <div>
+                  <p className="font-semibold text-slate-900">{item.name}</p>
+                  <p className="text-xs text-slate-400 truncate max-w-[200px]">
+                    {item.address || "—"}
+                  </p>
                 </div>
-              </td>
-              <td className="px-4 py-4 text-center">
-                <span
-                  className={`inline-flex px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter transition-all ${item.isActive
-                    ? "bg-green-100 text-green-700 group-hover:bg-green-600 group-hover:text-white"
-                    : "bg-slate-100 text-slate-400 group-hover:bg-slate-700"
-                    }`}
+              </TableCell>
+              <TableCell>
+                <div>
+                  <p className="text-sm text-slate-700">{item.contactName || "—"}</p>
+                  <p className="text-xs text-slate-400">{item.phone || "—"}</p>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Badge
+                  className={
+                    item.isActive
+                      ? "bg-green-50 text-green-700 border border-green-200 hover:bg-green-50"
+                      : "bg-slate-50 text-slate-500 border border-slate-200 hover:bg-slate-50"
+                  }
                 >
                   {item.isActive ? "Active" : "Inactive"}
-                </span>
-              </td>
-              <td className="px-4 py-4 text-right">
-                {/* FIX 4: Thu nhỏ button để không chiếm chỗ */}
-                <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0">
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right pr-6">
+                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <Can I={P.SUPPLIER_UPDATE} on={Resource.SUPPLIER}>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEdit(item);
-                      }}
-                      className="p-2 hover:bg-blue-600 text-slate-400 hover:text-white rounded-lg transition-all"
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                      onClick={() => onEdit(item)}
                     >
-                      <PencilSquareIcon className="h-4 w-4" />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDelete(item.id);
-                      }}
-                      className="p-2 hover:bg-red-600 text-slate-400 hover:text-white rounded-lg transition-all"
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50"
+                      onClick={() => onDelete(item)}
                     >
-                      <TrashIcon className="h-4 w-4" />
-                    </button>
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </Can>
                 </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+              </TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
   );
 }

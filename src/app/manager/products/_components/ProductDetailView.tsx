@@ -99,7 +99,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                   Đơn vị
                 </p>
                 <p className="text-xs font-black text-black uppercase italic">
-                  {product.baseUnitName || "N/A"}
+                  {product.baseUnit || "N/A"}
                 </p>
               </div>
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 group hover:bg-green-50 transition-colors">

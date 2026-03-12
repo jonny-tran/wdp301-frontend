@@ -10,17 +10,17 @@ import { toast } from "sonner";
 export const useBaseUnit = () => {
     const queryClient = useQueryClient();
 
-    const baseUnitList = () => {
+    const useBaseUnitList = () => {
         return useQuery({
             queryKey: QUERY_KEY.baseUnits.list(),
             queryFn: async () => {
-                const res = await baseUnitRequest.getBaseUnits()
-                return res.data
+                const res = await baseUnitRequest.getBaseUnits();
+                return res;
             }
         })
     }
 
-    const baseUnitDetail = (id: number) => {
+    const useBaseUnitDetail = (id: number) => {
         return useQuery({
             queryKey: QUERY_KEY.baseUnits.detail(id),
             queryFn: async () => {
@@ -68,8 +68,8 @@ export const useBaseUnit = () => {
     })
 
     return {
-        baseUnitList,
-        baseUnitDetail,
+        useBaseUnitList,
+        useBaseUnitDetail,
         createBaseUnit,
         updateBaseUnit,
         deleteBaseUnit
