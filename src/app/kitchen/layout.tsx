@@ -9,7 +9,7 @@ export default function KitchenLayout({
     children: React.ReactNode;
 }) {
     return (
-        <BaseLayout title="Central Kitchen System">
+        <BaseLayout title="Hệ thống Bếp Trung tâm">
             {children}
         </BaseLayout>
     );

@@ -34,7 +34,7 @@ export default function DashboardQueueCard({
         <article className="rounded-2xl border border-gray-100 p-4">
             <div className="mb-3 flex items-center justify-between">
                 <h3 className="text-xs font-bold uppercase tracking-wide text-text-muted">{title}</h3>
-                <Link href={href} className="text-xs font-semibold text-primary hover:underline">Open page</Link>
+                <Link href={href} className="text-xs font-semibold text-primary hover:underline">Mở trang</Link>
             </div>
 
             {isLoading ? (

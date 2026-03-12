@@ -42,10 +42,26 @@ export default function DashboardClient() {
     const receiptItems = receiptsQuery.data?.items || [];
 
     const quickActions = [
-        { href: "/kitchen/inventory", label: "Inventory", permission: { action: P.INVENTORY_READ_KITCHEN_SUMMARY, resource: Resource.INVENTORY } },
-        { href: "/kitchen/warehouse", label: "Warehouse", permission: { action: P.WAREHOUSE_READ_TASKS, resource: Resource.WAREHOUSE } },
-        { href: "/kitchen/batches", label: "Batches", permission: { action: P.INBOUND_READ_BATCH_LABEL, resource: Resource.INBOUND } },
-        { href: "/kitchen/inbound", label: "Inbound", permission: { action: P.INBOUND_CREATE_RECEIPT, resource: Resource.INBOUND } },
+        {
+            href: "/kitchen/inventory",
+            label: "Tồn kho",
+            permission: { action: P.INVENTORY_READ_KITCHEN_SUMMARY, resource: Resource.INVENTORY }
+        },
+        {
+            href: "/kitchen/warehouse",
+            label: "Kho",
+            permission: { action: P.WAREHOUSE_READ_TASKS, resource: Resource.WAREHOUSE }
+        },
+        {   
+            href: "/kitchen/batches",
+            label: "Lô hàng",
+            permission: { action: P.INBOUND_READ_BATCH_LABEL, resource: Resource.INBOUND }
+        },
+        {
+            href: "/kitchen/inbound",
+            label: "Nhập kho",
+            permission: { action: P.INBOUND_CREATE_RECEIPT, resource: Resource.INBOUND }
+        },
     ];
 
     return (

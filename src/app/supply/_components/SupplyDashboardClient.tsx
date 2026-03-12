@@ -37,72 +37,76 @@ export default function SupplyDashboardClient() {
         <div className="space-y-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                    <h1 className="text-3xl font-black text-text-main">Supply Dashboard</h1>
-                    <p className="text-sm text-text-muted">Backend-driven overview for orders, shipments, and claims.</p>
+                    <h1 className="text-3xl font-black text-text-main">Bảng điều khiển cung ứng</h1>
+                    <p className="text-sm text-text-muted">
+                        Tổng quan các đơn hàng, vận chuyển và khiếu nại từ hệ thống.
+                    </p>
                 </div>
                 <button
                     onClick={handleRefresh}
                     className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-text-main hover:border-primary/50 hover:text-primary"
                 >
                     <ArrowPathIcon className="h-4 w-4" />
-                    Refresh
+                    Làm mới
                 </button>
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <DashboardKpiCard label="Pending Orders" value={pendingOrders.length} href="/supply/orders" />
-                <DashboardKpiCard label="In-Transit Shipments" value={inTransitShipments.length} href="/supply/delivery" />
-                <DashboardKpiCard label="Pending Claims" value={pendingClaims.length} href="/supply/issues" />
+                <DashboardKpiCard label="Đơn hàng chờ xử lý" value={pendingOrders.length} href="/supply/orders" />
+                <DashboardKpiCard label="Đơn vận chuyển đang giao" value={inTransitShipments.length} href="/supply/delivery" />
+                <DashboardKpiCard label="Khiếu nại đang chờ" value={pendingClaims.length} href="/supply/issues" />
             </div>
 
             <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
                 <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-sm font-bold uppercase tracking-wide text-text-muted">Action Queue</h2>
+                    <h2 className="text-sm font-bold uppercase tracking-wide text-text-muted">
+                        Hàng đợi xử lý
+                    </h2>
                 </div>
 
                 <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
                     <DashboardQueueCard
-                        title="Pending Orders"
-                        rowLabel="Order"
+                        title="Đơn hàng chờ xử lý"
+                        rowLabel="Đơn hàng"
                         href="/supply/orders"
                         isLoading={pendingOrdersQuery.isLoading}
                         isError={pendingOrdersQuery.isError}
-                        loadingMessage="Loading..."
-                        errorMessage="Failed to load order list."
-                        emptyMessage="No pending orders."
+                        loadingMessage="Đang tải..."
+                        errorMessage="Không thể tải danh sách đơn hàng."
+                        emptyMessage="Không có đơn hàng chờ xử lý."
                         items={pendingOrders as any[]}
-                        renderSecondaryLine={(item) => `Store: ${String(item.storeName ?? item.storeId ?? "-")}`}
-                        renderDateLine={() => "Delivery date"}
+                        renderSecondaryLine={(item) => `Cửa hàng: ${String(item.storeName ?? item.storeId ?? "-")}`}
+                        renderDateLine={() => "Ngày giao hàng"}
                         dateKey="deliveryDate"
                     />
 
                     <DashboardQueueCard
-                        title="In-Transit Shipments"
-                        rowLabel="Shipment"
+                        title="Đơn vận chuyển đang giao"
+                        rowLabel="Vận chuyển"
                         href="/supply/delivery"
                         isLoading={inTransitShipmentsQuery.isLoading}
                         isError={inTransitShipmentsQuery.isError}
-                        loadingMessage="Loading..."
-                        errorMessage="Failed to load shipment list."
-                        emptyMessage="No in-transit shipments."
+                        loadingMessage="Đang tải..."
+                        errorMessage="Không thể tải danh sách vận chuyển."
+                        emptyMessage="Không có đơn vận chuyển đang giao."
                         items={inTransitShipments as any[]}
-                        renderSecondaryLine={() => "Delivery in progress"}
-                        renderDateLine={() => "Ship date"}
+                        renderSecondaryLine={() => "Đang giao hàng"}
+                        renderDateLine={() => "Ngày gửi"}
                         dateKey="shipDate"
                     />
 
                     <DashboardQueueCard
-                        title="Pending Claims"
-                        rowLabel="Claim"
+                        title="Khiếu nại đang chờ"
+                        rowLabel="Khiếu nại"
                         href="/supply/issues"
                         isLoading={pendingClaimsQuery.isLoading}
                         isError={pendingClaimsQuery.isError}
-                        loadingMessage="Loading..."
-                        errorMessage="Failed to load claim list."
-                        emptyMessage="No pending claims."
+                        loadingMessage="Đang tải..."
+                        errorMessage="Không thể tải danh sách khiếu nại."
+                        emptyMessage="Không có khiếu nại đang chờ."
                         items={pendingClaims as any[]}
-                        renderSecondaryLine={() => "Pending resolution"}
-                        renderDateLine={() => "Created at"}
+                        renderSecondaryLine={() => "Đang chờ xử lý"}
+                        renderDateLine={() => "Ngày tạo"}
                         dateKey="createdAt"
                     />
                 </div>

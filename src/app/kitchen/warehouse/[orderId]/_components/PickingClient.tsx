@@ -180,10 +180,10 @@ export default function PickingClient({ orderId }: PickingClientProps) {
                         <p className="text-sm text-text-muted">Chuẩn bị các mặt hàng đã chọn và hoàn tất xuất kho.</p>
                     </div>
                 </div>
-                <div className="rounded-2xl bg-primary/10 px-4 py-2 text-right">
+                {/* <div className="rounded-2xl bg-primary/10 px-4 py-2 text-right">
                     <p className="text-2xl font-black text-primary">{completionPercent}%</p>
                     <p className="text-xs font-semibold uppercase text-primary/80">Sẵn sàng hoàn tất</p>
-                </div>
+                </div> */}
             </div>
 
             <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">

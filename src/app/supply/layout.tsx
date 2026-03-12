@@ -9,7 +9,7 @@ export default function SupplyLayout({
     children: React.ReactNode;
 }) {
     return (
-        <BaseLayout title="Supply Chain Management">
+        <BaseLayout title="Quản lý Chuỗi cung ứng">
             {children}
         </BaseLayout>
     );

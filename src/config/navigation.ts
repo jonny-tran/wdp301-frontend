@@ -27,7 +27,13 @@ export interface ProtectedNavItem extends NavItem {
 
 export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
     [Role.ADMIN]: [
-        
+        // {
+        //     name: "Tổng quan",
+        //     href: "/admin",
+        //     icon: HomeIcon,
+        //     requiredPermission: { resource: Resource.SYSTEM, action: P.SYSTEM_READ_DASHBOARD }
+        // },
+
         {
             name: "Người dùng",
             href: "/admin/auth",
@@ -54,7 +60,7 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
         },
     ],
     [Role.MANAGER]: [
-       
+
         {
             name: "Sản phẩm",
             href: "/manager/products",
@@ -99,36 +105,36 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
         },
     ],
     [Role.CENTRAL_KITCHEN_STAFF]: [
-        { name: "Dashboard", href: "/kitchen/dashboard", icon: HomeIcon },
+        { name: "Tổng quan", href: "/kitchen/dashboard", icon: HomeIcon },
         {
-            name: "Inventory",
+            name: "Tồn kho",
             href: "/kitchen/inventory",
             icon: CubeIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_SUMMARY }
         },
         {
-            name: "Inbound",
+            name: "Nhập kho",
             href: "/kitchen/inbound",
             icon: InboxArrowDownIcon,
             requiredPermission: { resource: Resource.INBOUND, action: P.INBOUND_CREATE_RECEIPT }
         },
         {
-            name: "Batches",
+            name: "Lô hàng",
             href: "/kitchen/batches",
             icon: CubeIcon,
             requiredPermission: { resource: Resource.INBOUND, action: P.INBOUND_READ_BATCH_LABEL }
         },
         {
-            name: "Warehouse",
+            name: "Nhà kho",
             href: "/kitchen/warehouse",
             icon: ArchiveBoxIcon,
             requiredPermission: { resource: Resource.WAREHOUSE, action: P.WAREHOUSE_READ_TASKS }
         },
     ],
     [Role.SUPPLY_COORDINATOR]: [
-        { name: "Dashboard", href: "/supply", icon: HomeIcon },
+        { name: "Tổng quan", href: "/supply", icon: HomeIcon },
         {
-            name: "Orders",
+            name: "Đơn hàng",
             href: "/supply/orders",
             icon: ClipboardDocumentListIcon,
             requiredPermission: { resource: Resource.ORDER, action: P.ORDER_READ_ALL_PENDING }
@@ -140,13 +146,13 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
         //     requiredPermission: { resource: Resource.ORDER, action: P.ORDER_APPROVE }
         // },
         {
-            name: "Delivery",
+            name: "Giao hàng",
             href: "/supply/delivery",
             icon: TruckIcon,
             requiredPermission: { resource: Resource.DELIVERY, action: P.DELIVERY_SCHEDULE }
         },
         {
-            name: "Issues",
+            name: "Khiếu nại",
             href: "/supply/issues",
             icon: ExclamationTriangleIcon,
             requiredPermission: { resource: Resource.CLAIM, action: P.CLAIM_READ_ALL }
