@@ -85,6 +85,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
               sizes="260px"
               className="object-cover"
               priority
+              unoptimized
             />
           </div>
 
@@ -150,6 +151,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                         fill
                         sizes="48px"
                         className="object-cover"
+                        unoptimized
                       />
                     ) : (
                       <HashtagIcon className="h-5 w-5 text-slate-200 stroke-[2.5px]" />

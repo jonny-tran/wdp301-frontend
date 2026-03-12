@@ -23,7 +23,7 @@ export default function Navbar() {
 
     const roleRedirects: Record<string, string> = {
         [Role.ADMIN]: "/admin",
-        [Role.MANAGER]: "/manager/products",
+        [Role.MANAGER]: "/manager",
         [Role.SUPPLY_COORDINATOR]: "/supply",
         [Role.CENTRAL_KITCHEN_STAFF]: "/kitchen/dashboard",
         [Role.FRANCHISE_STORE_STAFF]: "/",

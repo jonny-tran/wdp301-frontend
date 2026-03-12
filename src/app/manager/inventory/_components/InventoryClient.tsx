@@ -18,12 +18,13 @@ import WasteReportView from "./WasteReportView";
 import InventoryAnalytics from "./InventoryAnalytics";
 import InventoryFilter from "./InventoryFilter";
 import AdjustStockModal from "./AdjustStockModal";
+import KitchenBatchDetails from "./KitchenBatchDetails";
 
 /* ─────────────────────────────────────────────
    Types — View Models (decoupled from API DTOs)
    ───────────────────────────────────────────── */
 
-type InventoryTab = "summary" | "low-stock" | "aging" | "waste";
+type InventoryTab = "summary" | "low-stock" | "aging" | "waste" | "kitchen-batches";
 
 export type InventoryDisplayItem = InventoryRowItem & {
     warehouseId?: number;
@@ -135,6 +136,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
         inventoryWasteReport,
         inventoryAnalyticsSummary,
         financialLossImpact,
+        kitchenDetails,
     } = useInventory();
 
     const summaryQuery = inventorySummary({
@@ -231,10 +233,10 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-                        Kiểm soát Tồn kho
+                        Kiểm soát Tồn kho (Bếp trung tâm)
                     </h1>
                     <p className="text-sm text-slate-500 mt-1">
-                        Theo dõi tổng sản phẩm, kho bãi và lãng phí trực tuyến
+                        Tổng quan tồn kho bếp, cảnh báo FEFO và điều chỉnh theo lô.
                     </p>
                 </div>
             </div>

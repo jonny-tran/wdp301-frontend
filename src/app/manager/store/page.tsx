@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import StoreClient from "./_components/StoreClient";
 
 export const metadata = {
@@ -7,8 +8,14 @@ export const metadata = {
 
 export default function StorePage() {
   return (
-    <main className="p-4 md:p-10 space-y-8 animate-in fade-in duration-1000">
+    <Suspense
+      fallback={
+        <div className="p-8 text-center text-xs font-semibold text-slate-400">
+          Đang tải danh sách cửa hàng...
+        </div>
+      }
+    >
       <StoreClient />
-    </main>
+    </Suspense>
   );
 }

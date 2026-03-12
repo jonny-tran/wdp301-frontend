@@ -46,8 +46,10 @@ export default function AdjustStockModal({ item, isOpen, onClose }: AdjustStockM
   const form = useForm<InventoryAdjustBodyType>({
     resolver: zodResolver(InventoryAdjustBody) as any,
     defaultValues: {
+      warehouseId: 0,
+      batchId: 0,
       adjustmentQuantity: 0,
-      reason: "Stock Count",
+      reason: "WASTE",
       note: "",
     },
   });
@@ -56,19 +58,19 @@ export default function AdjustStockModal({ item, isOpen, onClose }: AdjustStockM
     if (isOpen && item) {
       form.reset({
         warehouseId: Number(item.warehouseId) || 0,
-        batchId: 0, // In reality, they would pick a batch. But following existing code logic.
+        batchId: 0,
         adjustmentQuantity: 0,
-        reason: "Stock Count",
+        reason: "WASTE",
         note: "",
       });
     }
   }, [isOpen, item, form]);
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: InventoryAdjustBodyType) => {
     try {
       await adjustInventory.mutateAsync({
         ...data,
-        adjustmentQuantity: Number(data.adjustmentQuantity), 
+        adjustmentQuantity: Number(data.adjustmentQuantity),
       });
       onClose();
     } catch (error) {

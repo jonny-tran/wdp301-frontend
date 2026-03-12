@@ -67,7 +67,9 @@ export default function ImageUpload({ value, onChange }: ImageUploadProps) {
           <Image
             src={value}
             alt="Preview"
+            fill
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            unoptimized
           />
           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-sm">
             <div className="flex gap-4">

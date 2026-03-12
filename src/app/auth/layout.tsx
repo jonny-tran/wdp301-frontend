@@ -14,10 +14,10 @@ export default function AuthLayout({
   const user = useSessionStore((state) => state.user);
 
   const roleRedirects: Record<string, string> = {
-    [Role.ADMIN]: "/admin",
-    [Role.MANAGER]: "/manager/products",
-    [Role.SUPPLY_COORDINATOR]: "/supply",
-    [Role.CENTRAL_KITCHEN_STAFF]: "/kitchen/dashboard",
+  [Role.ADMIN]: "/admin",
+  [Role.MANAGER]: "/manager",
+  [Role.SUPPLY_COORDINATOR]: "/supply",
+  [Role.CENTRAL_KITCHEN_STAFF]: "/kitchen/dashboard",
   };
   useEffect(() => {
     if (user) {

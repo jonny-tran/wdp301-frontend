@@ -109,6 +109,7 @@ export default function BatchTable({
                         fill
                         sizes="48px"
                         className="object-cover"
+                        unoptimized
                       />
                     ) : (
                       <Archive className="h-5 w-5 text-slate-300" />

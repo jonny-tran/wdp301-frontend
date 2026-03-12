@@ -17,7 +17,14 @@ import { normalizeMeta } from "@/app/manager/_components/query";
 import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
 import { BasePagination } from "@/components/layout/BasePagination";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, LineChart } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -72,15 +79,14 @@ export default function StoreClient() {
   const isActiveRaw = searchParams.get("isActive");
   const isActive = isActiveRaw === "true" ? true : isActiveRaw === "false" ? false : undefined;
 
-  // Demand pattern product ID
-  const [demandProductId, setDemandProductId] = useState<number>(1);
-
   // Modal state
   const [modal, setModal] = useState<{ isOpen: boolean; editingStore: Store | null }>({
     isOpen: false,
     editingStore: null,
   });
   const [deleteTarget, setDeleteTarget] = useState<Store | null>(null);
+  const [isDemandOpen, setIsDemandOpen] = useState(false);
+  const [demandProductId, setDemandProductId] = useState<number>(1);
 
   const {
     storeList,
@@ -116,7 +122,6 @@ export default function StoreClient() {
     () => (demandRaw as StoreDemandPatternAnalytics) ?? [],
     [demandRaw],
   );
-
   const meta = useMemo(() => {
     const rawData = (listData as { data?: unknown })?.data || listData;
     const rawMeta = Array.isArray(rawData) ? undefined : (rawData as { meta?: unknown })?.meta;
@@ -149,24 +154,30 @@ export default function StoreClient() {
           </p>
         </div>
 
-        <Can I={P.STORE_CREATE} on={Resource.STORE}>
+        <div className="flex items-center gap-3">
           <Button
-            onClick={() => setModal({ isOpen: true, editingStore: null })}
-            className="gap-2"
+            variant="outline"
+            size="sm"
+            className="gap-2 text-xs"
+            onClick={() => setIsDemandOpen(true)}
           >
-            <Plus className="h-4 w-4" />
-            Thêm Store
+            <LineChart className="h-4 w-4" />
+            Nhu cầu theo sản phẩm
           </Button>
-        </Can>
+          <Can I={P.STORE_CREATE} on={Resource.STORE}>
+            <Button
+              onClick={() => setModal({ isOpen: true, editingStore: null })}
+              className="gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Thêm Store
+            </Button>
+          </Can>
+        </div>
       </div>
 
-      {/* Analytics Section */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <DemandPattern
-          data={demandPattern}
-          isLoading={isDemandLoading}
-          onSearchId={(id: number) => setDemandProductId(id)}
-        />
+      {/* Analytics Section (giữ gọn cho list view, Demand Pattern tách sang chi tiết/drawer */}
+      <div className="grid grid-cols-1 xl:grid-cols-1 gap-6">
         <StoreReliability stats={reliabilityStats} />
       </div>
 
@@ -224,6 +235,26 @@ export default function StoreClient() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Demand Pattern Drawer (Dialog) */}
+      <Dialog open={isDemandOpen} onOpenChange={(open) => setIsDemandOpen(open)}>
+        <DialogContent className="max-w-3xl sm:max-w-4xl bg-slate-50 border-slate-200">
+          <DialogHeader>
+            <DialogTitle>Nhu cầu đặt hàng theo sản phẩm</DialogTitle>
+            <DialogDescription>
+              Phân tích pattern đặt hàng theo ngày trong tuần để tối ưu lịch sản xuất & phân bổ.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="max-h-[80vh] overflow-y-auto pt-2">
+            <DemandPattern
+              data={demandPattern}
+              isLoading={isDemandLoading}
+              onSearchId={(id: number) => setDemandProductId(id)}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

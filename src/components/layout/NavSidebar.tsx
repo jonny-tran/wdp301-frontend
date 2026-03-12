@@ -84,7 +84,11 @@ export default function NavSidebar({
             {/* Navigation Items */}
             <nav className="flex-1 flex flex-col gap-2 px-3">
                 {items.map((item) => {
-                    const isActive = item.href === '/admin' ? pathname === item.href : pathname === item.href || pathname.startsWith(item.href + "/");
+                    const currentPath = pathname;
+                    const isDashboard = item.name === "Dashboard";
+                    const isActive = isDashboard
+                        ? item.href === currentPath
+                        : currentPath === item.href || currentPath.startsWith(item.href + "/");
                     return (
                         <Link
                             key={item.href}

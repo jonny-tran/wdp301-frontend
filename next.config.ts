@@ -2,46 +2,10 @@
 const nextConfig = {
   images: {
     remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "placehold.co",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "www.svgrepo.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "res.cloudinary.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "images.pexels.com",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "ui-avatars.com",
-        pathname: "/api/**",
-      },
-      {
-        protocol: "https",
-        hostname: "file.hstatic.net",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "cdn.com",
-        pathname: "/**",
-      },
+      { protocol: "https", hostname: "cdn.com" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
+      { protocol: "https", hostname: "placehold.co" },
+      { protocol: "https", hostname: "file.hstatic.net" },
     ],
   },
 };
