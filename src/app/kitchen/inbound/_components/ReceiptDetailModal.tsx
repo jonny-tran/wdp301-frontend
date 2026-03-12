@@ -4,7 +4,7 @@ import { XMarkIcon, CubeIcon, TagIcon, ScaleIcon, CalendarIcon, TruckIcon, PlusI
 import { useInbound } from "@/hooks/useInbound";
 import { useProduct } from "@/hooks/useProduct";
 import { ReceiptStatus } from "@/utils/enum";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -179,8 +179,7 @@ export default function ReceiptDetailModal({
                                         <option value="" disabled>Chọn sản phẩm...</option>
                                         {batches.map((b: any) => (
                                             <option key={b.id} value={b.productId}>
-                                                {((b.productName || b.product?.name || "") + (b.batchCode ? ` [${b.batchCode}]` : "")).trim() || `#${b.productId}`}
-                                            </option>
+                                                {(b.productName || b.product?.name || "N/A").trim() || `#${b.productId}`}                                            </option>
                                         ))}
                                     </select>
                                     {formErrors.productId && <p className="text-[9px] text-red-500 ml-2">{formErrors.productId.message}</p>}
@@ -384,5 +383,3 @@ export default function ReceiptDetailModal({
         </div>
     );
 }
-
-

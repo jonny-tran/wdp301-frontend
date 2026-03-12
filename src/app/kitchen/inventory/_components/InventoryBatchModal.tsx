@@ -1,6 +1,6 @@
 "use client";
 
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { XMarkIcon, CubeIcon } from "@heroicons/react/24/outline";
 import { KitchenDetail } from "@/types/inventory";
 import InventoryBatchDetails from "./InventoryBatchDetails";
 
@@ -8,6 +8,7 @@ interface InventoryBatchModalProps {
     isOpen: boolean;
     onClose: () => void;
     productName: string;
+    selectedProductId: number | null;
     batches: KitchenDetail["batches"];
     isLoading: boolean;
     isError: boolean;
@@ -17,6 +18,7 @@ export default function InventoryBatchModal({
     isOpen,
     onClose,
     productName,
+    selectedProductId,
     batches,
     isLoading,
     isError,
@@ -24,34 +26,34 @@ export default function InventoryBatchModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-md transition-all">
-            <div className="w-full max-w-lg rounded-[2.5rem] bg-white shadow-2xl overflow-hidden border border-gray-100">
-                <div className="flex items-center justify-between border-b border-gray-100 px-10 py-8 bg-white">
-                    <div className="min-w-0 flex-1 pr-4">
-                        <h3 className="text-2xl font-black text-text-main tracking-tight truncate">{productName}</h3>
-                        <p className="text-sm text-text-muted font-medium">Số lượng lô hàng & chi tiết hạn dùng</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+            <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-black">
+                {/* Header */}
+                <div className="flex items-center justify-between px-4 py-3 border-b-2 border-black">
+                    <div className="flex items-center gap-2">
+                        <CubeIcon className="h-5 w-5" />
+                        <span className="text-sm font-bold uppercase">{productName}</span>
                     </div>
-                    <button
-                        onClick={onClose}
-                        className="group rounded-full p-2 transition-colors hover:bg-gray-100"
-                    >
-                        <XMarkIcon className="h-6 w-6 text-text-muted group-hover:text-text-main" />
+                    <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+                        <XMarkIcon className="h-5 w-5" />
                     </button>
                 </div>
 
-                <div className="bg-gray-50/50 p-2">
+                {/* Content */}
+                <div className="max-h-[50vh] overflow-y-auto">
                     <InventoryBatchDetails
-                        selectedProductId={1} // Dummy to satisfy the existing logic
+                        selectedProductId={selectedProductId}
                         batches={batches}
                         isLoading={isLoading}
                         isError={isError}
                     />
                 </div>
 
-                <div className="flex justify-end border-t border-gray-100 px-10 py-6 bg-white">
+                {/* Footer */}
+                <div className="border-t-2 border-black p-3">
                     <button
                         onClick={onClose}
-                        className="rounded-2xl bg-text-main px-8 py-3 text-sm font-bold text-white transition-all hover:bg-black active:scale-95 shadow-lg shadow-black/10"
+                        className="w-full py-2 text-sm font-bold uppercase text-white bg-black rounded-lg hover:bg-gray-800 transition-colors"
                     >
                         Đóng
                     </button>

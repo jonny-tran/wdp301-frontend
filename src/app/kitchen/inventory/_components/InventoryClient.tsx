@@ -48,7 +48,16 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
     }, [selectedProductId, summaryItems]);
 
     const detailsQuery = kitchenDetails(selectedProductId ?? 0);
-    const batches = (detailsQuery.data as KitchenDetail)?.batches || [];
+    // Map API response: details -> batches
+    const rawDetails = (detailsQuery.data as any)?.details || [];
+    const batches = rawDetails.map((item: any, index: number) => ({
+        batchId: index + 1,
+        batchCode: item.batchCode,
+        totalQuantity: item.physical,
+        availableQuantity: item.available,
+        reservedQuantity: item.reserved,
+        expiryDate: item.expiryDate,
+    }));
 
     const filterConfig: FilterConfig[] = [
         {
@@ -120,6 +129,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 productName={selectedProduct?.productName ?? "Chi tiết sản phẩm"}
+                selectedProductId={selectedProductId}
                 batches={batches}
                 isLoading={detailsQuery.isLoading}
                 isError={detailsQuery.isError}

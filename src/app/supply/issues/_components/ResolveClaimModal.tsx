@@ -35,7 +35,7 @@ export default function ResolveClaimModal({
                         <select
                             value={status}
                             onChange={(event) => onChangeStatus(event.target.value as "approved" | "rejected")}
-                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
+                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
                         >
                             <option value="approved">Duyệt</option>
                             <option value="rejected">Từ chối</option>
@@ -49,7 +49,7 @@ export default function ResolveClaimModal({
                             onChange={(event) => onChangeNote(event.target.value)}
                             rows={4}
                             placeholder="Thêm ghi chú (tùy chọn)"
-                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none focus:border-primary"
+                            className="w-full rounded-xl border border-gray-200 px-3 py-2 text-sm text-text-main outline-none focus:border-primary"
                         />
                     </div>
 
