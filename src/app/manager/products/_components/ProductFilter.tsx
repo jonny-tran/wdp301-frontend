@@ -16,6 +16,18 @@ export default function ProductFilter({ currentLimit }: ProductFilterProps) {
       className: "lg:col-span-2",
     },
     {
+      key: "type",
+      label: "Loại SP",
+      type: "select",
+      placeholder: "Tất cả loại",
+      options: [
+        { label: "Nguyên liệu", value: "raw_material" },
+        { label: "Thành phẩm", value: "finished_good" },
+        { label: "Mua bán lại", value: "resell_product" },
+      ],
+      className: "lg:col-span-1",
+    },
+    {
       key: "isActive",
       label: "Trạng thái",
       type: "select",

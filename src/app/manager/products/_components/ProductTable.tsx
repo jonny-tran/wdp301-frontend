@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { Product } from "@/types/product";
+import { Product, getProductBaseUnitDisplay } from "@/types/product";
 import {
   Table,
   TableBody,
@@ -14,6 +14,10 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Pencil, Trash2, RotateCw, InboxIcon } from "lucide-react";
+import {
+  ProductType,
+  PRODUCT_TYPE_LABELS,
+} from "./product.types";
 
 interface ProductTableProps {
   items: Product[];
@@ -41,6 +45,7 @@ function TableSkeleton() {
             </div>
           </TableCell>
           <TableCell><Skeleton className="h-4 w-16" /></TableCell>
+          <TableCell><Skeleton className="h-5 w-20" /></TableCell>
           <TableCell><Skeleton className="h-5 w-14" /></TableCell>
           <TableCell className="text-right pr-6">
             <div className="flex justify-end gap-1"><Skeleton className="h-8 w-8 rounded-md" /></div>
@@ -52,6 +57,19 @@ function TableSkeleton() {
 }
 
 const DEFAULT_IMG = "https://res.cloudinary.com/dmhjgnymn/image/upload/v1770135560/OIP_j6j4gz.webp";
+
+function typeBadgeClass(t: ProductType | undefined) {
+  switch (t) {
+    case ProductType.FINISHED_GOOD:
+      return "bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-50";
+    case ProductType.RAW_MATERIAL:
+      return "bg-blue-50 text-blue-800 border-blue-200 hover:bg-blue-50";
+    case ProductType.RESELL_PRODUCT:
+      return "bg-amber-50 text-amber-900 border-amber-200 hover:bg-amber-50";
+    default:
+      return "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-50";
+  }
+}
 
 export default function ProductTable({
   items,
@@ -80,6 +98,7 @@ export default function ProductTable({
         <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
           <TableHead className="pl-6 w-[50px] text-xs font-semibold text-slate-500">#</TableHead>
           <TableHead className="text-xs font-semibold text-slate-500">Sản phẩm</TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[120px]">Loại</TableHead>
           <TableHead className="text-xs font-semibold text-slate-500 w-[140px]">Đơn vị & Hạn</TableHead>
           <TableHead className="text-xs font-semibold text-slate-500 w-[100px]">Trạng thái</TableHead>
           <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[140px]">Thao tác</TableHead>
@@ -118,9 +137,16 @@ export default function ProductTable({
                 </div>
               </TableCell>
               <TableCell>
+                <Badge
+                  className={`border text-[10px] font-semibold ${typeBadgeClass(item.type)}`}
+                >
+                  {item.type ? (PRODUCT_TYPE_LABELS[item.type] ?? item.type) : "—"}
+                </Badge>
+              </TableCell>
+              <TableCell>
                 <div className="space-y-1">
                   <Badge className="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-50 text-[10px]">
-                    {item.baseUnit}
+                    {getProductBaseUnitDisplay(item)}
                   </Badge>
                   <p className="text-xs text-slate-400">{item.shelfLifeDays} ngày</p>
                 </div>

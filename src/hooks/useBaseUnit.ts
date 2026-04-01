@@ -3,6 +3,7 @@ import { baseUnitRequest } from "@/apiRequest/base-unit";
 import { handleErrorApi } from "@/lib/errors";
 import { CreateBaseUnitBodyType, UpdateBaseUnitBodyType } from "@/schemas/base-unit";
 import { KEY, QUERY_KEY } from "@/utils/constant";
+import type { QueryBaseUnitList } from "@/types/base-unit";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -10,11 +11,11 @@ import { toast } from "sonner";
 export const useBaseUnit = () => {
     const queryClient = useQueryClient();
 
-    const useBaseUnitList = () => {
+    const useBaseUnitList = (query?: QueryBaseUnitList) => {
         return useQuery({
-            queryKey: QUERY_KEY.baseUnits.list(),
+            queryKey: QUERY_KEY.baseUnits.list(query),
             queryFn: async () => {
-                const res = await baseUnitRequest.getBaseUnits();
+                const res = await baseUnitRequest.getBaseUnits(query);
                 return res;
             }
         })

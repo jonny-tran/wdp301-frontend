@@ -18,6 +18,8 @@ export type ParsedManagerListQuery = {
     productId?: number;
     fromDate?: string;
     toDate?: string;
+    /** Lọc sản phẩm theo loại (raw_material | finished_good | resell_product) */
+    type?: string;
 };
 
 function readValue(value: string | string[] | undefined): string | undefined {
@@ -67,6 +69,7 @@ export function parseManagerListQuery(
         productId: productId ?? defaults?.productId,
         fromDate: normalizeString(readValue(searchParams.fromDate) ?? defaults?.fromDate),
         toDate: normalizeString(readValue(searchParams.toDate) ?? defaults?.toDate),
+        type: normalizeString(readValue(searchParams.type) ?? defaults?.type),
     };
 }
 
@@ -78,21 +81,52 @@ export type PaginationMeta = {
     currentPage: number;
 };
 
+type LegacyMetaShape = Partial<PaginationMeta> & {
+    /** Một số API trả về thay cho totalItems */
+    total?: number;
+    /** Một số API trả về thay cho currentPage */
+    page?: number;
+    /** Một số API trả về thay cho totalPages */
+    lastPage?: number;
+};
+
 export function normalizeMeta(
     rawMeta: unknown,
     page: number,
     limit: number,
     fallbackTotalItems: number,
 ): PaginationMeta {
-    const meta = (rawMeta ?? {}) as Partial<PaginationMeta>;
+    const meta = (rawMeta ?? {}) as LegacyMetaShape;
 
-    const currentPage = typeof meta.currentPage === "number" && meta.currentPage > 0 ? meta.currentPage : page;
-    const itemsPerPage = typeof meta.itemsPerPage === "number" && meta.itemsPerPage > 0 ? meta.itemsPerPage : limit;
-    const totalItems = typeof meta.totalItems === "number" && meta.totalItems >= 0 ? meta.totalItems : fallbackTotalItems;
-    const itemCount = typeof meta.itemCount === "number" && meta.itemCount >= 0 ? meta.itemCount : fallbackTotalItems;
+    const totalItems =
+        typeof meta.totalItems === "number" && meta.totalItems >= 0
+            ? meta.totalItems
+            : typeof meta.total === "number" && meta.total >= 0
+              ? meta.total
+              : fallbackTotalItems;
 
-    const computedTotalPages = itemsPerPage > 0 ? Math.max(1, Math.ceil(totalItems / itemsPerPage)) : 1;
-    const totalPages = typeof meta.totalPages === "number" && meta.totalPages > 0 ? meta.totalPages : computedTotalPages;
+    const currentPage =
+        typeof meta.currentPage === "number" && meta.currentPage > 0
+            ? meta.currentPage
+            : typeof meta.page === "number" && meta.page > 0
+              ? meta.page
+              : page;
+
+    const itemsPerPage =
+        typeof meta.itemsPerPage === "number" && meta.itemsPerPage > 0 ? meta.itemsPerPage : limit;
+
+    const itemCount =
+        typeof meta.itemCount === "number" && meta.itemCount >= 0 ? meta.itemCount : fallbackTotalItems;
+
+    const computedTotalPages =
+        itemsPerPage > 0 ? Math.max(1, Math.ceil(totalItems / itemsPerPage)) : 1;
+
+    const totalPages =
+        typeof meta.totalPages === "number" && meta.totalPages > 0
+            ? meta.totalPages
+            : typeof meta.lastPage === "number" && meta.lastPage > 0
+              ? meta.lastPage
+              : computedTotalPages;
 
     return {
         currentPage,

@@ -119,6 +119,7 @@ export const ENDPOINT_CLIENT = {
     PRODUCTION_RECIPES: '/production/recipes',
     PRODUCTION_RECIPE_DETAIL: (id: string) => `/production/recipes/${id}`,
     PRODUCTION_ORDERS: '/production/orders',
+    PRODUCTION_ORDER_DETAIL: (id: string) => `/production/orders/${id}`,
     PRODUCTION_ORDER_START: (id: string) => `/production/orders/${id}/start`,
     PRODUCTION_ORDER_COMPLETE: (id: string) => `/production/orders/${id}/complete`,
 }

@@ -1,8 +1,17 @@
 "use client";
 
 import { productionRequest } from "@/apiRequest/production";
-import { CompleteProductionBodyType } from "@/schemas/production";
-import type { CompleteProductionResult, QueryProductionOrder, QueryRecipeList } from "@/types/production";
+import { handleErrorApi } from "@/lib/errors";
+import {
+    CompleteProductionBodyType,
+    CreateRecipeApiBody,
+    UpdateRecipeApiBody,
+} from "@/schemas/production";
+import type {
+    CompleteProductionResult,
+    QueryProductionOrder,
+    QueryRecipeList,
+} from "@/types/production";
 import { KEY, QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -43,6 +52,17 @@ export function useProduction() {
             enabled: options?.enabled !== false,
         });
 
+    const productionOrderDetail = (orderId: string | null, options?: { enabled?: boolean }) =>
+        useQuery({
+            queryKey: orderId ? QUERY_KEY.production.orderDetail(orderId) : ["production", "order", "idle"],
+            queryFn: async () => {
+                if (!orderId) throw new Error("missing order id");
+                const res = await productionRequest.getOrderDetail(orderId);
+                return productionRequest.parseOrderDetailPayload(res.data);
+            },
+            enabled: (options?.enabled !== false) && !!orderId,
+        });
+
     const productionRecipeDetail = (recipeId: string | null, options?: { enabled?: boolean }) =>
         useQuery({
             queryKey: recipeId ? QUERY_KEY.production.recipeDetail(recipeId) : ["production", "recipe", "idle"],
@@ -79,11 +99,57 @@ export function useProduction() {
         },
     });
 
+    const createRecipe = useMutation({
+        mutationFn: async (body: CreateRecipeApiBody) => {
+            const res = await productionRequest.createRecipe(body);
+            return res.data;
+        },
+        onSuccess: () => {
+            toast.success("Đã tạo công thức (BOM)");
+            void queryClient.invalidateQueries({ queryKey: KEY.production });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
+
+    const updateRecipe = useMutation({
+        mutationFn: async ({ id, body }: { id: string; body: UpdateRecipeApiBody }) => {
+            const res = await productionRequest.updateRecipe(id, body);
+            return res.data;
+        },
+        onSuccess: () => {
+            toast.success("Đã cập nhật công thức");
+            void queryClient.invalidateQueries({ queryKey: KEY.production });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
+
+    const deleteRecipe = useMutation({
+        mutationFn: async (id: string) => {
+            const res = await productionRequest.deleteRecipe(id);
+            return res.data;
+        },
+        onSuccess: () => {
+            toast.success("Đã ngừng công thức");
+            void queryClient.invalidateQueries({ queryKey: KEY.production });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
+
     return {
         productionOrders,
+        productionOrderDetail,
         productionRecipes,
         productionRecipeDetail,
         startProductionOrder,
         completeProductionOrder,
+        createRecipe,
+        updateRecipe,
+        deleteRecipe,
     };
 }

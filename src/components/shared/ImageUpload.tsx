@@ -28,8 +28,9 @@ export default function ImageUpload({ value, onChange }: ImageUploadProps) {
       // 1. Thực hiện upload binary thông qua Mutation
       const response = await uploadImage.mutateAsync(file);
 
-      // 2. Lấy URL trả về (response chính là payload.data hoặc res.data)
-      const imageUrl = response?.url;
+      // 2. URL từ backend (POST .../upload/image) — hỗ trợ cả `url` và `imageUrl`
+      const payload = response as { url?: string; imageUrl?: string } | undefined;
+      const imageUrl = payload?.url ?? payload?.imageUrl;
 
       if (imageUrl) {
         onChange(imageUrl); // Truyền URL về cho ProductCreateModal

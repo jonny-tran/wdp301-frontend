@@ -1,11 +1,12 @@
 import http from "@/lib/http";
 import { CreateBaseUnitBodyType, UpdateBaseUnitBodyType } from "@/schemas/base-unit";
-import { BaseUnit } from "@/types/base-unit";
+import { BaseUnit, QueryBaseUnitList } from "@/types/base-unit";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
 export const baseUnitRequest = {
-    // GET /base-units
-    getBaseUnits: () => http.get<BaseUnit[]>(ENDPOINT_CLIENT.BASE_UNITS),
+    // GET /base-units?page=&limit=&sortOrder=&isActive=
+    getBaseUnits: (query?: QueryBaseUnitList) =>
+        http.get<BaseUnit[]>(ENDPOINT_CLIENT.BASE_UNITS, { query }),
 
     // POST /base-units
     createBaseUnit: (data: CreateBaseUnitBodyType) => http.post<BaseUnit>(ENDPOINT_CLIENT.BASE_UNITS, data),

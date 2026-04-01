@@ -1,6 +1,7 @@
 import { QueryClaim } from "@/types/claim";
 import { QueryIbound } from "@/types/inbound";
 import { QueryInventory, QueryInventorySummary, QueryInventoryTransaction, QueryKitchen } from "@/types/inventory";
+import { QueryBaseUnitList } from "@/types/base-unit";
 import { QueryBatch, QueryProduct } from "@/types/product";
 import { QueryShipment } from "@/types/shipment";
 import { QueryStore } from "@/types/store";
@@ -199,12 +200,13 @@ export const QUERY_KEY = {
     // BASE UNIT
     // ======================
     baseUnits: {
-        list: () => [...KEY.baseUnits, 'list'] as const,
+        list: (query?: QueryBaseUnitList) => [...KEY.baseUnits, 'list', query] as const,
         detail: (id: number) => [...KEY.baseUnits, 'detail', id] as const,
     },
 
     production: {
         orders: (query: QueryProductionOrder) => [...KEY.production, 'orders', query] as const,
+        orderDetail: (id: string) => [...KEY.production, 'order', id] as const,
         recipes: (query: QueryRecipeList) => [...KEY.production, 'recipes', query] as const,
         recipeDetail: (id: string) => [...KEY.production, 'recipe', id] as const,
     },

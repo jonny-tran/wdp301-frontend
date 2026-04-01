@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
-import { BaseUnit } from "@/types/base-unit";
+import { BaseUnit, BASE_UNITS_QUERY_ACTIVE_LIST } from "@/types/base-unit";
 import { Plus, RotateCw, Search } from "lucide-react";
 import { useState } from "react";
 import BaseUnitFormModal from "./BaseUnitFormModal";
@@ -22,7 +22,7 @@ import BaseUnitTable from "./BaseUnitTable";
 export default function BaseUnitClient() {
   const { useBaseUnitList, deleteBaseUnit, createBaseUnit, updateBaseUnit } =
     useBaseUnit();
-  const { data: response, isLoading, refetch } = useBaseUnitList();
+  const { data: response, isLoading, refetch } = useBaseUnitList(BASE_UNITS_QUERY_ACTIVE_LIST);
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -33,15 +33,18 @@ export default function BaseUnitClient() {
   // Delete confirmation state
   const [deleteTarget, setDeleteTarget] = useState<BaseUnit | null>(null);
 
-  // Unwrap data — backend returns items array directly for base-units
-  const rawData = response?.data || response;
-  const allUnits: BaseUnit[] = Array.isArray(rawData) ? rawData : (rawData as { items?: BaseUnit[] })?.items || [];
+  // Unwrap — có thể là mảng, { items }, hoặc phân trang { data: [] }
+  const envelope = response?.data ?? response;
+  const inner = envelope as Record<string, unknown> | BaseUnit[] | undefined;
+  const allUnits: BaseUnit[] = Array.isArray(inner)
+    ? inner
+    : Array.isArray(inner?.data)
+      ? (inner.data as BaseUnit[])
+      : (inner as { items?: BaseUnit[] })?.items || [];
 
-  // Client-side search (base-units API has no pagination/search param)
-  const filteredData = allUnits.filter(
-    (unit) =>
-      unit.isActive &&
-      unit.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  // API đã lọc isActive=true; chỉ lọc theo tìm kiếm
+  const filteredData = allUnits.filter((unit) =>
+    unit.name.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleOpenAdd = () => {

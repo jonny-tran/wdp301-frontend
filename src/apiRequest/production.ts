@@ -3,12 +3,14 @@ import {
     normalizeProductionOrder,
     normalizeRecipeDetail,
     normalizeRecipeSummary,
+    parseProductionOrderDetailPayload,
 } from "@/lib/production-mapper";
-import { CompleteProductionBodyType } from "@/schemas/production";
+import { CompleteProductionBodyType, CreateRecipeApiBody, UpdateRecipeApiBody } from "@/schemas/production";
 import { BaseResponsePagination } from "@/types/base";
 import type {
     CompleteProductionResult,
     ProductionOrder,
+    ProductionOrderDetail,
     QueryProductionOrder,
     QueryRecipeList,
     RecipeDetail,
@@ -57,6 +59,8 @@ function parsePaginatedRecipes(raw: unknown, query: QueryRecipeList): BaseRespon
 export const productionRequest = {
     getOrders: (query: QueryProductionOrder) => http.get<unknown>(ENDPOINT_CLIENT.PRODUCTION_ORDERS, { query }),
 
+    getOrderDetail: (id: string) => http.get<unknown>(ENDPOINT_CLIENT.PRODUCTION_ORDER_DETAIL(id)),
+
     getRecipes: (query: QueryRecipeList) => http.get<unknown>(ENDPOINT_CLIENT.PRODUCTION_RECIPES, { query }),
 
     getRecipeDetail: (id: string) => http.get<unknown>(ENDPOINT_CLIENT.PRODUCTION_RECIPE_DETAIL(id)),
@@ -66,6 +70,14 @@ export const productionRequest = {
     completeOrder: (id: string, body: CompleteProductionBodyType) =>
         http.post<CompleteProductionResult>(ENDPOINT_CLIENT.PRODUCTION_ORDER_COMPLETE(id), body),
 
+    createRecipe: (body: CreateRecipeApiBody) =>
+        http.post<unknown>(ENDPOINT_CLIENT.PRODUCTION_RECIPES, body),
+
+    updateRecipe: (id: string, body: UpdateRecipeApiBody) =>
+        http.patch<unknown>(ENDPOINT_CLIENT.PRODUCTION_RECIPE_DETAIL(id), body),
+
+    deleteRecipe: (id: string) => http.delete(ENDPOINT_CLIENT.PRODUCTION_RECIPE_DETAIL(id)),
+
     /** Parse sau khi có res.data từ getOrders */
     parseOrdersPage: parsePaginatedProduction,
     parseRecipesPage: parsePaginatedRecipes,
@@ -74,4 +86,6 @@ export const productionRequest = {
         const inner = (root.recipe ?? root.data ?? root) as Record<string, unknown>;
         return normalizeRecipeDetail(inner);
     },
+
+    parseOrderDetailPayload: (raw: unknown): ProductionOrderDetail => parseProductionOrderDetailPayload(raw),
 };

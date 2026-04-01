@@ -16,6 +16,7 @@ import { clsx } from "clsx";
 // Giả định BatchStatus được export từ file types của Hàn
 import { BatchStatus } from "@/utils/enum";
 import { ProductRow } from "./product.types";
+import { getProductBaseUnitDisplay } from "@/types/product";
 import { Batch } from "@/types/product";
 
 interface ProductDetailViewProps {
@@ -24,6 +25,7 @@ interface ProductDetailViewProps {
 
 export default function ProductDetailView({ product }: ProductDetailViewProps) {
   const router = useRouter();
+  const unitDisplay = getProductBaseUnitDisplay(product);
 
   // 1. Logic quay lại thông minh: Giữ trạng thái filter nếu đi từ danh sách
   const handleBack = () => {
@@ -100,7 +102,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                   Đơn vị
                 </p>
                 <p className="text-xs font-black text-black uppercase italic">
-                  {product.baseUnit || "N/A"}
+                  {unitDisplay === "—" ? "N/A" : unitDisplay}
                 </p>
               </div>
               <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 group hover:bg-green-50 transition-colors">
