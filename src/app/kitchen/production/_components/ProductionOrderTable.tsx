@@ -24,8 +24,10 @@ export type ProductionOrderTableProps = {
     isLoading: boolean;
     mode: "active" | "history";
     startingId: string | null;
-    onStart: (id: string) => void;
+    onStart: (id: string, productName: string) => void;
     onCompleteClick: (order: ProductionOrder) => void;
+    /** Bấm vào dòng (trừ nút Start/Complete) để mở chi tiết */
+    onDetailClick?: (order: ProductionOrder) => void;
 };
 
 export default function ProductionOrderTable({
@@ -35,6 +37,7 @@ export default function ProductionOrderTable({
     startingId,
     onStart,
     onCompleteClick,
+    onDetailClick,
 }: ProductionOrderTableProps) {
     if (isLoading) {
         return (
@@ -67,11 +70,36 @@ export default function ProductionOrderTable({
                 <TableBody>
                     {orders.map((row) => {
                         const b = badgeForStatus(row.status);
-                        const canStart = isOrderActiveStatus(row.status) && String(row.status).toUpperCase() === "PENDING";
-                        const canComplete =
-                            mode === "active" && String(row.status).toUpperCase() === "IN_PROGRESS";
+                        const u = String(row.status).toUpperCase();
+                        const canStart = mode === "active" && u === "PENDING";
+                        const canComplete = mode === "active" && u === "IN_PROGRESS";
                         return (
-                            <TableRow key={row.id} className="border-b border-zinc-200 text-base">
+                            <TableRow
+                                key={row.id}
+                                className={cn(
+                                    "border-b border-zinc-200 text-base",
+                                    onDetailClick && "cursor-pointer hover:bg-zinc-50",
+                                )}
+                                onClick={
+                                    onDetailClick
+                                        ? () => {
+                                              onDetailClick(row);
+                                          }
+                                        : undefined
+                                }
+                                role={onDetailClick ? "button" : undefined}
+                                tabIndex={onDetailClick ? 0 : undefined}
+                                onKeyDown={
+                                    onDetailClick
+                                        ? (e) => {
+                                              if (e.key === "Enter" || e.key === " ") {
+                                                  e.preventDefault();
+                                                  onDetailClick(row);
+                                              }
+                                          }
+                                        : undefined
+                                }
+                            >
                                 <TableCell>
                                     <div className="font-bold text-zinc-950">{row.productName}</div>
                                     <div className="mt-1 text-sm font-semibold text-zinc-600">
@@ -94,13 +122,13 @@ export default function ProductionOrderTable({
                                     {format(new Date(row.createdAt), "dd/MM/yyyy HH:mm", { locale: vi })}
                                 </TableCell>
                                 <TableCell className="text-right">
-                                    <div className="flex flex-wrap justify-end gap-2">
+                                    <div className="flex flex-wrap justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                                         {canStart && (
                                             <Button
                                                 type="button"
                                                 size="lg"
                                                 className="h-12 min-w-[120px] gap-2 border-2 border-amber-500 bg-zinc-900 font-bold text-white hover:bg-zinc-800"
-                                                onClick={() => onStart(row.id)}
+                                                onClick={() => onStart(row.id, row.productName)}
                                                 disabled={startingId !== null}
                                             >
                                                 {startingId === row.id ? (
@@ -108,7 +136,7 @@ export default function ProductionOrderTable({
                                                 ) : (
                                                     <Play className="size-5" />
                                                 )}
-                                                Start
+                                                Start Production
                                             </Button>
                                         )}
                                         {canComplete && (
@@ -122,6 +150,9 @@ export default function ProductionOrderTable({
                                                 <SquareCheck className="size-5" />
                                                 Complete
                                             </Button>
+                                        )}
+                                        {mode === "active" && u === "COMPLETED" && (
+                                            <span className="text-sm font-medium text-emerald-800">Đã hoàn tất</span>
                                         )}
                                         {mode === "history" && isOrderCompletedStatus(row.status) && (
                                             <span className="text-sm text-zinc-500">—</span>

@@ -15,7 +15,14 @@ import {
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import { PRODUCTION_WASTE_PRESETS } from "@/schemas/production";
 import type { CompleteProductionBodyType } from "@/schemas/production";
 import { createCompleteProductionFormSchema } from "@/schemas/production";
 import type { ProductionOrder } from "@/types/production";
@@ -45,10 +52,8 @@ export default function CompleteProductionModal({
     });
 
     const actual = form.watch("actualQuantity");
-    const efficiency =
-        target > 0 && typeof actual === "number" && Number.isFinite(actual)
-            ? Math.round((actual / target) * 1000) / 10
-            : null;
+    const shortfall =
+        typeof actual === "number" && Number.isFinite(actual) && target > 0 && actual < target - 1e-9;
 
     useEffect(() => {
         if (open && order) {
@@ -58,6 +63,12 @@ export default function CompleteProductionModal({
             });
         }
     }, [open, order, form]);
+
+    useEffect(() => {
+        if (!shortfall) {
+            form.setValue("wasteReason", "");
+        }
+    }, [shortfall, form]);
 
     if (!order) return null;
 
@@ -70,46 +81,42 @@ export default function CompleteProductionModal({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-lg border-2 border-zinc-800 bg-zinc-50 text-zinc-950 sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2 text-xl font-bold tracking-tight">
+            <DialogContent className="max-w-md border-2 border-zinc-800 bg-white text-zinc-950 sm:max-w-md">
+                <DialogHeader className="space-y-1 text-left">
+                    <DialogTitle className="flex items-center gap-2 text-xl font-black tracking-tight">
                         <Factory className="size-6 text-amber-500" aria-hidden />
-                        Hoàn tất lệnh sản xuất
+                        Hoàn tất sản xuất
                     </DialogTitle>
-                    <DialogDescription className="text-zinc-600">
-                        {order.productName} — Mục tiêu{" "}
-                        <span className="font-semibold text-zinc-900">
-                            {order.targetQuantity} {order.unit}
-                        </span>
+                    <DialogDescription asChild>
+                        <p className="text-base text-zinc-700">
+                            <span className="font-bold text-zinc-900">{order.productName}</span>
+                            <span className="text-zinc-500"> · Kế hoạch </span>
+                            <span className="font-black tabular-nums text-zinc-900">
+                                {order.targetQuantity} {order.unit}
+                            </span>
+                        </p>
                     </DialogDescription>
                 </DialogHeader>
 
-                <div
-                    className="flex gap-3 rounded-lg border border-amber-600/40 bg-amber-950/10 p-4 text-sm text-zinc-800"
-                    role="note"
-                >
-                    <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-600" aria-hidden />
-                    <p>
-                        Xác nhận sẽ <strong>trừ nguyên liệu</strong> theo FEFO từ tồn kho, tạo{" "}
-                        <strong>lô thành phẩm mới</strong> và ghi nhận hao hụt/dư nếu có chênh lệch so với mục tiêu.
-                    </p>
-                </div>
-
                 <Form {...form}>
-                    <form onSubmit={handleConfirm} className="space-y-4">
+                    <form onSubmit={handleConfirm} className="space-y-5">
                         <FormField
                             control={form.control}
                             name="actualQuantity"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-base font-semibold">Số lượng thực nhận</FormLabel>
+                                    <FormLabel className="text-sm font-bold text-zinc-800">
+                                        Thực tế làm được{" "}
+                                        <span className="font-normal text-zinc-500">(mặc định = kế hoạch)</span>
+                                    </FormLabel>
                                     <FormControl>
                                         <Input
                                             type="number"
                                             step="any"
                                             min={0}
-                                            className="h-12 border-2 border-zinc-800 bg-white text-lg font-semibold"
+                                            className="h-14 border-2 border-zinc-800 bg-zinc-50 text-2xl font-black tabular-nums"
                                             {...field}
+                                            onChange={(e) => field.onChange(e.target.value === "" ? "" : Number(e.target.value))}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -117,41 +124,47 @@ export default function CompleteProductionModal({
                             )}
                         />
 
-                        {efficiency !== null && (
-                            <div className="rounded-md border-2 border-zinc-800 bg-white px-4 py-3">
-                                <p className="text-xs font-medium uppercase tracking-wider text-zinc-500">
-                                    Hiệu suất (Actual / Target)
-                                </p>
-                                <p className="text-3xl font-black tabular-nums text-zinc-900">{efficiency}%</p>
+                        {shortfall && (
+                            <div className="flex gap-2 rounded-lg border border-amber-500/50 bg-amber-50 p-3 text-sm text-amber-950">
+                                <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden />
+                                <p>Thấp hơn kế hoạch — chọn lý do hao hụt.</p>
                             </div>
                         )}
 
-                        <FormField
-                            control={form.control}
-                            name="wasteReason"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-base font-semibold">
-                                        Lý do hao hụt / ghi chú{" "}
-                                        <span className="font-normal text-zinc-500">(bắt buộc nếu thực tế &lt; mục tiêu)</span>
-                                    </FormLabel>
-                                    <FormControl>
-                                        <Textarea
-                                            placeholder="Ví dụ: Tràn, lỗi chất lượng, cân sai…"
-                                            className="min-h-[100px] border-2 border-zinc-800 bg-white"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        {shortfall && (
+                            <FormField
+                                control={form.control}
+                                name="wasteReason"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-sm font-bold text-amber-900">
+                                            Lý do hao hụt <span className="text-red-600">*</span>
+                                        </FormLabel>
+                                        <Select value={field.value} onValueChange={field.onChange}>
+                                            <FormControl>
+                                                <SelectTrigger className="h-14 w-full border-2 border-zinc-800 bg-white text-base font-semibold">
+                                                    <SelectValue placeholder="Chọn…" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent className="border-2 border-zinc-800">
+                                                {PRODUCTION_WASTE_PRESETS.map((o) => (
+                                                    <SelectItem key={o.value} value={o.value} className="py-3 text-base">
+                                                        {o.label}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
 
-                        <DialogFooter className="gap-2 sm:gap-2">
+                        <DialogFooter className="flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                             <Button
                                 type="button"
                                 variant="outline"
-                                className="h-12 min-w-[120px] border-2"
+                                className="h-12 w-full border-2 sm:w-auto"
                                 onClick={() => onOpenChange(false)}
                                 disabled={isSubmitting}
                             >
@@ -159,7 +172,7 @@ export default function CompleteProductionModal({
                             </Button>
                             <Button
                                 type="submit"
-                                className="h-12 min-w-[160px] border-2 border-amber-500 bg-zinc-900 text-lg font-bold text-white hover:bg-zinc-800"
+                                className="h-14 w-full border-2 border-amber-500 bg-zinc-900 text-base font-black text-white hover:bg-zinc-800 sm:min-w-[200px]"
                                 disabled={isSubmitting}
                             >
                                 {isSubmitting ? "Đang xử lý…" : "Xác nhận hoàn tất"}

@@ -1,7 +1,7 @@
 "use client";
 
 import BaseLayout from "@/components/layout/BaseLayout";
-import { Role } from "@/utils/enum";
+import KitchenScanFab from "@/app/kitchen/_components/KitchenScanFab";
 
 export default function KitchenLayout({
     children,
@@ -10,7 +10,8 @@ export default function KitchenLayout({
 }) {
     return (
         <BaseLayout title="Central Kitchen System">
-            {children}
+            <div className="min-h-0 bg-[#fafaf9] text-zinc-900">{children}</div>
+            <KitchenScanFab />
         </BaseLayout>
     );
 }

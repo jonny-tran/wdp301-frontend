@@ -80,7 +80,7 @@ export default function InventorySummaryTable({
         return <p className="px-6 py-10 text-center text-sm text-slate-500">Không có dòng nào khớp bộ lọc.</p>;
     }
 
-    const colSpan = 9;
+    const colSpan = 10;
 
     return (
         <div className="px-2 pb-2 sm:px-4">

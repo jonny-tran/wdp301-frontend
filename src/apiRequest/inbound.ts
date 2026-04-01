@@ -1,6 +1,7 @@
 import http from "@/lib/http";
 import {
     AddReceiptItemBodyType,
+    CompleteReceiptBodyType,
     CreateReceiptBodyType,
     ReprintBatchBodyType,
     toAddReceiptItemApiPayload,
@@ -25,7 +26,8 @@ export const inboundRequest = {
 
     getBatchLabel: (id: string) => http.get<BatchLabel>(ENDPOINT_CLIENT.INBOUND_BATCH_LABEL(id)),
 
-    completeReceipt: (id: string) => http.patch(ENDPOINT_CLIENT.INBOUND_COMPLETE(id), {}),
+    completeReceipt: (id: string, body?: CompleteReceiptBodyType) =>
+        http.patch<unknown>(ENDPOINT_CLIENT.INBOUND_COMPLETE(id), body && Object.keys(body).length > 0 ? body : {}),
 
     deleteReceiptItem: (receiptId: string, itemId: string | number) =>
         http.delete(ENDPOINT_CLIENT.INBOUND_DELETE_RECEIPT_ITEM(receiptId, itemId)),

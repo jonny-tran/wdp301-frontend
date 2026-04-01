@@ -10,6 +10,8 @@ export type ReceiptItem = {
     batchCode?: string | null;
     productId: number;
     productName: string;
+    /** Loại sản phẩm (nếu API trả) — dùng khi không có trong cache danh mục */
+    productType?: string | null;
     /** Tổng SL hiển thị (legacy hoặc mirror) */
     quantity?: number;
     expectedQuantity?: number | null;
@@ -67,4 +69,19 @@ export type QueryIbound = BaseRequestPagination & {
     supplierId?: string;
     fromDate?: string;
     toDate?: string;
+};
+
+/** Kết quả chốt phiếu — mã lô sinh tự động (BAT-…) để in nhãn. */
+export type InboundCompletedBatchLine = {
+    batchId: number;
+    batchCode: string;
+    productId?: number;
+    productName?: string;
+    receiptItemId?: number | string;
+};
+
+export type CompleteInboundReceiptResult = {
+    message?: string;
+    batches: InboundCompletedBatchLine[];
+    batchCodes: string[];
 };

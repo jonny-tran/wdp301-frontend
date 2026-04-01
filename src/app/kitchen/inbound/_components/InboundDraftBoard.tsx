@@ -1,4 +1,6 @@
 import { DocumentTextIcon, TruckIcon, CalendarDaysIcon, InboxArrowDownIcon } from "@heroicons/react/24/outline";
+import InboundStatusBadge from "./InboundStatusBadge";
+import { ReceiptStatus } from "@/utils/enum";
 
 interface InboundDraftBoardProps {
     drafts: Record<string, any>[];
@@ -20,13 +22,14 @@ export default function InboundDraftBoard({
                     <div className="rounded-xl bg-primary/10 p-2 text-primary">
                         <InboxArrowDownIcon className="h-5 w-5" />
                     </div>
-                    <h3 className="text-lg font-black text-text-main tracking-tight">Bảng nháp Nhập kho</h3>
+                    <h3 className="text-lg font-black text-text-main tracking-tight">Phiếu chờ</h3>
+                    <InboundStatusBadge status={ReceiptStatus.DRAFT} />
                     <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-bold text-text-muted">
-                        Tổng cộng: {drafts.length}
+                        {drafts.length}
                     </span>
                 </div>
                 <p className="mt-1 text-sm text-text-muted">
-                    Danh sách các lô hàng nháp dự kiến nhập vào bếp.
+                    Incoming / Drafts — xác nhận hàng về khi hàng đã kiểm đếm xong.
                 </p>
             </div>
 
@@ -55,8 +58,11 @@ export default function InboundDraftBoard({
                             </div>
 
                             <div className="mb-3 flex items-center justify-between">
-                                <span className="rounded-lg bg-primary/5 px-2 py-1 text-[10px] font-bold text-primary border border-primary/10">
-                                    #{String(receipt.id).slice(0, 8).toUpperCase()}
+                                <span className="flex flex-wrap items-center gap-2">
+                                    <span className="rounded-lg bg-primary/5 px-2 py-1 font-mono text-[10px] font-bold text-primary border border-primary/10">
+                                        #{String(receipt.receiptId ?? receipt.id).slice(0, 8).toUpperCase()}
+                                    </span>
+                                    <InboundStatusBadge status={ReceiptStatus.DRAFT} />
                                 </span>
                                 <span className="text-[10px] font-medium text-text-muted">
                                     {new Date(receipt.createdAt).toLocaleDateString('vi-VN')}

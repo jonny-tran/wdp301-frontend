@@ -10,6 +10,7 @@ import { useWarehouse } from "@/hooks/useWarehouse";
 import { PickingTaskListItem } from "@/types/warehouse";
 import { handleErrorApi } from "@/lib/errors";
 import { createPaginationSearchParams, normalizeMeta, parseKitchenListQuery, RawSearchParams } from "@/app/kitchen/_components/query";
+import { KEY } from "@/utils/constant";
 import WarehouseTasksTable from "./WarehouseTasksTable";
 
 interface WarehouseClientProps {
@@ -78,7 +79,7 @@ export default function WarehouseClient({ searchParams }: WarehouseClientProps) 
     const handleResetTask = async (orderId: string) => {
         try {
             await resetPickingTask.mutateAsync(orderId);
-            await queryClient.invalidateQueries({ queryKey: ["picking-task-list"] });
+            await queryClient.invalidateQueries({ queryKey: KEY.warehouse });
         } catch (error) {
             handleErrorApi({ error });
         }

@@ -19,7 +19,6 @@ export const AddReceiptItemBody = z
         rejectionReason: z.string().optional(),
         manufacturedDate: z.string().optional(),
         statedExpiryDate: z.string().optional(),
-        storageLocationCode: z.string().optional(),
     })
     .superRefine((data, ctx) => {
         const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
@@ -40,13 +39,6 @@ export const AddReceiptItemBody = z
                 path: ["rejectionReason"],
             });
         }
-        if (accepted > 0 && (!data.manufacturedDate || data.manufacturedDate.trim().length < 8)) {
-            ctx.addIssue({
-                code: "custom",
-                message: "NSX bắt buộc khi ghi nhận hàng nhận (tạo lô khi chốt phiếu)",
-                path: ["manufacturedDate"],
-            });
-        }
     });
 
 export const ReprintBatchBody = z.object({
@@ -64,6 +56,20 @@ export type AddReceiptItemBodyType = z.infer<typeof AddReceiptItemBody>;
 export type ReprintBatchBodyType = z.infer<typeof ReprintBatchBody>;
 export type VarianceApprovalBodyType = z.infer<typeof VarianceApprovalBody>;
 
+/** Dòng gửi kèm PATCH /inbound/receipts/:id/complete — QC cuối cùng trước khi sinh lô. */
+export const CompleteReceiptItemBody = z.object({
+    itemId: z.union([z.coerce.number().int().positive(), z.string().min(1)]),
+    quantityAccepted: z.coerce.number().min(0).optional(),
+    statedExpiryDate: z.string().optional().nullable(),
+});
+
+export const CompleteReceiptBody = z.object({
+    items: z.array(CompleteReceiptItemBody).optional(),
+});
+
+export type CompleteReceiptItemBodyType = z.infer<typeof CompleteReceiptItemBody>;
+export type CompleteReceiptBodyType = z.infer<typeof CompleteReceiptBody>;
+
 /** Payload gửi API (camelCase). */
 export function toAddReceiptItemApiPayload(data: AddReceiptItemBodyType): Record<string, unknown> {
     const n = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
@@ -78,6 +84,5 @@ export function toAddReceiptItemApiPayload(data: AddReceiptItemBodyType): Record
     if (data.rejectionReason?.trim()) body.rejectionReason = data.rejectionReason.trim();
     if (data.manufacturedDate?.trim()) body.manufacturedDate = data.manufacturedDate.trim();
     if (data.statedExpiryDate?.trim()) body.statedExpiryDate = data.statedExpiryDate.trim();
-    if (data.storageLocationCode?.trim()) body.storageLocationCode = data.storageLocationCode.trim();
     return body;
 }

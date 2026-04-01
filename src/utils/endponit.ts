@@ -84,11 +84,18 @@ export const ENDPOINT_CLIENT = {
     SHIPMENT_RECEIVE_ALL: (id: string) => `/shipments/${id}/receive-all`,
     SHIPMENT_RECEIVE: (id: string) => `/shipments/${id}/receive`,
 
-    // Warehouse
+    // Warehouse (WH-OPTIMIZE + picking thủ công — đối chiếu Swagger)
+    /** Danh sách tác vụ soạn hàng (`/warehouse/picking-tasks`); BE chỉ trả đơn approved — không gửi `status`. */
+    WAREHOUSE_TASKS: '/warehouse/picking-tasks',
     WAREHOUSE_PICKING_TASKS: '/warehouse/picking-tasks',
     WAREHOUSE_PICKING_TASK_DETAIL: (id: string) => `/warehouse/picking-tasks/${id}`,
     WAREHOUSE_PICKING_TASK_RESET: (orderId: string) => `/warehouse/picking-tasks/${orderId}/reset`,
+    /** Hủy / từ chối soạn — body `{ reason }` */
+    WAREHOUSE_TASK_CANCEL: (orderId: string) => `/warehouse/tasks/${orderId}/cancel`,
+    /** Chốt xuất kho gộp (PATCH — OpenAPI production) */
     WAREHOUSE_FINALIZE_BULK: '/warehouse/shipments/finalize-bulk',
+    /** @deprecated Một số bản BE cũ; production dùng PATCH `WAREHOUSE_FINALIZE_BULK` */
+    WAREHOUSE_FINALIZE_BULK_SHIPMENT: '/warehouse/finalize-bulk-shipment',
     WAREHOUSE_SHIPMENT_LABEL: (id: string) => `/warehouse/shipments/${id}/label`,
     WAREHOUSE_SCAN_CHECK: '/warehouse/scan-check',
     WAREHOUSE_REPORT_ISSUE: '/warehouse/batch/report-issue',

@@ -19,7 +19,7 @@ export const FinalizeBulkShipmentBody = z.object({
             pickedItems: z.array(
                 z.object({
                     batchId: z.number(),
-                    quantity: z.number().min(0.1, "Số lượng phải >= 0.1"),
+                    quantity: z.number().min(0.01, "Số lượng phải >= 0.01"),
                 })
             )
         })
@@ -32,8 +32,29 @@ export const ReportIssueBody = z.object({
     reason: z.string().min(1, "Lý do không được để trống"),
 });
 
+/** POST /warehouse/tasks/:orderId/cancel — FE yêu cầu tối thiểu 10 ký tự để tránh hủy nhầm */
+export const CancelPickingTaskBody = z.object({
+    reason: z.string().min(10, "Lý do hủy cần ít nhất 10 ký tự"),
+});
+
+/** (Tuỳ chọn / tương lai) — production hiện chỉ dùng GET `scan-check?batchCode=`. */
+export const ScanCheckVerifyBody = z
+    .object({
+        batchId: z.number().int().positive().optional(),
+        batchCode: z.string().optional(),
+    })
+    .superRefine((val, ctx) => {
+        const hasId = val.batchId != null && val.batchId > 0;
+        const hasCode = val.batchCode != null && val.batchCode.trim() !== "";
+        if (!hasId && !hasCode) {
+            ctx.addIssue({ code: "custom", message: "Cần batchId hoặc batchCode" });
+        }
+    });
+
 export type FinalizeBulkShipmentBodyType = z.infer<typeof FinalizeBulkShipmentBody>;
+export type ScanCheckVerifyBodyType = z.infer<typeof ScanCheckVerifyBody>;
 export type CreateWarehouseBodyType = z.infer<typeof CreateWarehouseBody>;
 export type ReportIssueBodyType = z.infer<typeof ReportIssueBody>;
+export type CancelPickingTaskBodyType = z.infer<typeof CancelPickingTaskBody>;
 
 
