@@ -5,6 +5,7 @@ import { ReceiptStatus } from "@/utils/enum";
 import { InboxArrowDownIcon } from "@heroicons/react/24/outline";
 import { useMemo, useState } from "react";
 import InboundDraftBoard from "./InboundDraftBoard";
+import InboundHistoryColumn from "./InboundHistoryColumn";
 import ReceiptDetailModal from "./ReceiptDetailModal";
 import InboundCreateModal from "./InboundCreateModal";
 import { PlusIcon } from "@heroicons/react/24/outline";
@@ -30,10 +31,21 @@ export default function InboundClient() {
         status: ReceiptStatus.DRAFT,
     });
 
+    const completedReceiptsQuery = receiptList({
+        ...QUERY_CONFIG,
+        limit: 12,
+        status: ReceiptStatus.COMPLETED,
+    });
+
     const draftReceipts = useMemo(() => {
         const data = (draftReceiptsQuery.data ?? {}) as { items?: unknown[]; data?: { items?: unknown[] } };
         return Array.isArray(data.items) ? data.items : Array.isArray(data.data?.items) ? data.data.items : [];
     }, [draftReceiptsQuery.data]);
+
+    const completedReceipts = useMemo(() => {
+        const data = (completedReceiptsQuery.data ?? {}) as { items?: unknown[]; data?: { items?: unknown[] } };
+        return Array.isArray(data.items) ? data.items : Array.isArray(data.data?.items) ? data.data.items : [];
+    }, [completedReceiptsQuery.data]);
 
     const handleSelect = (id: string, code: string) => {
         setSelectedReceiptId(id);
@@ -49,10 +61,10 @@ export default function InboundClient() {
                         <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">
                             <InboxArrowDownIcon className="h-7 w-7" />
                         </div>
-                        Cổng nhập kho (Inbound)
+                        Xác nhận hàng về (Inbound)
                     </h1>
                     <p className="pl-1 text-text-muted">
-                        Khởi tạo lô, đối soát PO, QC và chốt phiếu — nguồn gốc tồn kho & FEFO bắt đầu từ đây.
+                        Chốt phiếu để hệ thống tự sinh mã lô (BAT-…), đối soát SL nhận với dự kiến và in nhãn ngay tại quầy.
                     </p>
                 </div>
                 <Can I={P.INBOUND_CREATE_RECEIPT} on={Resource.INBOUND}>
@@ -66,12 +78,20 @@ export default function InboundClient() {
                 </Can>
             </div>
 
-            <InboundDraftBoard
-                drafts={draftReceipts as Record<string, unknown>[]}
-                isLoading={draftReceiptsQuery.isLoading}
-                isError={draftReceiptsQuery.isError}
-                onSelect={handleSelect}
-            />
+            <div className="grid grid-cols-1 gap-8 xl:grid-cols-2 xl:items-start">
+                <InboundDraftBoard
+                    drafts={draftReceipts as Record<string, unknown>[]}
+                    isLoading={draftReceiptsQuery.isLoading}
+                    isError={draftReceiptsQuery.isError}
+                    onSelect={handleSelect}
+                />
+                <InboundHistoryColumn
+                    receipts={completedReceipts as Record<string, unknown>[]}
+                    isLoading={completedReceiptsQuery.isLoading}
+                    isError={completedReceiptsQuery.isError}
+                    onSelect={handleSelect}
+                />
+            </div>
 
             <ReceiptDetailModal
                 isOpen={isDetailOpen}

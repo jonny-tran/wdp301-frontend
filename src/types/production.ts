@@ -71,6 +71,10 @@ export type ProductionOrderDetail = ProductionOrder & {
     outputBatchCode?: string;
     outputBatchId?: number;
     outputExpiryDate?: string;
+    /** `ingredientProductId` → tên NL từ `recipe.items` (khi reservation không embed product). */
+    ingredientLookup?: Record<number, string>;
+    /** `normSku` → tên NL (khớp phần đầu mã lô với SKU sản phẩm). */
+    ingredientLookupBySku?: Record<string, string>;
 };
 
 export type RecipeBomLine = {
@@ -106,6 +110,9 @@ export type CompleteProductionResult = {
     batchId: number;
     batchCode: string;
     message?: string;
+    /** HSD lô thành phẩm mới (nếu API trả) */
+    outputExpiryDate?: string;
+    expiryDate?: string;
 };
 
 export type QueryProductionOrder = BaseRequestPagination & {

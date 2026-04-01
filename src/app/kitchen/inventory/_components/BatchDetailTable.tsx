@@ -33,6 +33,32 @@ export function batchExpiryUiStatus(expiryDate: string): BatchExpiryUiStatus {
     return "good";
 }
 
+/** Thanh 0–100%: còn nhiều ngày → xanh, sắp hết hạn → đỏ (chuẩn 30 ngày). */
+export function batchFreshnessPercent(expiryDate: string): number {
+    const days = batchExpiryDaysUntil(expiryDate);
+    if (days === null) return 70;
+    if (days < 0) return 0;
+    return Math.min(100, Math.round((days / 30) * 100));
+}
+
+function FreshnessBar({ expiryDate }: { expiryDate: string }) {
+    const pct = batchFreshnessPercent(expiryDate);
+    const barColor =
+        pct >= 70 ? "bg-emerald-500" : pct >= 35 ? "bg-amber-500" : pct > 0 ? "bg-orange-600" : "bg-red-600";
+    return (
+        <div className="mt-1 w-full max-w-[140px]">
+            <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                <div
+                    className={cn("h-full rounded-full transition-all", barColor)}
+                    style={{ width: `${pct}%` }}
+                    title={`Độ “tươi” ước lượng: ${pct}%`}
+                />
+            </div>
+            <p className="mt-0.5 text-[9px] font-semibold text-slate-500">Còn HSD (tương đối)</p>
+        </div>
+    );
+}
+
 function sortBatchesFefo(batches: KitchenBatchRow[]): KitchenBatchRow[] {
     return [...batches].sort((a, b) => {
         const da = parseExpiryDay(a.expiryDate);
@@ -82,6 +108,7 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
                     <TableRow className="hover:bg-transparent">
                         <TableHead>Mã lô</TableHead>
                         <TableHead>HSD</TableHead>
+                        <TableHead className="min-w-[100px]">Độ tươi</TableHead>
                         <TableHead className="text-right">Vật lý</TableHead>
                         <TableHead className="text-right">Khả dụng</TableHead>
                         <TableHead className="text-right">Đặt trước</TableHead>
@@ -117,6 +144,9 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
                                             ({days < 0 ? "quá hạn" : `còn ${days} ngày`})
                                         </span>
                                     )}
+                                </TableCell>
+                                <TableCell className="align-top">
+                                    <FreshnessBar expiryDate={batch.expiryDate} />
                                 </TableCell>
                                 <TableCell className="text-right tabular-nums">
                                     {batch.totalQuantity} {unit}

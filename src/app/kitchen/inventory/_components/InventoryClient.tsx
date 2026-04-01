@@ -7,6 +7,7 @@ import { BasePagination } from "@/components/layout/BasePagination";
 import { useInventory } from "@/hooks/useInventory";
 import type { RawSearchParams } from "@/app/kitchen/_components/query";
 import type { KitchSummary } from "@/types/inventory";
+import { normalizeInventoryAgingReportFromApi } from "@/lib/kitchen-inventory-mapper";
 import {
     createPaginationSearchParams,
     normalizeKitchenInventoryMeta,
@@ -104,10 +105,11 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
 
     const nearExpiryStats = useMemo(() => {
         if (agingQuery.isError) return { count: null as number | null, unavailable: true };
-        if (!agingQuery.data) return { count: null as number | null, unavailable: false };
-        const n = agingQuery.data.filter((row) => row.daysUntilExpiry >= 0 && row.daysUntilExpiry < 7).length;
+        if (!agingQuery.data && agingQuery.isLoading) return { count: null as number | null, unavailable: false };
+        const rows = normalizeInventoryAgingReportFromApi(agingQuery.data);
+        const n = rows.filter((row) => row.daysUntilExpiry >= 0 && row.daysUntilExpiry < 7).length;
         return { count: n, unavailable: false };
-    }, [agingQuery.data, agingQuery.isError]);
+    }, [agingQuery.data, agingQuery.isError, agingQuery.isLoading]);
 
     const kpiItems = kpiQuery.data?.items ?? [];
     const totalSkus = kpiQuery.data?.meta?.totalItems ?? kpiItems.length;

@@ -84,4 +84,4 @@ export type QueryPickingTask = BaseRequestPagination & {
     date?: string;
     search?: string;
     sortBy?: string;
-}
+};

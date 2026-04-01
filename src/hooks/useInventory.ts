@@ -118,9 +118,9 @@ export const useInventory = () => {
         return useQuery({
             queryKey: QUERY_KEY.analytics.inventoryAging(query),
             queryFn: async () => {
-                const res = await inventoryRequest.getInventoryAgingReport(query)
-                return res.data
-            }
+                const res = await inventoryRequest.getInventoryAgingReport(query);
+                return res.data;
+            },
         })
     }
 

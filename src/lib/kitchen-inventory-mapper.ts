@@ -1,5 +1,10 @@
 import { parseDecimalLike } from "@/lib/inventory-parse";
-import type { InventoryTransactionLogItem, KitchenDetail, KitchSummary } from "@/types/inventory";
+import type {
+    InventoryAgingReport,
+    InventoryTransactionLogItem,
+    KitchenDetail,
+    KitchSummary,
+} from "@/types/inventory";
 
 function readRecord(row: unknown): Record<string, unknown> {
     return row && typeof row === "object" ? (row as Record<string, unknown>) : {};
@@ -81,6 +86,17 @@ export function normalizeKitchSummary(raw: unknown): KitchSummary {
         categoryName: category || categoryFromNested || undefined,
         imageUrl: image && image.length > 0 ? image : null,
     };
+}
+
+/** API có thể trả mảng thuần hoặc bọc { data } / { items }. */
+export function normalizeInventoryAgingReportFromApi(raw: unknown): InventoryAgingReport {
+    if (Array.isArray(raw)) return raw as InventoryAgingReport;
+    if (raw && typeof raw === "object") {
+        const o = raw as Record<string, unknown>;
+        const inner = o.data ?? o.items ?? o.results;
+        if (Array.isArray(inner)) return inner as InventoryAgingReport;
+    }
+    return [];
 }
 
 export function normalizeInventoryTransactionLogItem(raw: unknown): InventoryTransactionLogItem {

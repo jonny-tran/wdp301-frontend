@@ -4,10 +4,13 @@ import { inboundRequest } from "@/apiRequest/inbound";
 import { handleErrorApi } from "@/lib/errors";
 import {
     AddReceiptItemBodyType,
+    CompleteReceiptBodyType,
     CreateReceiptBodyType,
     ReprintBatchBodyType,
     VarianceApprovalBodyType,
 } from "@/schemas/inbound";
+import type { CompleteInboundReceiptResult } from "@/types/inbound";
+import { parseCompleteInboundReceiptResult } from "@/lib/inbound-complete-result";
 import { QueryIbound } from "@/types/inbound";
 import { KEY, QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -38,12 +41,15 @@ export const useInbound = () => {
     });
 
     const completeReceipt = useMutation({
-        mutationFn: async (id: string) => {
-            const res = await inboundRequest.completeReceipt(id);
-            return res.data;
+        mutationFn: async ({ id, body }: { id: string; body?: CompleteReceiptBodyType }) => {
+            const res = await inboundRequest.completeReceipt(id, body);
+            return parseCompleteInboundReceiptResult(res.data) as CompleteInboundReceiptResult;
         },
-        onSuccess: () => {
-            toast.success("Đã chốt phiếu — lô & tồn kho đã cập nhật");
+        onSuccess: (result) => {
+            const n = result.batchCodes.length;
+            toast.success(
+                n > 0 ? `Đã xác nhận hàng về — ${n} mã lô đã sinh` : "Đã chốt phiếu — lô & tồn kho đã cập nhật",
+            );
             queryClient.invalidateQueries({ queryKey: KEY.receipts });
         },
         onError: (error) => {

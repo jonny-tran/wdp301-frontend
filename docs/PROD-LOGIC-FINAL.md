@@ -1,5 +1,5 @@
 # Đặc tả nghiệp vụ sản xuất (BOM & lệnh)
-**Mã phân hệ:** PROD-LOGIC | **Version:** 1.2
+**Mã phân hệ:** PROD-LOGIC | **Version:** 1.3
 
 ## 0. API tóm tắt (`/production`)
 
@@ -59,3 +59,13 @@ Hạn dùng lô TP = min(NSX + shelf life lý thuyết, min(HSD các lô nguyên
 ## 7. Lineage
 
 `batch_lineage`: lô nguyên liệu (parent) → lô thành phẩm (child), kèm `consumed_quantity` và `production_order_id`.
+
+## 8. Luồng FE Kitchen — Recipe Book → lệnh → hoàn tất
+
+Màn **Recipe Book** (bếp) chỉ đọc BOM và tồn khả dụng; để chạy sản xuất thực tế, FE gọi API theo thứ tự:
+
+1. **`POST /production/orders`** — body `{ productId, plannedQuantity }` (thành phẩm `finished_good` active; server chọn đúng một recipe active). Trả về lệnh **draft** (cần lấy `id` từ response — có thể bọc trong `data`).
+2. **`POST /production/orders/:id/start`** — kiểm tra tồn/HSD, tạm giữ NL theo FEFO; lệnh chuyển **IN_PROGRESS**. Sau bước này mở modal **danh sách lô cần lấy** (reservations) nếu cần hỗ trợ bếp.
+3. Tab **Active Orders** — khi xong sản xuất, bấm **Hoàn tất** → **`POST /production/orders/:id/complete`** với `actualQuantity` (và `wasteReason` khi thực tế &lt; kế hoạch).
+
+**Ước lượng “đủ nguyên liệu?” trên Recipe Book:** với mỗi dòng BOM, `need = quantityPerOutput × plannedQuantity` (cùng logic §3); so sánh `need` với **available** tổng quan kho bếp. Đây là chỉ báo trước khi Start; giữ chỗ thực tế do server quyết định theo lô FEFO.

@@ -22,15 +22,44 @@ function pickNum(v: unknown, fallback = 0): number {
 
 export function normalizeStatus(s: unknown): ProductionOrderStatus {
     const u = String(s ?? "").toUpperCase();
+    if (u === "DRAFT") {
+        return "PENDING";
+    }
     if (u === "PENDING" || u === "IN_PROGRESS" || u === "COMPLETED" || u === "CANCELLED") {
         return u as ProductionOrderStatus;
     }
     return "PENDING";
 }
 
+/** Lấy id lệnh từ response POST /production/orders (nhiều dạng envelope). */
+export function parseCreatedProductionOrderId(raw: unknown): string {
+    const root = (raw ?? {}) as Record<string, unknown>;
+    const inner = (root.data ?? root.order ?? root.productionOrder ?? root) as Record<string, unknown>;
+    const id = inner.id ?? inner.productionOrderId ?? root.id;
+    return id != null && String(id) !== "" ? String(id) : "";
+}
+
 export function normalizeProductionOrder(raw: Record<string, unknown>): ProductionOrder {
     const id = pickStr(raw.id ?? raw.productionOrderId ?? raw.orderId);
     const recipeObj = raw.recipe as Record<string, unknown> | undefined;
+    const outputProduct = recipeObj?.outputProduct as Record<string, unknown> | undefined;
+    const productObj = raw.product as Record<string, unknown> | undefined;
+    const kitchenStaff = raw.kitchenStaff as Record<string, unknown> | undefined;
+
+    let productName = pickStr(
+        raw.productName ?? productObj?.name ?? outputProduct?.name ?? recipeObj?.name ?? "",
+    );
+    if (!productName) productName = "—";
+
+    const productId = pickNum(raw.productId ?? recipeObj?.outputProductId ?? outputProduct?.id);
+
+    const sku =
+        raw.sku != null
+            ? pickStr(raw.sku)
+            : outputProduct?.sku != null
+              ? pickStr(outputProduct.sku)
+              : undefined;
+
     return {
         id,
         orderCode:
@@ -39,11 +68,9 @@ export function normalizeProductionOrder(raw: Record<string, unknown>): Producti
                 : raw.code != null
                   ? pickStr(raw.code)
                   : undefined,
-        productId: pickNum(raw.productId),
-        productName: pickStr(
-            raw.productName ?? (raw.product as Record<string, unknown> | undefined)?.name ?? "—",
-        ),
-        sku: raw.sku != null ? pickStr(raw.sku) : undefined,
+        productId,
+        productName,
+        sku,
         recipeName: pickStr(
             raw.recipeName ?? recipeObj?.name ?? recipeObj?.productName ?? (raw.recipe as string | undefined) ?? "",
         ),
@@ -51,6 +78,8 @@ export function normalizeProductionOrder(raw: Record<string, unknown>): Producti
             raw.assignedStaffName ??
                 raw.staffName ??
                 raw.kitchenStaffName ??
+                kitchenStaff?.username ??
+                kitchenStaff?.name ??
                 (raw.assignedUser as Record<string, unknown> | undefined)?.name ??
                 (raw.user as Record<string, unknown> | undefined)?.name ??
                 "",
@@ -60,7 +89,13 @@ export function normalizeProductionOrder(raw: Record<string, unknown>): Producti
             raw.actualQuantity != null && raw.actualQuantity !== ""
                 ? pickNum(raw.actualQuantity)
                 : null,
-        unit: pickStr(raw.unit ?? raw.baseUnit ?? "kg"),
+        unit: pickStr(
+            raw.unit ??
+                raw.baseUnit ??
+                outputProduct?.baseUnitName ??
+                (outputProduct?.baseUnit as string | undefined) ??
+                "kg",
+        ),
         status: normalizeStatus(raw.status),
         createdAt: pickStr(raw.createdAt ?? raw.created_at ?? new Date().toISOString()),
         updatedAt: raw.updatedAt != null ? pickStr(raw.updatedAt) : raw.updated_at != null ? pickStr(raw.updated_at) : null,
@@ -162,24 +197,89 @@ export function normalizeRecipeDetail(raw: Record<string, unknown>): RecipeDetai
 }
 
 function normalizeReservation(raw: Record<string, unknown>): ProductionReservation {
+    const batch =
+        (raw.batch as Record<string, unknown> | undefined) ??
+        (raw.inventoryBatch as Record<string, unknown> | undefined);
+    const batchProduct = batch?.product as Record<string, unknown> | undefined;
+    const product =
+        (raw.product as Record<string, unknown> | undefined) ?? batchProduct ?? undefined;
+    const ingredient = raw.ingredient as Record<string, unknown> | undefined;
+
+    const batchId =
+        raw.batchId != null
+            ? pickNum(raw.batchId)
+            : batch?.id != null
+              ? pickNum(batch.id)
+              : undefined;
+
+    const batchCode =
+        raw.batchCode != null
+            ? pickStr(raw.batchCode)
+            : batch?.batchCode != null
+              ? pickStr(batch.batchCode)
+              : batch?.code != null
+                ? pickStr(batch.code)
+                : undefined;
+
+    const productId =
+        raw.productId != null
+            ? pickNum(raw.productId)
+            : product?.id != null
+              ? pickNum(product.id)
+              : batch?.productId != null
+                ? pickNum(batch.productId)
+                : raw.ingredientProductId != null
+                  ? pickNum(raw.ingredientProductId)
+                  : raw.materialProductId != null
+                    ? pickNum(raw.materialProductId)
+                    : ingredient?.id != null
+                      ? pickNum(ingredient.id)
+                      : undefined;
+
+    const productName =
+        raw.productName != null && String(raw.productName).trim() !== ""
+            ? pickStr(raw.productName)
+            : product?.name != null
+              ? pickStr(product.name)
+              : batchProduct?.name != null
+                ? pickStr(batchProduct.name)
+                : ingredient?.name != null
+                  ? pickStr(ingredient.name)
+                  : undefined;
+
+    const expiryDate =
+        raw.expiryDate != null
+            ? pickStr(raw.expiryDate)
+            : raw.expiry_date != null
+              ? pickStr(raw.expiry_date)
+              : batch?.expiryDate != null
+                ? pickStr(batch.expiryDate)
+                : batch?.expiry_date != null
+                  ? pickStr(batch.expiry_date)
+                  : batch?.bestBefore != null
+                    ? pickStr(batch.bestBefore)
+                    : undefined;
+
     return {
-        batchId: raw.batchId != null ? pickNum(raw.batchId) : undefined,
-        batchCode: raw.batchCode != null ? pickStr(raw.batchCode) : undefined,
-        productId: raw.productId != null ? pickNum(raw.productId) : undefined,
-        productName: raw.productName != null ? pickStr(raw.productName) : undefined,
-        quantity: raw.quantity != null ? pickNum(raw.quantity) : undefined,
+        batchId,
+        batchCode,
+        productId,
+        productName,
+        quantity:
+            raw.quantity != null
+                ? pickNum(raw.quantity)
+                : raw.requestedQuantity != null
+                  ? pickNum(raw.requestedQuantity)
+                  : undefined,
         reservedQuantity:
             raw.reservedQuantity != null
                 ? pickNum(raw.reservedQuantity)
                 : raw.reserved_quantity != null
                   ? pickNum(raw.reserved_quantity)
-                  : undefined,
-        expiryDate:
-            raw.expiryDate != null
-                ? pickStr(raw.expiryDate)
-                : raw.expiry_date != null
-                  ? pickStr(raw.expiry_date)
-                  : undefined,
+                  : raw.reservedQty != null
+                    ? pickNum(raw.reservedQty)
+                    : undefined,
+        expiryDate,
     };
 }
 
@@ -195,13 +295,51 @@ function normalizeLineageRow(raw: Record<string, unknown>): ProductionLineageRow
     };
 }
 
+function pickTxQuantity(raw: Record<string, unknown>): number | undefined {
+    const candidates = [
+        raw.quantity,
+        raw.changeQuantity,
+        raw.stockChange,
+        raw.deltaQuantity,
+        raw.delta,
+        raw.amount,
+        raw.qty,
+        raw.absQuantity,
+        raw.changeInQuantity,
+    ];
+    for (const c of candidates) {
+        if (c != null && c !== "") {
+            const n = pickNum(c);
+            if (Number.isFinite(n)) return n;
+        }
+    }
+    const details = raw.details as Record<string, unknown> | undefined;
+    if (details) {
+        const dq = details.quantity ?? details.amount ?? details.qty;
+        if (dq != null && dq !== "") {
+            const n = pickNum(dq);
+            if (Number.isFinite(n)) return n;
+        }
+    }
+    const meta = raw.metadata as Record<string, unknown> | undefined;
+    if (meta) {
+        const mq = meta.quantity ?? meta.changeQuantity ?? meta.amount ?? meta.qty ?? meta.delta;
+        if (mq != null && mq !== "") {
+            const n = pickNum(mq);
+            if (Number.isFinite(n)) return n;
+        }
+    }
+    return undefined;
+}
+
 function normalizeInventoryTx(raw: Record<string, unknown>): ProductionInventoryTx {
+    const note = pickStr(raw.note ?? raw.description ?? raw.memo ?? raw.message ?? "");
     return {
         id: raw.id != null ? pickStr(raw.id) : undefined,
-        type: pickStr(raw.type ?? raw.transactionType ?? raw.referenceType),
-        quantity: raw.quantity != null ? pickNum(raw.quantity) : undefined,
-        wasteReason: pickStr(raw.wasteReason ?? raw.reason ?? raw.note),
-        note: raw.note != null ? pickStr(raw.note) : undefined,
+        type: pickStr(raw.type ?? raw.transactionType ?? raw.referenceType ?? raw.movementType),
+        quantity: pickTxQuantity(raw),
+        wasteReason: pickStr(raw.wasteReason ?? raw.reason ?? ""),
+        note: note || undefined,
         metadata: raw.metadata as Record<string, unknown> | undefined,
         createdAt:
             raw.createdAt != null
@@ -210,6 +348,103 @@ function normalizeInventoryTx(raw: Record<string, unknown>): ProductionInventory
                   ? pickStr(raw.created_at)
                   : undefined,
     };
+}
+
+function normSkuKey(s: string): string {
+    return String(s ?? "")
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .toUpperCase();
+}
+
+function buildRecipeIngredientLookups(recipeObj: Record<string, unknown> | undefined): {
+    byId?: Record<number, string>;
+    bySku?: Record<string, string>;
+} {
+    if (!recipeObj) return {};
+    const itemsRaw = recipeObj.items as unknown;
+    if (!Array.isArray(itemsRaw) || itemsRaw.length === 0) return {};
+    const byId: Record<number, string> = {};
+    const bySku: Record<string, string> = {};
+    itemsRaw.forEach((it) => {
+        const row = it as Record<string, unknown>;
+        const ing = row.ingredient as Record<string, unknown> | undefined;
+        const pid = pickNum(row.ingredientProductId ?? ing?.id);
+        const name = pickStr(ing?.name ?? "");
+        if (pid > 0 && name) byId[pid] = name;
+        const sku = pickStr(ing?.sku ?? "");
+        const skuNorm = normSkuKey(sku);
+        if (skuNorm && name) bySku[skuNorm] = name;
+    });
+    return {
+        byId: Object.keys(byId).length > 0 ? byId : undefined,
+        bySku: Object.keys(bySku).length > 0 ? bySku : undefined,
+    };
+}
+
+/** Gợi ý tên NL khi reservation chỉ có mã lô (đoạn đầu trùng SKU đã chuẩn hoá). */
+/** Hiển thị SL nhật ký kho khi `quantity` phẳng thiếu (còn trong `metadata`). */
+export function resolveInventoryTxQuantityLabel(t: ProductionInventoryTx): string {
+    if (t.quantity != null && Number.isFinite(t.quantity)) {
+        const n = Math.abs(t.quantity);
+        return formatQtyVi(n);
+    }
+    const meta = t.metadata as Record<string, unknown> | undefined;
+    if (meta) {
+        const keys = ["quantity", "changeQuantity", "amount", "qty", "delta", "stockChange"] as const;
+        for (const k of keys) {
+            const v = meta[k];
+            if (v != null && v !== "") {
+                const n = Math.abs(pickNum(v));
+                if (Number.isFinite(n)) return formatQtyVi(n);
+            }
+        }
+    }
+    return "—";
+}
+
+function formatQtyVi(n: number): string {
+    if (!Number.isFinite(n)) return "—";
+    const rounded = Math.round(n * 10000) / 10000;
+    if (Number.isInteger(rounded)) return String(rounded);
+    return String(rounded);
+}
+
+export function resolveReservationIngredientName(r: ProductionReservation, detail: ProductionOrderDetail): string {
+    if (r.productName?.trim()) return r.productName;
+    const pid = r.productId;
+    if (pid != null && detail.ingredientLookup) {
+        const fromId = detail.ingredientLookup[pid] ?? detail.ingredientLookup[Number(pid)];
+        if (fromId) return fromId;
+    }
+    const code = r.batchCode ?? "";
+    if (!code.trim() || !detail.ingredientLookupBySku) return "—";
+    const head = normSkuKey(code.split("-")[0] ?? code);
+    if (head && detail.ingredientLookupBySku[head]) return detail.ingredientLookupBySku[head];
+    for (const [skuNorm, name] of Object.entries(detail.ingredientLookupBySku)) {
+        if (!skuNorm) continue;
+        if (head.startsWith(skuNorm) || skuNorm.startsWith(head) || head.includes(skuNorm) || skuNorm.includes(head)) {
+            return name;
+        }
+    }
+    return "—";
+}
+
+/** Dùng để merge hàng lệnh trong cache sau GET /production/orders/:id (list thường thiếu product). */
+export function listRowFromOrderDetail(detail: ProductionOrderDetail): ProductionOrder {
+    const {
+        reservations: _r,
+        lineage: _l,
+        inventoryTransactions: _t,
+        recipeId: _rid,
+        plannedQuantity: _pq,
+        outputBatchCode: _obc,
+        outputBatchId: _obi,
+        outputExpiryDate: _oed,
+        ingredientLookup: _il,
+        ingredientLookupBySku: _ils,
+        ...order
+    } = detail;
+    return order;
 }
 
 export function normalizeProductionOrderDetail(raw: Record<string, unknown>): ProductionOrderDetail {
@@ -232,6 +467,7 @@ export function normalizeProductionOrderDetail(raw: Record<string, unknown>): Pr
         : [];
 
     const recipeObj = raw.recipe as Record<string, unknown> | undefined;
+    const { byId: ingredientLookup, bySku: ingredientLookupBySku } = buildRecipeIngredientLookups(recipeObj);
 
     const outBatch = raw.outputBatch as Record<string, unknown> | undefined;
 
@@ -250,6 +486,8 @@ export function normalizeProductionOrderDetail(raw: Record<string, unknown>): Pr
         reservations,
         lineage,
         inventoryTransactions,
+        ingredientLookup,
+        ingredientLookupBySku,
         outputBatchCode: pickStr(
             raw.outputBatchCode ?? raw.resultBatchCode ?? outBatch?.batchCode ?? "",
         ),

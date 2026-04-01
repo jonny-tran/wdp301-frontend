@@ -1,8 +1,17 @@
-import Link from "next/link";
-import { PickingTaskListItem } from "@/types/warehouse";
+"use client";
+
+import { format } from "date-fns";
+import { vi } from "date-fns/locale";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import Can from "@/components/shared/Can";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { P } from "@/lib/authz";
+import { cn } from "@/lib/utils";
+import type { PickingTaskListItem } from "@/types/warehouse";
 import { Resource } from "@/utils/constant";
+import CancelPickingTaskDialog from "./CancelPickingTaskDialog";
 
 interface WarehouseTasksTableProps {
     tasks: PickingTaskListItem[];
@@ -13,6 +22,21 @@ interface WarehouseTasksTableProps {
     onReset: (orderId: string) => void;
 }
 
+function canCancelWarehouseTask(task: PickingTaskListItem): boolean {
+    const s = task.status?.trim().toUpperCase();
+    if (!s) return true;
+    return s === "APPROVED" || s === "PICKING";
+}
+
+function formatCreatedAt(iso: string | undefined) {
+    if (!iso) return "—";
+    try {
+        return format(new Date(iso), "dd/MM/yyyy HH:mm", { locale: vi });
+    } catch {
+        return String(iso).slice(0, 16);
+    }
+}
+
 export default function WarehouseTasksTable({
     tasks,
     rowStart,
@@ -21,76 +45,123 @@ export default function WarehouseTasksTable({
     isResetting,
     onReset,
 }: WarehouseTasksTableProps) {
+    const router = useRouter();
+    const [cancelOrderId, setCancelOrderId] = useState<string | null>(null);
+
+    const goDetail = (orderId: string) => {
+        if (!orderId) return;
+        router.push(`/kitchen/warehouse/${orderId}`);
+    };
+
     return (
-        <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-                <thead className="bg-gray-50/70 text-xs uppercase tracking-wide text-text-muted">
-                    <tr>
-                        <th className="px-6 py-3">STT</th>
-                        <th className="px-6 py-3">Cửa hàng</th>
-                        <th className="px-6 py-3">Giao hàng</th>
-                        <th className="px-6 py-3 text-right">Mặt hàng</th>
-                        <th className="px-6 py-3 text-center">Trạng thái</th>
-                        <th className="px-6 py-3 text-right">Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
+        <div className="px-2 pb-2 sm:px-4">
+            <CancelPickingTaskDialog
+                open={cancelOrderId != null}
+                onOpenChange={(open) => {
+                    if (!open) setCancelOrderId(null);
+                }}
+                orderId={cancelOrderId ?? ""}
+                title="Hủy tác vụ soạn hàng"
+            />
+            <Table>
+                <TableHeader>
+                    <TableRow className="border-b-2 border-zinc-200 bg-zinc-50 hover:bg-zinc-50">
+                        <TableHead className="w-14 font-bold text-zinc-700">STT</TableHead>
+                        <TableHead className="font-bold text-zinc-700">Mã đơn</TableHead>
+                        <TableHead className="font-bold text-zinc-700">Cửa hàng đích</TableHead>
+                        <TableHead className="text-right font-bold text-zinc-700">Tổng mặt hàng</TableHead>
+                        <TableHead className="font-bold text-zinc-700">Ngày tạo</TableHead>
+                        <TableHead className="w-[200px] text-right font-bold text-zinc-700">Thao tác</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
                     {isLoading ? (
-                        <tr key="loading">
-                            <td className="px-6 py-8 text-sm text-text-muted" colSpan={6}>
-                                Đang tải các tác vụ kho...
-                            </td>
-                        </tr>
+                        <TableRow>
+                            <TableCell colSpan={6} className="py-12 text-center text-sm font-medium text-zinc-500">
+                                Đang tải danh sách tác vụ kho…
+                            </TableCell>
+                        </TableRow>
                     ) : isError ? (
-                        <tr key="error">
-                            <td className="px-6 py-8 text-sm text-red-500" colSpan={6}>
-                                Tải các tác vụ kho thất bại.
-                            </td>
-                        </tr>
+                        <TableRow>
+                            <TableCell colSpan={6} className="py-12 text-center text-sm font-semibold text-red-600">
+                                Không tải được danh sách. Thử làm mới trang.
+                            </TableCell>
+                        </TableRow>
                     ) : tasks.length === 0 ? (
-                        <tr key="empty">
-                            <td className="px-6 py-8 text-sm text-text-muted" colSpan={6}>
-                                Không tìm thấy tác vụ lấy hàng nào.
-                            </td>
-                        </tr>
+                        <TableRow>
+                            <TableCell colSpan={6} className="py-14 text-center">
+                                <p className="text-base font-semibold text-zinc-800">Hiện không có đơn chờ soạn hàng</p>
+                                <p className="mt-2 text-sm text-zinc-500">
+                                    API chỉ trả các đơn đã duyệt, chờ soạn hàng. Không hiển thị vị trí kệ — chỉ danh sách công việc.
+                                </p>
+                            </TableCell>
+                        </TableRow>
                     ) : (
-                        tasks.map((task, index) => (
-                            <tr key={task.orderId || task.id || index} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 font-bold text-text-main">#{rowStart + index + 1}</td>
-                                <td className="px-6 py-4 text-text-main">{task.storeName}</td>
-                                <td className="px-6 py-4 text-text-muted">
-                                    {task.deliveryDate ? String(task.deliveryDate).slice(0, 10) : "-"}
-                                </td>
-                                <td className="px-6 py-4 text-right font-semibold text-text-main">{task.totalItems}</td>
-                                <td className="px-6 py-4 text-center">
-                                    <span className="rounded-full bg-blue-100 px-2 py-1 text-[10px] font-bold uppercase text-blue-700">
-                                        {String(task.status)}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center justify-end gap-2">
-                                        <Can I={P.WAREHOUSE_RESET_PICKING} on={Resource.WAREHOUSE}>
-                                            <button
-                                                onClick={() => onReset(task.orderId || task.id || "")}
-                                                disabled={isResetting}
-                                                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary disabled:opacity-50"
-                                            >
-                                                Reset
-                                            </button>
-                                        </Can>
-                                        <Link
-                                            href={`/kitchen/warehouse/${task.orderId || task.id}`}
-                                            className="rounded-lg bg-text-main px-3 py-1.5 text-xs font-bold text-white hover:bg-black"
-                                        >
-                                            Mở
-                                        </Link>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))
+                        tasks.map((task, index) => {
+                            const oid = task.orderId || task.id || "";
+                            return (
+                                <TableRow
+                                    key={oid || String(index)}
+                                    className={cn(
+                                        "cursor-pointer border-zinc-100 transition-colors hover:bg-amber-50/60",
+                                    )}
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => goDetail(oid)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter" || e.key === " ") {
+                                            e.preventDefault();
+                                            goDetail(oid);
+                                        }
+                                    }}
+                                >
+                                    <TableCell className="font-bold text-zinc-900">#{rowStart + index + 1}</TableCell>
+                                    <TableCell className="font-mono text-sm font-bold text-zinc-900">{oid || "—"}</TableCell>
+                                    <TableCell className="font-medium text-zinc-800">{task.storeName ?? "—"}</TableCell>
+                                    <TableCell className="text-right text-sm font-black tabular-nums text-zinc-900">
+                                        {task.totalItems ?? "—"}
+                                    </TableCell>
+                                    <TableCell className="whitespace-nowrap text-sm text-zinc-600">
+                                        {formatCreatedAt(task.createdAt)}
+                                    </TableCell>
+                                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                                        <div className="flex flex-wrap justify-end gap-2">
+                                            <Can I={P.WAREHOUSE_CANCEL_PICKING_TASK} on={Resource.WAREHOUSE}>
+                                                {canCancelWarehouseTask(task) ? (
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="font-bold text-red-600 hover:bg-red-50 hover:text-red-700"
+                                                        onClick={() => setCancelOrderId(oid)}
+                                                    >
+                                                        Hủy Task
+                                                    </Button>
+                                                ) : null}
+                                            </Can>
+                                            <Can I={P.WAREHOUSE_RESET_PICKING} on={Resource.WAREHOUSE}>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="font-bold"
+                                                    disabled={isResetting}
+                                                    onClick={() => onReset(oid)}
+                                                >
+                                                    Reset
+                                                </Button>
+                                            </Can>
+                                            <Button type="button" size="sm" className="font-bold" onClick={() => goDetail(oid)}>
+                                                Mở soạn hàng
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })
                     )}
-                </tbody>
-            </table>
+                </TableBody>
+            </Table>
         </div>
     );
 }

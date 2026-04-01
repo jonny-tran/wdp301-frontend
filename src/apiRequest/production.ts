@@ -5,7 +5,12 @@ import {
     normalizeRecipeSummary,
     parseProductionOrderDetailPayload,
 } from "@/lib/production-mapper";
-import { CompleteProductionBodyType, CreateRecipeApiBody, UpdateRecipeApiBody } from "@/schemas/production";
+import {
+    CompleteProductionBodyType,
+    CreateProductionOrderBodyType,
+    CreateRecipeApiBody,
+    UpdateRecipeApiBody,
+} from "@/schemas/production";
 import { BaseResponsePagination } from "@/types/base";
 import type {
     CompleteProductionResult,
@@ -58,6 +63,9 @@ function parsePaginatedRecipes(raw: unknown, query: QueryRecipeList): BaseRespon
 
 export const productionRequest = {
     getOrders: (query: QueryProductionOrder) => http.get<unknown>(ENDPOINT_CLIENT.PRODUCTION_ORDERS, { query }),
+
+    createOrder: (body: CreateProductionOrderBodyType) =>
+        http.post<unknown>(ENDPOINT_CLIENT.PRODUCTION_ORDERS, body),
 
     getOrderDetail: (id: string) => http.get<unknown>(ENDPOINT_CLIENT.PRODUCTION_ORDER_DETAIL(id)),
 

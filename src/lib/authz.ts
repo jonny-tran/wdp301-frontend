@@ -52,6 +52,7 @@ export const P = {
     WAREHOUSE_READ_TASK_DETAIL: perm(Action.READ, 'picking_detail'),    // GET /warehouse/picking-tasks/{orderId}
     WAREHOUSE_PICK_ITEM: perm(Action.CREATE, 'pick_item'),         // POST /warehouse/pick-item
     WAREHOUSE_RESET_PICKING: perm(Action.UPDATE, 'reset_picking'),     // PATCH /warehouse/picking-tasks/{orderId}/reset
+    WAREHOUSE_CANCEL_PICKING_TASK: perm(Action.UPDATE, 'cancel_picking_task'), // POST /warehouse/tasks/{orderId}/cancel
     WAREHOUSE_CREATE_SHIPMENT: perm(Action.CREATE, 'shipment'),          // POST /warehouse/shipments
     WAREHOUSE_READ_SHIP_LABEL: perm(Action.READ, 'shipment_label'),    // GET /warehouse/shipments/{id}/label
     WAREHOUSE_SCAN_CHECK: perm(Action.READ, 'scan_check'),        // GET /warehouse/scan-check
@@ -175,6 +176,7 @@ const PERMISSION: Permissions = {
             P.WAREHOUSE_READ_TASK_DETAIL,
             P.WAREHOUSE_PICK_ITEM,
             P.WAREHOUSE_RESET_PICKING,
+            P.WAREHOUSE_CANCEL_PICKING_TASK,
             P.WAREHOUSE_CREATE_SHIPMENT,
             P.WAREHOUSE_READ_SHIP_LABEL,
             P.WAREHOUSE_SCAN_CHECK,

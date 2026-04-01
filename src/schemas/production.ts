@@ -52,6 +52,15 @@ export const CreateRecipeFormSchema = z
 
 export type CreateRecipeFormValues = z.infer<typeof CreateRecipeFormSchema>;
 
+/** Lý do hao hụt khi thực tế &lt; kế hoạch — gửi wasteReason (chuỗi có nghĩa). */
+export const PRODUCTION_WASTE_PRESETS = [
+    { value: "Burnt — cháy / overcook", label: "Cháy / overcook" },
+    { value: "Dropped — rơi vỡ / đổ", label: "Rơi vỡ / đổ" },
+    { value: "Spillage — tràn / tràn bếp", label: "Tràn / đổ trong quá trình" },
+    { value: "Quality — lỗi chất lượng", label: "Lỗi chất lượng" },
+    { value: "Scale error — cân / đong sai", label: "Cân / đong sai" },
+] as const;
+
 /** Body POST /production/orders/:id/complete (camelCase theo Nest DTO). */
 export const CompleteProductionBodySchema = z.object({
     actualQuantity: z.coerce.number().positive("Số lượng thực nhận phải lớn hơn 0"),
@@ -59,6 +68,14 @@ export const CompleteProductionBodySchema = z.object({
 });
 
 export type CompleteProductionBodyType = z.infer<typeof CompleteProductionBodySchema>;
+
+/** Body POST /production/orders — tạo lệnh draft (PROD-LOGIC §2). */
+export const CreateProductionOrderBodySchema = z.object({
+    productId: z.coerce.number().int().positive("Chọn thành phẩm"),
+    plannedQuantity: z.coerce.number().positive("Số lượng kế hoạch phải > 0"),
+});
+
+export type CreateProductionOrderBodyType = z.infer<typeof CreateProductionOrderBodySchema>;
 
 export function createCompleteProductionFormSchema(targetQuantity: number) {
     return CompleteProductionBodySchema.superRefine((data, ctx) => {

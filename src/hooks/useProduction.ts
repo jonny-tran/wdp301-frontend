@@ -4,6 +4,7 @@ import { productionRequest } from "@/apiRequest/production";
 import { handleErrorApi } from "@/lib/errors";
 import {
     CompleteProductionBodyType,
+    CreateProductionOrderBodyType,
     CreateRecipeApiBody,
     UpdateRecipeApiBody,
 } from "@/schemas/production";
@@ -27,6 +28,21 @@ function extractBatchCodeFromCompletePayload(data: unknown): string {
         }
     }
     return "—";
+}
+
+function normalizeCompleteProductionResult(data: unknown): CompleteProductionResult {
+    const root = (data ?? {}) as Record<string, unknown>;
+    const inner = (root.data ?? root) as Record<string, unknown>;
+    const batchId = Number(inner.batchId ?? inner.id ?? root.batchId);
+    const batchCode = String(inner.batchCode ?? root.batchCode ?? "");
+    const outputExpiryDate = inner.outputExpiryDate ?? inner.expiryDate ?? root.outputExpiryDate ?? root.expiryDate;
+    return {
+        batchId: Number.isFinite(batchId) ? batchId : 0,
+        batchCode: batchCode || extractBatchCodeFromCompletePayload(data),
+        message: inner.message != null ? String(inner.message) : root.message != null ? String(root.message) : undefined,
+        outputExpiryDate: outputExpiryDate != null ? String(outputExpiryDate) : undefined,
+        expiryDate: inner.expiryDate != null ? String(inner.expiryDate) : undefined,
+    };
 }
 
 export function useProduction() {
@@ -74,6 +90,19 @@ export function useProduction() {
             enabled: (options?.enabled !== false) && !!recipeId,
         });
 
+    const createProductionOrder = useMutation({
+        mutationFn: async (body: CreateProductionOrderBodyType) => {
+            const res = await productionRequest.createOrder(body);
+            return res.data;
+        },
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: KEY.production });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
+
     const startProductionOrder = useMutation({
         mutationFn: async (id: string) => {
             const res = await productionRequest.startOrder(id);
@@ -81,7 +110,7 @@ export function useProduction() {
         },
         onSuccess: () => {
             toast.success("Đã bắt đầu lệnh — nguyên liệu đã được tạm giữ (FEFO)");
-            void queryClient.invalidateQueries({ queryKey: KEY.production });
+            /** Danh sách lệnh + tên SP: ProductionClient refetch & merge từ GET /orders/:id để khớp payload Nest. */
             void queryClient.invalidateQueries({ queryKey: KEY.inventory });
         },
     });
@@ -89,10 +118,10 @@ export function useProduction() {
     const completeProductionOrder = useMutation({
         mutationFn: async ({ id, body }: { id: string; body: CompleteProductionBodyType }) => {
             const res = await productionRequest.completeOrder(id, body);
-            return res.data;
+            return normalizeCompleteProductionResult(res.data);
         },
-        onSuccess: (data: CompleteProductionResult | unknown) => {
-            const code = extractBatchCodeFromCompletePayload(data);
+        onSuccess: (data: CompleteProductionResult) => {
+            const code = data.batchCode || "—";
             toast.success(`Hoàn tất sản xuất — Mã lô mới: ${code}`);
             void queryClient.invalidateQueries({ queryKey: KEY.production });
             void queryClient.invalidateQueries({ queryKey: KEY.inventory });
@@ -146,6 +175,7 @@ export function useProduction() {
         productionOrderDetail,
         productionRecipes,
         productionRecipeDetail,
+        createProductionOrder,
         startProductionOrder,
         completeProductionOrder,
         createRecipe,
