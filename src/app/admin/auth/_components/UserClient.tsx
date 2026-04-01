@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useMemo, useState, useCallback } from "react";
@@ -12,9 +13,15 @@ import {
 import UserTable from "./UserTable";
 import UserCreateModal from "./UserCreateModal";
 import UserEditModal from "./UserEditModal";
+import StaffApprovalModal from "./StaffApprovalModal";
+import { useStore } from "@/hooks/useStore"; // Hook chứa logic pending staff
 import { BasePagination } from "@/components/layout/BasePagination";
 import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
-import { UserGroupIcon, UserPlusIcon } from "@heroicons/react/24/outline";
+import {
+  UserGroupIcon,
+  UserPlusIcon,
+  BellIcon,
+} from "@heroicons/react/24/outline";
 import Can from "@/components/shared/Can";
 import { P } from "@/lib/authz";
 import { Resource } from "@/utils/constant";
@@ -34,7 +41,13 @@ export default function UserClient({
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false); // State mở modal duyệt
   const [selectedUser, setSelectedUser] = useState<UserRow | null>(null);
+
+  // --- LOGIC PHÊ DUYỆT NHÂN SỰ ---
+  const { pendingStaffList, approveStaff, rejectStaff } = useStore();
+  const { data: pendingData } = pendingStaffList();
+  const pendingCount = pendingData?.length || 0;
 
   // 1. Chuẩn hóa Query Params
   const queryParams = useMemo(
@@ -48,7 +61,7 @@ export default function UserClient({
     [searchParams],
   );
 
-  // 2. Fetch dữ liệu — Backend trả về camelCase, không cần mapper
+  // 2. Fetch dữ liệu
   const userQuery = useQuery({
     queryKey: ["users", queryParams],
     queryFn: () => authRequest.getUsers(queryParams).then((res) => res.data),
@@ -60,13 +73,11 @@ export default function UserClient({
     queryFn: () => authRequest.getRoles().then((res) => res.data),
   });
 
-  // 3. Trích xuất danh sách user — trực tiếp từ typed response
+  // 3. Mapper danh sách user
   const items: UserRow[] = useMemo(() => {
-    const data = userQuery.data as
-      | { items?: User[]; data?: { items?: User[] } }
-      | undefined;
+    const data = userQuery.data as any;
     const rawItems = data?.items ?? data?.data?.items ?? [];
-    return rawItems.map((u) => ({
+    return rawItems.map((u: User) => ({
       id: u.id,
       username: u.username,
       email: u.email,
@@ -79,26 +90,19 @@ export default function UserClient({
     }));
   }, [userQuery.data]);
 
-  // 4. Trích xuất role options — API trả về mảng trực tiếp
+  // 4. Role options
   const roleOptions: RoleOption[] = useMemo(() => {
-    const data = rolesQuery.data;
+    const data = rolesQuery.data as any;
     if (!data) return [];
-    // Xử lý cả trường hợp data.data hoặc data trực tiếp
-    const roles = Array.isArray(data)
-      ? data
-      : Array.isArray((data as { data?: RoleOption[] })?.data)
-        ? (data as { data: RoleOption[] }).data
-        : [];
+    const roles = Array.isArray(data) ? data : data?.data || [];
     return roles
-      .filter((r) => r.value && r.label)
-      .map((r) => ({ value: String(r.value), label: String(r.label) }));
+      .filter((r: any) => r.value && r.label)
+      .map((r: any) => ({ value: String(r.value), label: String(r.label) }));
   }, [rolesQuery.data]);
 
-  // 5. Bóc tách Metadata phân trang an toàn
+  // 5. Metadata phân trang
   const meta = useMemo(() => {
-    const rawData = userQuery.data as
-      | { data?: { meta?: PaginationMeta }; meta?: PaginationMeta }
-      | undefined;
+    const rawData = userQuery.data as any;
     const m = rawData?.data?.meta || rawData?.meta;
     return {
       currentPage: m?.currentPage ?? 1,
@@ -110,10 +114,9 @@ export default function UserClient({
 
   const updateNavigation = useCallback(
     (params: { page: number }) => {
-      const newSearchParams = createPaginationSearchParams(
-        searchParamsHook,
-        { page: params.page },
-      );
+      const newSearchParams = createPaginationSearchParams(searchParamsHook, {
+        page: params.page,
+      });
       if (queryParams.search) newSearchParams.set("search", queryParams.search);
       if (queryParams.role) newSearchParams.set("role", queryParams.role);
       router.push(`${pathname}?${newSearchParams.toString()}`);
@@ -151,18 +154,36 @@ export default function UserClient({
               Nhân sự <span className="text-primary">Hệ thống</span>
             </h1>
           </div>
-          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] ml-1">
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 italic">
             {meta.totalItems} tài khoản hoạt động
           </p>
         </div>
-        <Can I={P.USER_CREATE} on={Resource.USER}>
-          <button
-            onClick={() => setIsCreateModalOpen(true)}
-            className="flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-[11px] font-black text-white hover:bg-primary/90 transition-all shadow-xl active:scale-95"
-          >
-            <UserPlusIcon className="h-4 w-4 stroke-[3px]" /> THÊM NHÂN VIÊN
-          </button>
-        </Can>
+
+        <div className="flex items-center gap-4">
+          {/* NÚT THÔNG BÁO PHÊ DUYỆT */}
+          <div className="relative">
+            <button
+              onClick={() => setIsApprovalModalOpen(true)}
+              className="p-4 bg-white rounded-2xl border border-slate-100 shadow-sm hover:bg-slate-50 transition-all relative group"
+            >
+              <BellIcon className="h-6 w-6 text-slate-600 group-hover:rotate-12 transition-transform" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-2 -right-2 h-6 w-6 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-bounce shadow-lg ring-4 ring-white">
+                  {pendingCount}
+                </span>
+              )}
+            </button>
+          </div>
+
+          <Can I={P.USER_CREATE} on={Resource.USER}>
+            <button
+              onClick={() => setIsCreateModalOpen(true)}
+              className="flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-[11px] font-black text-white hover:bg-primary/90 transition-all shadow-xl active:scale-95 uppercase italic tracking-widest"
+            >
+              <UserPlusIcon className="h-4 w-4 stroke-[3px]" /> THÊM NHÂN VIÊN
+            </button>
+          </Can>
+        </div>
       </div>
 
       {/* FILTERS */}
@@ -171,7 +192,7 @@ export default function UserClient({
       </div>
 
       {/* TABLE */}
-      <div className="rounded-2xl border border-slate-100 bg-white shadow-lg overflow-hidden flex flex-col min-h-[500px]">
+      <div className="rounded-[2.5rem] border border-slate-100 bg-white shadow-xl overflow-hidden flex flex-col min-h-[500px]">
         <UserTable
           items={items}
           isLoading={userQuery.isLoading}
@@ -181,7 +202,7 @@ export default function UserClient({
             setIsEditModalOpen(true);
           }}
         />
-        <div className="mt-auto border-t border-slate-100 px-6 py-4">
+        <div className="mt-auto border-t border-slate-100 px-8 py-6 bg-slate-50/50">
           <BasePagination
             currentPage={meta.currentPage}
             totalPages={meta.totalPages}
@@ -197,6 +218,7 @@ export default function UserClient({
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
       />
+
       <UserEditModal
         isOpen={isEditModalOpen}
         onClose={() => {
@@ -205,6 +227,18 @@ export default function UserClient({
         }}
         user={selectedUser}
         roleOptions={roleOptions}
+      />
+
+      {/* MODAL PHÊ DUYỆT NHÂN SỰ */}
+      <StaffApprovalModal
+        isOpen={isApprovalModalOpen}
+        onClose={() => setIsApprovalModalOpen(false)}
+        data={pendingData}
+        onApprove={(id: string) => approveStaff.mutate(id)}
+        onReject={(id: string, reason: string) =>
+          rejectStaff.mutate({ id, reason })
+        }
+        isProcessing={approveStaff.isPending || rejectStaff.isPending}
       />
     </div>
   );

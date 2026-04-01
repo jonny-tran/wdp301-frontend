@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import http from "@/lib/http";
 import { StoreDemandPatternQueryType } from "@/schemas/analytics";
 import { CreateStoreBodyType, UpdateStoreBodyType } from "@/schemas/store";
@@ -31,5 +32,15 @@ export const storeRequest = {
     createStaff: (body: { staff: any[] }) => 
          http.post<Store>(ENDPOINT_CLIENT.CREATE_STAFF, body),
 
-};
+    getPendingStaff: () => 
+        http.get<any>('/stores/staff/pending'),
+
+    // 2. PATCH approve
+    approveStaff: (id: string) => 
+        http.patch<any>(`/stores/staff/${id}/approve`, {}),
+
+    // 3. PATCH reject
+    rejectStaff: (id: string, reason: string) => 
+        http.patch<any>(`/stores/staff/${id}/reject`, { reason }),
+    };
 

@@ -86,21 +86,50 @@ export const useStore = () => {
             }
         })
     }
- const createStoreStaff = useMutation({
-  mutationFn: async (data: { staff: any[] }) => {
-    // Gọi đúng hàm trong storeRequest
-    const res = await storeRequest.createStaff(data); 
-    return res.data;
-  },
-  onSuccess: (data) => {
-    const count = data?.count || 0;
-    toast.success(`Đã ghi danh ${count} nhân sự thành công!`);
-    queryClient.invalidateQueries({ queryKey: KEY.stores });
-  },
-  onError: (error) => {
-    handleErrorApi({ error });
-  }
-});
+    const createStoreStaff = useMutation({
+    mutationFn: async (data: { staff: any[] }) => {
+        // Gọi đúng hàm trong storeRequest
+        const res = await storeRequest.createStaff(data); 
+        return res.data;
+    },
+    onSuccess: (data) => {
+        const count = data?.count || 0;
+        toast.success(`Đã ghi danh ${count} nhân sự thành công!`);
+        queryClient.invalidateQueries({ queryKey: KEY.stores });
+    },
+    onError: (error) => {
+        handleErrorApi({ error });
+    }
+    });
+    // 1. Lấy danh sách nhân viên đang chờ duyệt
+  const pendingStaffList = () => {
+    return useQuery({
+      queryKey: ["staff", "pending"],
+      queryFn: async () => {
+        const res = await storeRequest.getPendingStaff();
+        return res.data; // Mảng staff từ API bạn cung cấp
+      }
+    });
+  };
+
+  // 2. Phê duyệt nhân viên
+  const approveStaff = useMutation({
+    mutationFn: (id: string) => storeRequest.approveStaff(id),
+    onSuccess: () => {
+      toast.success("Đã phê duyệt nhân viên thành công");
+      queryClient.invalidateQueries({ queryKey: ["staff", "pending"] });
+    }
+  });
+
+  // 3. Từ chối nhân viên
+  const rejectStaff = useMutation({
+    mutationFn: ({ id, reason }: { id: string, reason: string }) => 
+      storeRequest.rejectStaff(id, reason),
+    onSuccess: () => {
+      toast.success("Đã từ chối yêu cầu");
+      queryClient.invalidateQueries({ queryKey: ["staff", "pending"] });
+    }
+  });
 
     return {
         createStore,
@@ -110,7 +139,10 @@ export const useStore = () => {
         storeList,
         storeDetail,
         storeReliabilityAnalytics,
-        storeDemandPatternAnalytics
+        storeDemandPatternAnalytics,
+        pendingStaffList, 
+        approveStaff, 
+        rejectStaff
     }
 }
 
