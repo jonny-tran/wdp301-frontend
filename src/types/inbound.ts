@@ -1,26 +1,46 @@
 import { ReceiptStatus } from "@/utils/enum";
 import { BaseRequestPagination } from "./base";
 
+/** Dòng phiếu nhập — post-refactor: có thể chưa có batch_id cho đến khi PATCH complete. */
 export type ReceiptItem = {
-    batchId: number;
-    batchCode: string;
+    id?: number | string;
+    itemId?: number | string;
+    receiptItemId?: number | string;
+    batchId?: number | null;
+    batchCode?: string | null;
     productId: number;
     productName: string;
-    quantity: number;
-    expiryDate: string;
-    imageUrl?: string;
+    /** Tổng SL hiển thị (legacy hoặc mirror) */
+    quantity?: number;
+    expectedQuantity?: number | null;
+    quantityAccepted?: number | null;
+    quantityRejected?: number | null;
+    rejectionReason?: string | null;
+    manufacturedDate?: string | null;
+    statedExpiryDate?: string | null;
+    expiryDate?: string | null;
+    storageLocationCode?: string | null;
+    /** QC / kiểm định (F&B) */
+    inspectionStatus?: string | null;
+    imageUrl?: string | null;
+    unit?: string | null;
 };
 
 export type Receipt = {
-    receiptId: string;
+    receiptId?: string;
+    id?: string;
     supplierId: number;
     supplierName?: string;
+    supplier?: { name?: string; contactName?: string; phone?: string };
     status: string;
-    expectedDeliveryDate: string;
+    expectedDeliveryDate?: string;
     items?: ReceiptItem[];
+    note?: string | null;
     createdAt: string;
     completedAt?: string;
     totalItems?: number;
+    varianceApprovedBy?: string | null;
+    varianceApprovedAt?: string | null;
 };
 
 export type BatchLabel = {

@@ -1,11 +1,12 @@
 import { QueryClaim } from "@/types/claim";
 import { QueryIbound } from "@/types/inbound";
-import { QueryInventory, QueryInventorySummary, QueryKitchen } from "@/types/inventory";
+import { QueryInventory, QueryInventorySummary, QueryInventoryTransaction, QueryKitchen } from "@/types/inventory";
 import { QueryBatch, QueryProduct } from "@/types/product";
 import { QueryShipment } from "@/types/shipment";
 import { QueryStore } from "@/types/store";
 import { QuerySupplier } from "@/types/supplier";
 import { QueryCatelog, QueryOrder } from "@/types/order";
+import { QueryProductionOrder, QueryRecipeList } from "@/types/production";
 import { QueryPickingTask } from "@/types/warehouse";
 import { ClaimAnalyticsQueryType, FinancialLossQueryType, InventoryAgingQueryType, InventoryWasteQueryType, OrderFillRateQueryType, OrderSLAQueryType, StoreDemandPatternQueryType } from "@/schemas/analytics";
 
@@ -88,6 +89,7 @@ export const KEY = {
     baseUnits: ['base-units'],
     users: ['users'],
     roles: ['roles'],
+    production: ['production'],
 } as const;
 
 export const QUERY_KEY = {
@@ -116,7 +118,8 @@ export const QUERY_KEY = {
     // ======================
     receipts: {
         list: (query: QueryIbound) => [...KEY.receipts, 'list', query] as const,
-        detail: (id: string) => [...KEY.receipts, 'detail', id] as const,
+        detail: (id: string, opts?: { omitExpected?: boolean }) =>
+            [...KEY.receipts, 'detail', id, opts?.omitExpected ? 'omit-expected' : 'full'] as const,
         batchLabel: (id: string) => [...KEY.receipts, 'batch-label', id] as const,
     },
 
@@ -125,7 +128,8 @@ export const QUERY_KEY = {
     // ======================
     inventory: {
         store: (query: QueryInventory) => [...KEY.inventory, 'store', query] as const,
-        transaction: (query: QueryInventory) => [...KEY.inventory, 'transaction', query] as const,
+        transaction: (query: QueryInventoryTransaction) => [...KEY.inventory, 'transaction', query] as const,
+        transactions: (query: QueryInventoryTransaction) => [...KEY.inventory, 'transactions', query] as const,
         summary: (query: QueryInventorySummary) => [...KEY.inventory, 'summary', query] as const,
         lowStock: (warehouseId?: number) => [...KEY.inventory, 'low-stock', warehouseId] as const,
         kitchenSummary: (query: QueryKitchen) => [...KEY.inventory, 'kitchen-summary', query] as const,
@@ -197,7 +201,13 @@ export const QUERY_KEY = {
     baseUnits: {
         list: () => [...KEY.baseUnits, 'list'] as const,
         detail: (id: number) => [...KEY.baseUnits, 'detail', id] as const,
-    }
+    },
+
+    production: {
+        orders: (query: QueryProductionOrder) => [...KEY.production, 'orders', query] as const,
+        recipes: (query: QueryRecipeList) => [...KEY.production, 'recipes', query] as const,
+        recipeDetail: (id: string) => [...KEY.production, 'recipe', id] as const,
+    },
 
 } as const
 

@@ -2,7 +2,7 @@ import http from "@/lib/http";
 import { FinancialLossQueryType, InventoryAgingQueryType, InventoryWasteQueryType } from "@/schemas/analytics";
 import { InventoryAdjustBodyType } from "@/schemas/inventory";
 import { BaseResponsePagination } from "@/types/base";
-import { FinancialLossImpact, InventoryAgingReport, InventoryAnalyticsSummary, InventoryStoreItem, InventorySummaryItem, InventoryTransaction, InventoryWasteReport, KitchenDetail, KitchSummary, LowStockItem, QueryInventory, QueryInventorySummary, QueryInventoryTransaction, QueryKitchen, StoreInventoryTransaction } from "@/types/inventory";
+import { FinancialLossImpact, InventoryAgingReport, InventoryAnalyticsSummary, InventoryStoreItem, InventorySummaryItem, InventoryTransaction, InventoryWasteReport, KitchenDetail, KitchSummary, LowStockItem, QueryInventory, QueryInventorySummary, QueryInventoryTransaction, QueryKitchen } from "@/types/inventory";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
 export const inventoryRequest = {
@@ -11,6 +11,10 @@ export const inventoryRequest = {
 
     // GET /inventory/store/transactions
     getInventoryStoreTransaction: (query: QueryInventoryTransaction) => http.get(ENDPOINT_CLIENT.INVENTORY_STORE_TRANSACTION, { query }),
+
+    // GET /inventory/transactions (audit trail kitchen)
+    getInventoryTransactions: (query: QueryInventoryTransaction) =>
+        http.get<BaseResponsePagination<unknown>>(ENDPOINT_CLIENT.INVENTORY_TRANSACTIONS, { query }),
 
     // GET /inventory/summary
     getInventorySummary: (query: QueryInventorySummary) => http.get<BaseResponsePagination<InventorySummaryItem>>(ENDPOINT_CLIENT.INVENTORY_SUMMARY, { query }),

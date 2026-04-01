@@ -1,5 +1,10 @@
 'use client'
 import { inventoryRequest } from "@/apiRequest/inventory";
+import {
+    normalizeInventoryTransactionLogItem,
+    normalizeKitchenDetailFromApi,
+    normalizeKitchSummary,
+} from "@/lib/kitchen-inventory-mapper";
 import { FinancialLossQueryType, InventoryAgingQueryType, InventoryWasteQueryType } from "@/schemas/analytics";
 import { InventoryAdjustBodyType } from "@/schemas/inventory";
 import { QueryInventory, QueryInventorySummary, QueryInventoryTransaction, QueryKitchen } from "@/types/inventory";
@@ -38,6 +43,25 @@ export const useInventory = () => {
             }
         })
     }
+
+    /** GET /inventory/transactions — nhật ký điều chỉnh kho bếp */
+    const inventoryTransactions = (
+        query: QueryInventoryTransaction,
+        options?: { enabled?: boolean },
+    ) => {
+        return useQuery({
+            queryKey: QUERY_KEY.inventory.transactions(query),
+            queryFn: async () => {
+                const res = await inventoryRequest.getInventoryTransactions(query)
+                const raw = res.data
+                return {
+                    items: (raw.items ?? []).map(normalizeInventoryTransactionLogItem),
+                    meta: raw.meta,
+                }
+            },
+            enabled: options?.enabled !== false,
+        })
+    }
     const inventorySummary = (query: QueryInventorySummary) => {
         return useQuery({
             queryKey: QUERY_KEY.inventory.summary(query),
@@ -61,7 +85,11 @@ export const useInventory = () => {
             queryKey: QUERY_KEY.inventory.kitchenSummary(query),
             queryFn: async () => {
                 const res = await inventoryRequest.getKitchenSummary(query)
-                return res.data
+                const { items, meta } = res.data
+                return {
+                    items: items.map((row) => normalizeKitchSummary(row)),
+                    meta,
+                }
             }
         })
     }
@@ -70,7 +98,7 @@ export const useInventory = () => {
             queryKey: QUERY_KEY.inventory.kitchenDetails(productId),
             queryFn: async () => {
                 const res = await inventoryRequest.getKitchenDetails(productId)
-                return res.data
+                return normalizeKitchenDetailFromApi(res.data)
             },
             enabled: !!productId
         })
@@ -120,6 +148,7 @@ export const useInventory = () => {
         adjustInventory,
         inventoryStore,
         inventoryTransaction,
+        inventoryTransactions,
         inventorySummary,
         lowStock,
         kitchenSummary,
