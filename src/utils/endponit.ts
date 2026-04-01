@@ -54,6 +54,8 @@ export const ENDPOINT_CLIENT = {
     INVENTORY_SUMMARY: '/inventory/summary',
     INVENTORY_LOW_STOCK: '/inventory/low-stock',
     INVENTORY_ADJUST: '/inventory/adjust',
+    /** Nhật ký giao dịch kho (kitchen audit trail) — đối chiếu Swagger nếu path khác */
+    INVENTORY_TRANSACTIONS: '/inventory/transactions',
     INVENTORY_KITCHEN_SUMMARY: '/inventory/kitchen/summary',
     INVENTORY_KITCHEN_DETAILS: '/inventory/kitchen/details',
     INVENTORY_ANALYTICS_SUMMARY: '/inventory/analytics/summary',
@@ -96,7 +98,10 @@ export const ENDPOINT_CLIENT = {
     INBOUND_ADD_ITEM: (id: string) => `/inbound/receipts/${id}/items`,
     INBOUND_BATCH_LABEL: (id: string | number) => `/inbound/batches/${id}/label`,
     INBOUND_COMPLETE: (id: string) => `/inbound/receipts/${id}/complete`,
-    INBOUND_DELETE_ITEM: (batchId: string | number) => `/inbound/items/${batchId}`,
+    /** Xóa dòng phiếu nháp (INB-OPTIMIZE: identity theo receipt + item, không còn /inbound/items/:batchId) */
+    INBOUND_DELETE_RECEIPT_ITEM: (receiptId: string, itemId: string | number) =>
+        `/inbound/receipts/${receiptId}/items/${itemId}`,
+    INBOUND_VARIANCE_APPROVAL: (id: string) => `/inbound/receipts/${id}/variance-approval`,
     INBOUND_REPRINT_BATCH: '/inbound/batches/reprint',
 
     // Suppliers
@@ -109,4 +114,12 @@ export const ENDPOINT_CLIENT = {
     // System Config
     SYSTEM_CONFIGS: '/system-configs',
     UPDATE_SYSTEM_CONFIG: (key: string) => `/system-configs/${key}`,
+
+    // Production (BOM + lệnh sản xuất) — đối chiếu Swagger / production.controller.ts
+    PRODUCTION_RECIPES: '/production/recipes',
+    PRODUCTION_RECIPE_DETAIL: (id: string) => `/production/recipes/${id}`,
+    PRODUCTION_ORDERS: '/production/orders',
+    PRODUCTION_ORDER_DETAIL: (id: string) => `/production/orders/${id}`,
+    PRODUCTION_ORDER_START: (id: string) => `/production/orders/${id}/start`,
+    PRODUCTION_ORDER_COMPLETE: (id: string) => `/production/orders/${id}/complete`,
 }

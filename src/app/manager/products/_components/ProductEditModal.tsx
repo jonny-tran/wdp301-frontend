@@ -7,7 +7,7 @@ import { UpdateProductBody, UpdateProductBodyType } from "@/schemas/product";
 import { useProduct } from "@/hooks/useProduct";
 import { useBaseUnit } from "@/hooks/useBaseUnit";
 import { Product } from "@/types/product";
-import { BaseUnit } from "@/types/base-unit";
+import { BaseUnit, BASE_UNITS_QUERY_ACTIVE_LIST } from "@/types/base-unit";
 import ImageUpload from "@/components/shared/ImageUpload";
 import { handleErrorApi } from "@/lib/errors";
 import {
@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { ProductType, PRODUCT_TYPE_OPTIONS } from "./product.types";
 
 interface Props {
   product: Product | null;
@@ -46,20 +47,25 @@ interface Props {
 export default function ProductEditModal({ product, isOpen, onClose }: Props) {
   const { updateProduct } = useProduct();
   const { useBaseUnitList } = useBaseUnit();
-  const { data: rawBaseUnits, isLoading: isUnitsLoading } = useBaseUnitList();
+  const { data: rawBaseUnits, isLoading: isUnitsLoading } =
+    useBaseUnitList(BASE_UNITS_QUERY_ACTIVE_LIST);
 
   const unitOptions = useMemo(() => {
     const rawData = (rawBaseUnits as { data?: unknown })?.data || rawBaseUnits;
-    const items: BaseUnit[] = Array.isArray(rawData) ? rawData : (rawData as { items?: BaseUnit[] })?.items || [];
-    return items
-      .filter((u) => u.isActive)
-      .map((u) => ({ label: u.name, value: u.id }));
+    const inner = rawData as Record<string, unknown> | BaseUnit[] | undefined;
+    const items: BaseUnit[] = Array.isArray(inner)
+      ? inner
+      : Array.isArray(inner?.data)
+        ? (inner.data as BaseUnit[])
+        : (inner as { items?: BaseUnit[] })?.items || [];
+    return items.map((u) => ({ label: u.name, value: u.id }));
   }, [rawBaseUnits]);
 
   const form = useForm<UpdateProductBodyType>({
     resolver: zodResolver(UpdateProductBody) as unknown as Resolver<UpdateProductBodyType>,
     defaultValues: {
       name: "",
+      type: ProductType.FINISHED_GOOD,
       baseUnitId: 0,
       shelfLifeDays: 0,
       imageUrl: "",
@@ -71,6 +77,7 @@ export default function ProductEditModal({ product, isOpen, onClose }: Props) {
     if (product && isOpen) {
       form.reset({
         name: product.name,
+        type: product.type ?? ProductType.FINISHED_GOOD,
         baseUnitId: product.baseUnitId ?? 0,
         shelfLifeDays: product.shelfLifeDays,
         imageUrl: product.imageUrl || "",
@@ -116,6 +123,36 @@ export default function ProductEditModal({ product, isOpen, onClose }: Props) {
                         onChange={field.onChange}
                       />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="type"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Loại sản phẩm <span className="text-red-500">*</span>
+                    </FormLabel>
+                    <Select
+                      value={field.value}
+                      onValueChange={(val) => field.onChange(val as ProductType)}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="bg-white border-slate-200 text-slate-900">
+                          <SelectValue placeholder="Chọn loại" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent position="popper" className="z-[150]">
+                        {PRODUCT_TYPE_OPTIONS.map((opt) => (
+                          <SelectItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

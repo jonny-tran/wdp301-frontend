@@ -9,7 +9,6 @@ import {
   createPaginationSearchParams,
   type RawSearchParams,
 } from "@/app/manager/_components/query";
-import { Product } from "@/types/product";
 import ProductTable from "./ProductTable";
 import ProductCreateModal from "./ProductCreateModal";
 import ProductEditModal from "./ProductEditModal";
@@ -17,6 +16,17 @@ import ProductFilter from "./ProductFilter";
 import { BasePagination } from "@/components/layout/BasePagination";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import type { Product } from "@/types/product";
+
+function unwrapProductListRoot(data: unknown): { rows: Product[]; meta: unknown } {
+  if (data == null) return { rows: [], meta: undefined };
+  const root = data as Record<string, unknown>;
+  const meta = root.meta;
+  if (Array.isArray(root.data)) return { rows: root.data as Product[], meta };
+  if (Array.isArray(root.items)) return { rows: root.items as Product[], meta };
+  if (Array.isArray(data)) return { rows: data as Product[], meta: undefined };
+  return { rows: [], meta };
+}
 
 export default function ProductClient({
   searchParams,
@@ -50,23 +60,22 @@ export default function ProductClient({
     search: parsedQuery.search || "",
     isActive: isActiveBool,
     sortOrder: parsedQuery.sortOrder,
+    type: parsedQuery.type,
   });
 
   const handleViewDetail = (id: number) => {
     router.push(`/manager/products/${id}`);
   };
 
-  // Unwrap items directly — no mapper needed, backend returns camelCase
-  const items: Product[] = useMemo(() => {
-    const rawData = (listQuery.data as { data?: unknown })?.data || listQuery.data;
-    return Array.isArray(rawData) ? rawData : (rawData as { items?: Product[] })?.items || [];
-  }, [listQuery.data]);
+  const { rows: items, meta: rawMetaFromPayload } = useMemo(
+    () => unwrapProductListRoot(listQuery.data),
+    [listQuery.data],
+  );
 
-  const meta = useMemo(() => {
-    const rawData = (listQuery.data as { data?: unknown })?.data || listQuery.data;
-    const rawMeta = Array.isArray(rawData) ? undefined : (rawData as { meta?: unknown })?.meta;
-    return normalizeMeta(rawMeta, parsedQuery.page, parsedQuery.limit, items.length);
-  }, [listQuery.data, items.length, parsedQuery.page, parsedQuery.limit]);
+  const meta = useMemo(
+    () => normalizeMeta(rawMetaFromPayload, parsedQuery.page, parsedQuery.limit, items.length),
+    [rawMetaFromPayload, items.length, parsedQuery.page, parsedQuery.limit],
+  );
 
   const handlePageChange = (nextPage: number) => {
     const query = createPaginationSearchParams(searchParamsHook, nextPage);

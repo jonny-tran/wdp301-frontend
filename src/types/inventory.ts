@@ -56,18 +56,23 @@ export type InventoryTransaction = {
     reason: string;
 };
 
+export type KitchenBatchRow = {
+    batchId: number;
+    batchCode: string;
+    /** Tồn vật lý (physical) — khớp equation: physical = available + reserved */
+    totalQuantity: number;
+    availableQuantity: number;
+    reservedQuantity: number;
+    expiryDate: string;
+    warehouseId?: number;
+};
+
 export type KitchenDetail = {
     productId: number;
     productName: string;
-    batches: {
-        batchId: number;
-        batchCode: string;
-        totalQuantity: number;
-        availableQuantity: number;
-        reservedQuantity: number;
-        expiryDate: string;
-    }[];
+    batches: KitchenBatchRow[];
 };
+
 export type KitchSummary = {
     productId: number;
     productName: string;
@@ -78,7 +83,20 @@ export type KitchSummary = {
     totalReserved: number;
     availableQuantity: number;
     isLowStock: boolean;
-}
+    categoryName?: string;
+    imageUrl?: string | null;
+};
+
+/** Nhật ký điều chỉnh / giao dịch kho (GET /inventory/transactions hoặc tương đương) */
+export type InventoryTransactionLogItem = {
+    transactionId: number;
+    type: string;
+    productName: string;
+    batchCode: string;
+    quantity: number;
+    date: string;
+    note: string | null;
+};
 
 
 export type QueryKitchen = BaseRequestPagination & {

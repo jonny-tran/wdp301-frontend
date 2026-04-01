@@ -1,8 +1,10 @@
 import { BatchStatus } from "@/utils/enum";
+import { ProductType } from "@/types/product";
 import { z } from "zod";
 
 export const CreateProductBody = z.object({
   name: z.string().min(3, "Tên sản phẩm phải có ít nhất 3 ký tự"),
+  type: z.nativeEnum(ProductType, { message: "Chọn loại sản phẩm" }),
   baseUnitId: z.coerce.number().int().positive('ID đơn vị tính không hợp lệ'),
   shelfLifeDays: z.coerce.number().int().positive('Hạn sử dụng không hợp lệ'),
   imageUrl: z.string().url("Đường dẫn ảnh không hợp lệ")

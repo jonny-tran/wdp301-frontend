@@ -44,7 +44,7 @@ export const P = {
     INBOUND_CREATE_BATCH: perm(Action.CREATE, 'batch'),             // POST /inbound/receipts/{id}/items
     INBOUND_READ_BATCH_LABEL: perm(Action.READ, 'batch_label'),       // GET /inbound/batches/{id}/label
     INBOUND_COMPLETE_RECEIPT: perm(Action.UPDATE, 'complete_receipt'),  // PATCH /inbound/receipts/{id}/complete
-    INBOUND_DELETE_BATCH: perm(Action.DELETE, 'draft_batch'),       // DELETE /inbound/items/{batch_id}
+    INBOUND_DELETE_BATCH: perm(Action.DELETE, 'draft_batch'),       // DELETE /inbound/receipts/:id/items/:itemId
     INBOUND_REPRINT_LABEL: perm(Action.CREATE, 'reprint_label'),     // POST /inbound/batches/reprint
 
     // -- WAREHOUSE ------------------------------------------------------------

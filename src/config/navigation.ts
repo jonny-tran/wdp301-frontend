@@ -12,6 +12,8 @@ import {
     HomeIcon,
     InboxArrowDownIcon,
     ExclamationTriangleIcon,
+    BeakerIcon,
+    QueueListIcon,
 } from "@heroicons/react/24/outline";
 import { Role } from "@/utils/enum";
 import { Resource } from "@/utils/constant";
@@ -62,6 +64,18 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
             requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_LIST }
         },
         {
+            name: "Công thức (BOM)",
+            href: "/manager/production/recipes",
+            icon: BeakerIcon,
+            requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_LIST }
+        },
+        {
+            name: "Lệnh sản xuất",
+            href: "/manager/production/orders",
+            icon: QueueListIcon,
+            requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_LIST }
+        },
+        {
             name: "Lô hàng",
             href: "/manager/batch",
             icon: InboxStackIcon,
@@ -104,6 +118,12 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
             name: "Inventory",
             href: "/kitchen/inventory",
             icon: CubeIcon,
+            requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_SUMMARY }
+        },
+        {
+            name: "Sản xuất",
+            href: "/kitchen/production",
+            icon: BeakerIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_SUMMARY }
         },
         {
