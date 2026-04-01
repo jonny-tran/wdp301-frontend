@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useEffect, useMemo } from "react";
@@ -38,6 +39,15 @@ import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import { ProductType, PRODUCT_TYPE_OPTIONS } from "./product.types";
 
+// Định nghĩa quy tắc hạn dùng (Mengo Business Logic)
+const SHELF_LIFE_RULES: Record<string, { max: number; hint: string }> = {
+  Miếng: { max: 7, hint: "Hàng tươi (Tối đa 7 ngày)" },
+  Gói: { max: 30, hint: "Hàng đóng gói (Tối đa 30 ngày)" },
+  Thùng: { max: 180, hint: "Hàng lưu kho (Tối đa 6 tháng)" },
+  Lít: { max: 14, hint: "Chất lỏng (Tối đa 14 ngày)" },
+  default: { max: 3650, hint: "Hạn dùng tiêu chuẩn" },
+};
+
 interface Props {
   product: Product | null;
   isOpen: boolean;
@@ -47,22 +57,33 @@ interface Props {
 export default function ProductEditModal({ product, isOpen, onClose }: Props) {
   const { updateProduct } = useProduct();
   const { useBaseUnitList } = useBaseUnit();
-  const { data: rawBaseUnits, isLoading: isUnitsLoading } =
-    useBaseUnitList(BASE_UNITS_QUERY_ACTIVE_LIST);
+  const { data: rawBaseUnits, isLoading: isUnitsLoading } = useBaseUnitList(
+    BASE_UNITS_QUERY_ACTIVE_LIST,
+  );
 
+  // Mapper xử lý dữ liệu đơn vị tính từ API (unwrap data/items)
   const unitOptions = useMemo(() => {
-    const rawData = (rawBaseUnits as { data?: unknown })?.data || rawBaseUnits;
-    const inner = rawData as Record<string, unknown> | BaseUnit[] | undefined;
-    const items: BaseUnit[] = Array.isArray(inner)
-      ? inner
-      : Array.isArray(inner?.data)
-        ? (inner.data as BaseUnit[])
-        : (inner as { items?: BaseUnit[] })?.items || [];
-    return items.map((u) => ({ label: u.name, value: u.id }));
+    const res = rawBaseUnits as any;
+    const items =
+      res?.data?.items ||
+      res?.data ||
+      res?.items ||
+      (Array.isArray(res) ? res : []);
+
+    if (!Array.isArray(items)) return [];
+
+    return items
+      .map((u: any) => ({
+        label: String(u.name || "N/A"),
+        value: String(u.id || ""),
+      }))
+      .filter((opt) => opt.value !== "");
   }, [rawBaseUnits]);
 
   const form = useForm<UpdateProductBodyType>({
-    resolver: zodResolver(UpdateProductBody) as unknown as Resolver<UpdateProductBodyType>,
+    resolver: zodResolver(
+      UpdateProductBody,
+    ) as unknown as Resolver<UpdateProductBodyType>,
     defaultValues: {
       name: "",
       type: ProductType.FINISHED_GOOD,
@@ -72,7 +93,18 @@ export default function ProductEditModal({ product, isOpen, onClose }: Props) {
     },
   });
 
-  // Sync form values when product changes
+  // Theo dõi đơn vị tính để áp dụng logic hạn dùng thông minh
+  const watchedUnitId = form.watch("baseUnitId");
+  const currentRule = useMemo(() => {
+    const selectedUnit = unitOptions.find(
+      (opt) => String(opt.value) === String(watchedUnitId),
+    );
+    return (
+      SHELF_LIFE_RULES[selectedUnit?.label || ""] || SHELF_LIFE_RULES["default"]
+    );
+  }, [watchedUnitId, unitOptions]);
+
+  // Sync form values khi product hoặc modal mở
   useEffect(() => {
     if (product && isOpen) {
       form.reset({
@@ -88,7 +120,13 @@ export default function ProductEditModal({ product, isOpen, onClose }: Props) {
   const onSubmit = async (data: UpdateProductBodyType) => {
     if (!product) return;
     try {
-      await updateProduct.mutateAsync({ id: product.id, data });
+      await updateProduct.mutateAsync({
+        id: product.id,
+        data: {
+          ...data,
+          baseUnitId: Number(data.baseUnitId), // Đảm bảo ID gửi đi là Number
+        },
+      });
       onClose();
     } catch (error) {
       handleErrorApi({ error, setError: form.setError });
@@ -107,10 +145,10 @@ export default function ProductEditModal({ product, isOpen, onClose }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="max-h-[70vh] overflow-y-auto">
+        <div className="max-h-[70vh] overflow-y-auto pr-1">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              {/* Image Upload */}
+              {/* 1. Hình ảnh */}
               <FormField
                 control={form.control}
                 name="imageUrl"
@@ -128,6 +166,7 @@ export default function ProductEditModal({ product, isOpen, onClose }: Props) {
                 )}
               />
 
+              {/* 2. Loại sản phẩm */}
               <FormField
                 control={form.control}
                 name="type"
@@ -138,14 +177,16 @@ export default function ProductEditModal({ product, isOpen, onClose }: Props) {
                     </FormLabel>
                     <Select
                       value={field.value}
-                      onValueChange={(val) => field.onChange(val as ProductType)}
+                      onValueChange={(val) =>
+                        field.onChange(val as ProductType)
+                      }
                     >
                       <FormControl>
                         <SelectTrigger className="bg-white border-slate-200 text-slate-900">
                           <SelectValue placeholder="Chọn loại" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent position="popper" className="z-[150]">
+                      <SelectContent position="popper" className="z-150">
                         {PRODUCT_TYPE_OPTIONS.map((opt) => (
                           <SelectItem key={opt.value} value={opt.value}>
                             {opt.label}
@@ -158,7 +199,7 @@ export default function ProductEditModal({ product, isOpen, onClose }: Props) {
                 )}
               />
 
-              {/* Name */}
+              {/* 3. Tên sản phẩm */}
               <FormField
                 control={form.control}
                 name="name"
@@ -177,7 +218,7 @@ export default function ProductEditModal({ product, isOpen, onClose }: Props) {
                 )}
               />
 
-              {/* Base Unit Select */}
+              {/* 4. Đơn vị tính */}
               <FormField
                 control={form.control}
                 name="baseUnitId"
@@ -193,14 +234,14 @@ export default function ProductEditModal({ product, isOpen, onClose }: Props) {
                           <SelectValue placeholder="Chọn đơn vị tính" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent position="popper" className="z-[150]">
+                      <SelectContent position="popper" className="z-150">
                         {isUnitsLoading ? (
-                          <div className="p-3 text-sm text-slate-400 text-center">
+                          <div className="p-3 text-sm text-slate-400 text-center animate-pulse">
                             Đang tải...
                           </div>
                         ) : (
                           unitOptions.map((opt) => (
-                            <SelectItem key={opt.value} value={String(opt.value)}>
+                            <SelectItem key={opt.value} value={opt.value}>
                               {opt.label}
                             </SelectItem>
                           ))
@@ -212,20 +253,44 @@ export default function ProductEditModal({ product, isOpen, onClose }: Props) {
                 )}
               />
 
-              {/* Shelf Life */}
+              {/* 5. Hạn bảo quản (Smart Constraint) */}
               <FormField
                 control={form.control}
                 name="shelfLifeDays"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hạn bảo quản (ngày)</FormLabel>
+                    <div className="flex justify-between items-end mb-1">
+                      <FormLabel>Hạn bảo quản (ngày)</FormLabel>
+                      {watchedUnitId !== 0 && (
+                        <span className="text-[10px] font-bold text-indigo-600 italic">
+                          💡 {currentRule.hint}
+                        </span>
+                      )}
+                    </div>
                     <FormControl>
                       <Input
                         type="number"
                         min={1}
+                        max={currentRule.max}
                         placeholder="Số ngày"
                         className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50"
                         {...field}
+                        onKeyDown={(e) =>
+                          ["e", "E", "+", "-", "."].includes(e.key) &&
+                          e.preventDefault()
+                        }
+                        onChange={(e) => {
+                          const val =
+                            e.target.value === "" ? 0 : Number(e.target.value);
+                          field.onChange(val);
+                          if (val > currentRule.max) {
+                            form.setError("shelfLifeDays", {
+                              message: `Đơn vị này thường không quá ${currentRule.max} ngày`,
+                            });
+                          } else {
+                            form.clearErrors("shelfLifeDays");
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

@@ -1,18 +1,20 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useMemo, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useStore } from "@/hooks/useStore";
-import { Store, StoreReliabilityAnalytics, StoreDemandPatternAnalytics } from "@/types/store";
+import {
+  Store,
+  StoreReliabilityAnalytics,
+  StoreDemandPatternAnalytics,
+} from "@/types/store";
 
 // Components
 import StoreTable from "./StoreTable";
 import StoreModal from "./StoreModal";
 import StoreReliability from "./StoreReliability";
 import DemandPattern from "./DemandPattern";
-import Can from "@/components/shared/Can";
-import { P } from "@/lib/authz";
-import { Resource } from "@/utils/constant";
 import { normalizeMeta } from "@/app/manager/_components/query";
 import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
 import { BasePagination } from "@/components/layout/BasePagination";
@@ -35,6 +37,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import StaffRegistrationModal from "./StaffRegistrationModal";
 
 const filterConfig: FilterConfig[] = [
   {
@@ -77,12 +80,23 @@ export default function StoreClient() {
   const search = searchParams.get("search") || "";
   const sortOrder = (searchParams.get("sortOrder") as "ASC" | "DESC") || "DESC";
   const isActiveRaw = searchParams.get("isActive");
-  const isActive = isActiveRaw === "true" ? true : isActiveRaw === "false" ? false : undefined;
+  const isActive =
+    isActiveRaw === "true" ? true : isActiveRaw === "false" ? false : undefined;
 
   // Modal state
-  const [modal, setModal] = useState<{ isOpen: boolean; editingStore: Store | null }>({
+  const [modal, setModal] = useState<{
+    isOpen: boolean;
+    editingStore: Store | null;
+  }>({
     isOpen: false,
     editingStore: null,
+  });
+  const [staffModal, setStaffModal] = useState<{
+    isOpen: boolean;
+    storeId: string | null;
+  }>({
+    isOpen: false,
+    storeId: null,
   });
   const [deleteTarget, setDeleteTarget] = useState<Store | null>(null);
   const [isDemandOpen, setIsDemandOpen] = useState(false);
@@ -91,6 +105,7 @@ export default function StoreClient() {
   const {
     storeList,
     deleteStore,
+    createStoreStaff,
     storeReliabilityAnalytics,
     storeDemandPatternAnalytics,
   } = useStore();
@@ -108,25 +123,34 @@ export default function StoreClient() {
   const { data: demandRaw, isLoading: isDemandLoading } =
     storeDemandPatternAnalytics({ productId: demandProductId });
 
-  // Unwrap data directly
+  // --- LOGIC CẬP NHẬT: XỬ LÝ UNWRAPPING DỮ LIỆU CHUẨN ---
+
+  // 1. Unwrap danh sách cửa hàng hỗ trợ cả cấu trúc mảng và items
   const stores: Store[] = useMemo(() => {
-    const rawData = (listData as { data?: unknown })?.data || listData;
-    return Array.isArray(rawData) ? rawData : (rawData as { items?: Store[] })?.items || [];
+    const rawData = (listData as any)?.data || listData;
+    return Array.isArray(rawData) ? rawData : (rawData as any)?.items || [];
   }, [listData]);
 
-  const reliabilityStats: StoreReliabilityAnalytics = useMemo(
-    () => (reliabilityRaw as StoreReliabilityAnalytics) ?? [],
+  // 2. Unwrap dữ liệu Analytics (Reliability)
+  const reliabilityStats: StoreReliabilityAnalytics | null = useMemo(
+    () => (reliabilityRaw as any)?.data ?? reliabilityRaw ?? null,
     [reliabilityRaw],
   );
-  const demandPattern: StoreDemandPatternAnalytics = useMemo(
-    () => (demandRaw as StoreDemandPatternAnalytics) ?? [],
+
+  // 3. Unwrap dữ liệu Demand Pattern
+  const demandPattern: StoreDemandPatternAnalytics | null = useMemo(
+    () => (demandRaw as any)?.data ?? demandRaw ?? null,
     [demandRaw],
   );
+
+  // 4. Chuẩn hóa Metadata cho phân trang
   const meta = useMemo(() => {
-    const rawData = (listData as { data?: unknown })?.data || listData;
-    const rawMeta = Array.isArray(rawData) ? undefined : (rawData as { meta?: unknown })?.meta;
+    const rawData = (listData as any)?.data || listData;
+    const rawMeta = Array.isArray(rawData) ? undefined : (rawData as any)?.meta;
     return normalizeMeta(rawMeta, page, limit, stores.length);
   }, [listData, page, limit, stores.length]);
+
+  // --- KẾT THÚC LOGIC CẬP NHẬT ---
 
   const handlePageChange = (nextPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -150,7 +174,9 @@ export default function StoreClient() {
             Quản lý cửa hàng
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            {isListLoading ? "Đang tải..." : `${meta.totalItems} chi nhánh trong mạng lưới`}
+            {isListLoading
+              ? "Đang tải..."
+              : `${meta.totalItems} chi nhánh trong mạng lưới`}
           </p>
         </div>
 
@@ -164,19 +190,17 @@ export default function StoreClient() {
             <LineChart className="h-4 w-4" />
             Nhu cầu theo sản phẩm
           </Button>
-          <Can I={P.STORE_CREATE} on={Resource.STORE}>
-            <Button
-              onClick={() => setModal({ isOpen: true, editingStore: null })}
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Thêm Store
-            </Button>
-          </Can>
+          <Button
+            onClick={() => setModal({ isOpen: true, editingStore: null })}
+            className="gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Thêm Cửa Hàng
+          </Button>
         </div>
       </div>
 
-      {/* Analytics Section (giữ gọn cho list view, Demand Pattern tách sang chi tiết/drawer */}
+      {/* Analytics Section */}
       <div className="grid grid-cols-1 xl:grid-cols-1 gap-6">
         <StoreReliability stats={reliabilityStats} />
       </div>
@@ -190,7 +214,12 @@ export default function StoreClient() {
           items={stores}
           isLoading={isListLoading}
           onEdit={(s) => setModal({ isOpen: true, editingStore: s })}
-          onDelete={(store) => setDeleteTarget(store)}
+          onDelete={(s) => setDeleteTarget(s)}
+          onViewDetail={(s) => router.push(`/manager/stores/${s.id}`)}
+          // THÊM DÒNG NÀY:
+          onRegisterStaff={(s) =>
+            setStaffModal({ isOpen: true, storeId: s.id })
+          }
         />
 
         {/* Pagination */}
@@ -213,7 +242,13 @@ export default function StoreClient() {
         editingStore={modal.editingStore}
         onClose={() => setModal({ isOpen: false, editingStore: null })}
       />
-
+      <StaffRegistrationModal
+        isOpen={staffModal.isOpen}
+        storeId={staffModal.storeId}
+        onClose={() => setStaffModal({ isOpen: false, storeId: null })}
+        onSubmit={(data: any) => createStoreStaff.mutate(data)} // Sử dụng .mutate thay vì gọi trực tiếp
+        isSubmitting={createStoreStaff.isPending}
+      />
       {/* Delete Confirmation */}
       <AlertDialog
         open={!!deleteTarget}
@@ -223,13 +258,16 @@ export default function StoreClient() {
           <AlertDialogHeader>
             <AlertDialogTitle>Xác nhận xóa cửa hàng</AlertDialogTitle>
             <AlertDialogDescription>
-              Bạn có chắc chắn muốn xóa &quot;{deleteTarget?.name}&quot;?
-              Hành động này không thể hoàn tác.
+              Bạn có chắc chắn muốn xóa &quot;{deleteTarget?.name}&quot;? Hành
+              động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Hủy</AlertDialogCancel>
-            <AlertDialogAction variant="destructive" onClick={handleConfirmDelete}>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleConfirmDelete}
+            >
               Xóa
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -237,12 +275,16 @@ export default function StoreClient() {
       </AlertDialog>
 
       {/* Demand Pattern Drawer (Dialog) */}
-      <Dialog open={isDemandOpen} onOpenChange={(open) => setIsDemandOpen(open)}>
+      <Dialog
+        open={isDemandOpen}
+        onOpenChange={(open) => setIsDemandOpen(open)}
+      >
         <DialogContent className="max-w-3xl sm:max-w-4xl bg-slate-50 border-slate-200">
           <DialogHeader>
             <DialogTitle>Nhu cầu đặt hàng theo sản phẩm</DialogTitle>
             <DialogDescription>
-              Phân tích pattern đặt hàng theo ngày trong tuần để tối ưu lịch sản xuất & phân bổ.
+              Phân tích pattern đặt hàng theo ngày trong tuần để tối ưu lịch sản
+              xuất & phân bổ.
             </DialogDescription>
           </DialogHeader>
 

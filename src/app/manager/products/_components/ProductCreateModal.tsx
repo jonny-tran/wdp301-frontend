@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { useForm, Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CreateProductBody, CreateProductBodyType } from "@/schemas/product";
@@ -40,6 +41,15 @@ import { ProductType, PRODUCT_TYPE_OPTIONS } from "./product.types";
 const DEFAULT_IMAGE_URL =
   "https://res.cloudinary.com/dmhjgnymn/image/upload/v1770135560/OIP_j6j4gz.webp";
 
+// Định nghĩa quy tắc hạn dùng theo đơn vị tính (Mengo Logic)
+const SHELF_LIFE_RULES: Record<string, { max: number; hint: string }> = {
+  Miếng: { max: 7, hint: "Thực phẩm tươi (Tối đa 7 ngày)" },
+  Gói: { max: 30, hint: "Hàng đóng gói (Tối đa 30 ngày)" },
+  Thùng: { max: 180, hint: "Hàng lưu kho (Tối đa 6 tháng)" },
+  Lít: { max: 14, hint: "Chất lỏng (Tối đa 14 ngày)" },
+  default: { max: 3650, hint: "Hạn dùng tiêu chuẩn hệ thống" },
+};
+
 interface Props {
   isOpen: boolean;
   onClose: () => void;
@@ -48,23 +58,35 @@ interface Props {
 export default function ProductCreateModal({ isOpen, onClose }: Props) {
   const { createProduct } = useProduct();
   const { useBaseUnitList } = useBaseUnit();
-  const { data: rawBaseUnits, isLoading: isUnitsLoading } =
-    useBaseUnitList(BASE_UNITS_QUERY_ACTIVE_LIST);
 
-  // API đã lọc isActive=true; unwrap data / items / data[] phân trang
+  // Gọi danh sách đơn vị tính (isActive=true)
+  const { data: rawBaseUnits, isLoading: isUnitsLoading } = useBaseUnitList(
+    BASE_UNITS_QUERY_ACTIVE_LIST,
+  );
+
+  // Mapper bóc tách dữ liệu 3 lớp (data.data.items)
   const unitOptions = useMemo(() => {
-    const rawData = (rawBaseUnits as { data?: unknown })?.data || rawBaseUnits;
-    const inner = rawData as Record<string, unknown> | BaseUnit[] | undefined;
-    const items: BaseUnit[] = Array.isArray(inner)
-      ? inner
-      : Array.isArray(inner?.data)
-        ? (inner.data as BaseUnit[])
-        : (inner as { items?: BaseUnit[] })?.items || [];
-    return items.map((u) => ({ label: u.name, value: u.id }));
+    const res = rawBaseUnits as any;
+    const items =
+      res?.data?.items ||
+      res?.data ||
+      res?.items ||
+      (Array.isArray(res) ? res : []);
+
+    if (!Array.isArray(items)) return [];
+
+    return items
+      .map((u: any) => ({
+        label: String(u.name || "N/A"),
+        value: String(u.id || ""),
+      }))
+      .filter((opt) => opt.value !== "");
   }, [rawBaseUnits]);
 
   const form = useForm<CreateProductBodyType>({
-    resolver: zodResolver(CreateProductBody) as unknown as Resolver<CreateProductBodyType>,
+    resolver: zodResolver(
+      CreateProductBody,
+    ) as unknown as Resolver<CreateProductBodyType>,
     defaultValues: {
       name: "",
       type: ProductType.FINISHED_GOOD,
@@ -74,11 +96,24 @@ export default function ProductCreateModal({ isOpen, onClose }: Props) {
     },
   });
 
+  // Theo dõi đơn vị tính để đưa ra gợi ý hạn dùng
+  const watchedUnitId = form.watch("baseUnitId");
+  const currentRule = useMemo(() => {
+    const selectedUnit = unitOptions.find(
+      (opt) => String(opt.value) === String(watchedUnitId),
+    );
+    return (
+      SHELF_LIFE_RULES[selectedUnit?.label || ""] || SHELF_LIFE_RULES["default"]
+    );
+  }, [watchedUnitId, unitOptions]);
+
   const onSubmit = async (data: CreateProductBodyType) => {
     try {
       await createProduct.mutateAsync({
         ...data,
         imageUrl: data.imageUrl?.trim() || DEFAULT_IMAGE_URL,
+        // Đảm bảo baseUnitId gửi lên server là kiểu Number
+        baseUnitId: Number(data.baseUnitId),
       });
       form.reset();
       onClose();
@@ -97,10 +132,10 @@ export default function ProductCreateModal({ isOpen, onClose }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="max-h-[70vh] overflow-y-auto">
+        <div className="max-h-[70vh] overflow-y-auto pr-2 scrollbar-hide">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-              {/* Image Upload */}
+              {/* 1. Hình ảnh */}
               <FormField
                 control={form.control}
                 name="imageUrl"
@@ -118,7 +153,7 @@ export default function ProductCreateModal({ isOpen, onClose }: Props) {
                 )}
               />
 
-              {/* Loại sản phẩm */}
+              {/* 2. Loại sản phẩm */}
               <FormField
                 control={form.control}
                 name="type"
@@ -127,10 +162,7 @@ export default function ProductCreateModal({ isOpen, onClose }: Props) {
                     <FormLabel>
                       Loại sản phẩm <span className="text-red-500">*</span>
                     </FormLabel>
-                    <Select
-                      value={field.value}
-                      onValueChange={(val) => field.onChange(val as ProductType)}
-                    >
+                    <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger className="bg-white border-slate-200 text-slate-900">
                           <SelectValue placeholder="Chọn loại" />
@@ -149,7 +181,7 @@ export default function ProductCreateModal({ isOpen, onClose }: Props) {
                 )}
               />
 
-              {/* Name */}
+              {/* 3. Tên sản phẩm */}
               <FormField
                 control={form.control}
                 name="name"
@@ -161,7 +193,6 @@ export default function ProductCreateModal({ isOpen, onClose }: Props) {
                     <FormControl>
                       <Input
                         placeholder="Ví dụ: Gà Rán KFC Original..."
-                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50"
                         {...field}
                       />
                     </FormControl>
@@ -170,7 +201,7 @@ export default function ProductCreateModal({ isOpen, onClose }: Props) {
                 )}
               />
 
-              {/* Base Unit Select */}
+              {/* 4. Đơn vị tính */}
               <FormField
                 control={form.control}
                 name="baseUnitId"
@@ -190,16 +221,12 @@ export default function ProductCreateModal({ isOpen, onClose }: Props) {
                       </FormControl>
                       <SelectContent position="popper" className="z-[150]">
                         {isUnitsLoading ? (
-                          <div className="p-3 text-sm text-slate-400 text-center">
+                          <div className="p-3 text-sm text-slate-400 text-center animate-pulse">
                             Đang tải...
-                          </div>
-                        ) : unitOptions.length === 0 ? (
-                          <div className="p-3 text-sm text-red-400 text-center">
-                            Không có đơn vị nào
                           </div>
                         ) : (
                           unitOptions.map((opt) => (
-                            <SelectItem key={opt.value} value={String(opt.value)}>
+                            <SelectItem key={opt.value} value={opt.value}>
                               {opt.label}
                             </SelectItem>
                           ))
@@ -211,22 +238,46 @@ export default function ProductCreateModal({ isOpen, onClose }: Props) {
                 )}
               />
 
-              {/* Shelf Life */}
+              {/* 5. Hạn bảo quản (Smart Constraint) */}
               <FormField
                 control={form.control}
                 name="shelfLifeDays"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      Hạn bảo quản (ngày) <span className="text-red-500">*</span>
-                    </FormLabel>
+                    <div className="flex justify-between items-end mb-1">
+                      <FormLabel>
+                        Hạn bảo quản (ngày){" "}
+                        <span className="text-red-500">*</span>
+                      </FormLabel>
+                      {watchedUnitId !== 0 && (
+                        <span className="text-[9px] font-bold text-indigo-500 italic">
+                          💡 {currentRule.hint}
+                        </span>
+                      )}
+                    </div>
                     <FormControl>
                       <Input
                         type="number"
                         min={1}
-                        placeholder="Nhập số ngày..."
-                        className="bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:ring-1 focus:ring-blue-400/50"
+                        max={currentRule.max}
+                        placeholder="Số ngày bảo quản..."
                         {...field}
+                        onKeyDown={(e) =>
+                          ["e", "E", "+", "-", "."].includes(e.key) &&
+                          e.preventDefault()
+                        }
+                        onChange={(e) => {
+                          const val =
+                            e.target.value === "" ? 0 : Number(e.target.value);
+                          field.onChange(val);
+                          if (val > currentRule.max) {
+                            form.setError("shelfLifeDays", {
+                              message: `Đơn vị này không nên quá ${currentRule.max} ngày`,
+                            });
+                          } else {
+                            form.clearErrors("shelfLifeDays");
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

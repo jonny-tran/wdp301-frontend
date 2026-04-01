@@ -86,9 +86,25 @@ export const useStore = () => {
             }
         })
     }
+ const createStoreStaff = useMutation({
+  mutationFn: async (data: { staff: any[] }) => {
+    // Gọi đúng hàm trong storeRequest
+    const res = await storeRequest.createStaff(data); 
+    return res.data;
+  },
+  onSuccess: (data) => {
+    const count = data?.count || 0;
+    toast.success(`Đã ghi danh ${count} nhân sự thành công!`);
+    queryClient.invalidateQueries({ queryKey: KEY.stores });
+  },
+  onError: (error) => {
+    handleErrorApi({ error });
+  }
+});
 
     return {
         createStore,
+        createStoreStaff,
         updateStore,
         deleteStore,
         storeList,

@@ -14,10 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Eye, Pencil, Trash2, RotateCw, InboxIcon } from "lucide-react";
-import {
-  ProductType,
-  PRODUCT_TYPE_LABELS,
-} from "./product.types";
+import { ProductType, PRODUCT_TYPE_LABELS } from "./product.types";
 
 interface ProductTableProps {
   items: Product[];
@@ -34,7 +31,9 @@ function TableSkeleton() {
     <>
       {Array.from({ length: 5 }).map((_, i) => (
         <TableRow key={i}>
-          <TableCell className="pl-6"><Skeleton className="h-4 w-6" /></TableCell>
+          <TableCell className="pl-6">
+            <Skeleton className="h-4 w-6" />
+          </TableCell>
           <TableCell>
             <div className="flex items-center gap-3">
               <Skeleton className="h-10 w-10 rounded-lg" />
@@ -44,11 +43,19 @@ function TableSkeleton() {
               </div>
             </div>
           </TableCell>
-          <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-          <TableCell><Skeleton className="h-5 w-20" /></TableCell>
-          <TableCell><Skeleton className="h-5 w-14" /></TableCell>
+          <TableCell>
+            <Skeleton className="h-4 w-16" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-5 w-20" />
+          </TableCell>
+          <TableCell>
+            <Skeleton className="h-5 w-14" />
+          </TableCell>
           <TableCell className="text-right pr-6">
-            <div className="flex justify-end gap-1"><Skeleton className="h-8 w-8 rounded-md" /></div>
+            <div className="flex justify-end gap-1">
+              <Skeleton className="h-8 w-8 rounded-md" />
+            </div>
           </TableCell>
         </TableRow>
       ))}
@@ -56,7 +63,8 @@ function TableSkeleton() {
   );
 }
 
-const DEFAULT_IMG = "https://res.cloudinary.com/dmhjgnymn/image/upload/v1770135560/OIP_j6j4gz.webp";
+const DEFAULT_IMG =
+  "https://res.cloudinary.com/dmhjgnymn/image/upload/v1770135560/OIP_j6j4gz.webp";
 
 function typeBadgeClass(t: ProductType | undefined) {
   switch (t) {
@@ -86,8 +94,12 @@ export default function ProductTable({
         <div className="rounded-full bg-slate-100 p-4 mb-4">
           <InboxIcon className="h-8 w-8 text-slate-400" />
         </div>
-        <p className="text-sm font-medium text-slate-500">Chưa có sản phẩm nào</p>
-        <p className="text-xs text-slate-400 mt-1">Nhấn &quot;Thêm sản phẩm&quot; để bắt đầu</p>
+        <p className="text-sm font-medium text-slate-500">
+          Chưa có sản phẩm nào
+        </p>
+        <p className="text-xs text-slate-400 mt-1">
+          Nhấn &quot;Thêm sản phẩm&quot; để bắt đầu
+        </p>
       </div>
     );
   }
@@ -96,12 +108,24 @@ export default function ProductTable({
     <Table>
       <TableHeader>
         <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
-          <TableHead className="pl-6 w-[50px] text-xs font-semibold text-slate-500">#</TableHead>
-          <TableHead className="text-xs font-semibold text-slate-500">Sản phẩm</TableHead>
-          <TableHead className="text-xs font-semibold text-slate-500 w-[120px]">Loại</TableHead>
-          <TableHead className="text-xs font-semibold text-slate-500 w-[140px]">Đơn vị & Hạn</TableHead>
-          <TableHead className="text-xs font-semibold text-slate-500 w-[100px]">Trạng thái</TableHead>
-          <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[140px]">Thao tác</TableHead>
+          <TableHead className="pl-6 w-[50px] text-xs font-semibold text-slate-500">
+            #
+          </TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500">
+            Sản phẩm
+          </TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[120px]">
+            Loại
+          </TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[140px]">
+            Đơn vị & Hạn
+          </TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[100px]">
+            Trạng thái
+          </TableHead>
+          <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[140px]">
+            Thao tác
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -118,7 +142,9 @@ export default function ProductTable({
               </TableCell>
               <TableCell>
                 <div className="flex items-center gap-3">
-                  <div className={`relative h-10 w-10 overflow-hidden rounded-lg border border-slate-200 shrink-0 ${!item.isActive ? "opacity-40 grayscale" : ""}`}>
+                  <div
+                    className={`relative h-10 w-10 overflow-hidden rounded-lg border border-slate-200 shrink-0 ${!item.isActive ? "opacity-40 grayscale" : ""}`}
+                  >
                     <Image
                       src={item.imageUrl || DEFAULT_IMG}
                       alt={item.name}
@@ -129,7 +155,9 @@ export default function ProductTable({
                     />
                   </div>
                   <div className="min-w-0">
-                    <p className={`text-sm font-semibold truncate max-w-[200px] ${item.isActive ? "text-slate-900" : "text-slate-400"}`}>
+                    <p
+                      className={`text-sm font-semibold truncate max-w-[200px] ${item.isActive ? "text-slate-900" : "text-slate-400"}`}
+                    >
                       {item.name}
                     </p>
                     <p className="text-xs text-slate-400">SKU: {item.sku}</p>
@@ -140,7 +168,9 @@ export default function ProductTable({
                 <Badge
                   className={`border text-[10px] font-semibold ${typeBadgeClass(item.type)}`}
                 >
-                  {item.type ? (PRODUCT_TYPE_LABELS[item.type] ?? item.type) : "—"}
+                  {item.type
+                    ? (PRODUCT_TYPE_LABELS[item.type] ?? item.type)
+                    : "—"}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -148,7 +178,9 @@ export default function ProductTable({
                   <Badge className="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-50 text-[10px]">
                     {getProductBaseUnitDisplay(item)}
                   </Badge>
-                  <p className="text-xs text-slate-400">{item.shelfLifeDays} ngày</p>
+                  <p className="text-xs text-slate-400">
+                    {item.shelfLifeDays} ngày
+                  </p>
                 </div>
               </TableCell>
               <TableCell>
@@ -163,7 +195,7 @@ export default function ProductTable({
                 </Badge>
               </TableCell>
               <TableCell className="text-right pr-6">
-                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex justify-end gap-1 transition-opacity">
                   {item.isActive ? (
                     <>
                       <Button
@@ -193,12 +225,12 @@ export default function ProductTable({
                     </>
                   ) : (
                     <Button
-                      variant="outline"
+                      type="button"
                       size="sm"
-                      className="text-xs gap-1.5"
                       onClick={() => onRestore(item.id)}
+                      className="h-10 rounded-full bg-slate-100 hover:bg-slate-900 hover:text-white text-slate-950 font-black text-[10px] tracking-widest px-6 gap-2 transition-all active:scale-95 border-none shadow-sm"
                     >
-                      <RotateCw className="h-3.5 w-3.5" />
+                      <RotateCw className="h-4 w-4 stroke-[3px]" />
                       Khôi phục
                     </Button>
                   )}

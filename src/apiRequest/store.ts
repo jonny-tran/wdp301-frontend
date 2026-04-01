@@ -27,5 +27,9 @@ export const storeRequest = {
 
     getStoreDemandPatternAnalytics: (params: StoreDemandPatternQueryType) =>
         http.get<StoreDemandPatternAnalytics>(ENDPOINT_CLIENT.STORE_DEMAND_PATTERN, { query: params }),
+
+    createStaff: (body: { staff: any[] }) => 
+         http.post<Store>(ENDPOINT_CLIENT.CREATE_STAFF, body),
+
 };
 

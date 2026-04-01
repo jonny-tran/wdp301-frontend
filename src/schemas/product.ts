@@ -22,6 +22,8 @@ export const UpdateBatchBody = z.object({
   status: z.nativeEnum(BatchStatus).optional(),
 });
 
+
+
 export type CreateProductBodyType = z.infer<typeof CreateProductBody>;
 export type UpdateProductBodyType = z.infer<typeof UpdateProductBody>;
 export type UpdateBatchBodyType = z.infer<typeof UpdateBatchBody>;

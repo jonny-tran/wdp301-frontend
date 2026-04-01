@@ -42,6 +42,7 @@ export const ENDPOINT_CLIENT = {
     // Stores
     STORES: '/stores',
     CREATE_STORE: '/stores',
+    CREATE_STAFF: '/stores/staff', 
     STORE_DETAIL: (id: string) => `/stores/${id}`,
     UPDATE_STORE: (id: string) => `/stores/${id}`,
     DELETE_STORE: (id: string) => `/stores/${id}`,

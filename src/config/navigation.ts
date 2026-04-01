@@ -31,25 +31,25 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
     [Role.ADMIN]: [
         
         {
-            name: "Người dùng",
+            name: "User",
             href: "/admin/auth",
             icon: UserGroupIcon,
             requiredPermission: { resource: Resource.USER, action: P.USER_READ_LIST }
         },
         {
-            name: "Giao hàng",
+            name: "Shipment",
             href: "/admin/shipment",
             icon: TruckIcon,
             requiredPermission: { resource: Resource.STORE, action: P.STORE_READ_LIST }
         },
         {
-            name: "Khiếu nại",
+            name: "Claim",
             href: "/admin/claim",
             icon: ClipboardDocumentCheckIcon,
             requiredPermission: { resource: Resource.REPORT, action: P.REPORT_AGGREGATED }
         },
         {
-            name: "Cấu hình",
+            name: "Config",
             href: "/admin/config",
             icon: AdjustmentsHorizontalIcon,
             requiredPermission: { resource: Resource.SYSTEM, action: P.SYSTEM_CONFIGURE_PARAMS }
@@ -58,55 +58,55 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
     [Role.MANAGER]: [
        
         {
-            name: "Sản phẩm",
+            name: "Products",
             href: "/manager/products",
             icon: CubeIcon,
             requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_LIST }
         },
         {
-            name: "Công thức (BOM)",
+            name: "Recipes",
             href: "/manager/production/recipes",
             icon: BeakerIcon,
             requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_LIST }
         },
         {
-            name: "Lệnh sản xuất",
+            name: "Production",
             href: "/manager/production/orders",
             icon: QueueListIcon,
             requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_LIST }
         },
         {
-            name: "Lô hàng",
+            name: "Batch",
             href: "/manager/batch",
             icon: InboxStackIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_DETAILS }
         },
         {
-            name: "Tồn kho",
+            name: "Inventory",
             href: "/manager/inventory",
             icon: InboxStackIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_SUMMARY }
         },
         {
-            name: "Đơn hàng",
+            name: "Order",
             href: "/manager/order",
             icon: ClipboardDocumentListIcon,
             requiredPermission: { resource: Resource.REPORT, action: P.REPORT_FULFILLMENT_RATE }
         },
         {
-            name: "Vận chuyển",
+            name: "Shipment",
             href: "/manager/shipment",
             icon: TruckIcon,
             requiredPermission: { resource: Resource.REPORT, action: P.REPORT_LEAD_TIME }
         },
         {
-            name: "Đơn vị tính",
+            name: "Base Units",
             href: "/manager/baseUnits",
             icon: ArchiveBoxIcon,
             requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_CATEGORIES }
         },
         {
-            name: "Cửa hàng",
+            name: "Store",
             href: "/manager/store",
             icon: BuildingStorefrontIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_STORE_STOCK }
@@ -121,7 +121,7 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_SUMMARY }
         },
         {
-            name: "Sản xuất",
+            name: "Production",
             href: "/kitchen/production",
             icon: BeakerIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_SUMMARY }
