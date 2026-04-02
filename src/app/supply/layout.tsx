@@ -1,7 +1,6 @@
 "use client";
 
 import BaseLayout from "@/components/layout/BaseLayout";
-import { Role } from "@/utils/enum";
 
 export default function SupplyLayout({
     children,
@@ -9,7 +8,7 @@ export default function SupplyLayout({
     children: React.ReactNode;
 }) {
     return (
-        <BaseLayout title="Supply Chain Management">
+        <BaseLayout title="Điều phối Chuỗi Cung Ứng">
             {children}
         </BaseLayout>
     );

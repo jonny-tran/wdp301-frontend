@@ -9,7 +9,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { handleErrorApi } from "@/lib/errors";
 import { LoginBody, LoginBodyType } from "@/schemas/auth";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -117,30 +116,6 @@ export default function LoginForm() {
           )}
         </Button>
       </form>
-
-      <div className="my-8 flex items-center gap-4">
-        <div className="h-[1px] bg-gray-100 flex-1"></div>
-        <span className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
-          Or Login with
-        </span>
-        <div className="h-[1px] bg-gray-100 flex-1"></div>
-      </div>
-
-      {/* Social Login Buttons */}
-      <div className="grid grid-cols-1">
-        <button
-          type="button"
-          className="flex items-center justify-center gap-2 border border-gray-100 rounded-2xl py-3 hover:bg-gray-50 transition-all font-bold text-xs text-text-main"
-        >
-          <Image
-            src="https://www.svgrepo.com/show/475656/google-color.svg"
-            alt="G"
-            width={16}
-            height={16}
-          />
-          Google
-        </button>
-      </div>
     </div>
   );
 }

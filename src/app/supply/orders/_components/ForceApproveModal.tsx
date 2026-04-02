@@ -25,7 +25,7 @@ export default function ForceApproveModal({
                         onClick={onClose}
                         className="rounded-xl border border-gray-200 px-4 py-2 text-sm font-semibold text-text-main hover:border-primary/40"
                     >
-                        Cancel
+                        Hủy bỏ
                     </button>
                     <button
                         type="button"

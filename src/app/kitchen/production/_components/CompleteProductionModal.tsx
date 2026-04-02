@@ -55,6 +55,17 @@ export default function CompleteProductionModal({
     const shortfall =
         typeof actual === "number" && Number.isFinite(actual) && target > 0 && actual < target - 1e-9;
 
+    // Computed wastage
+    const wastageAmount = typeof actual === "number" && Number.isFinite(actual) && target > 0
+        ? Math.max(0, target - actual)
+        : 0;
+    const wastagePercent = target > 0 && wastageAmount > 0
+        ? Math.round((wastageAmount / target) * 1000) / 10
+        : 0;
+    const yieldPercent = typeof actual === "number" && Number.isFinite(actual) && target > 0
+        ? Math.round((actual / target) * 1000) / 10
+        : 100;
+
     useEffect(() => {
         if (open && order) {
             form.reset({
@@ -106,7 +117,7 @@ export default function CompleteProductionModal({
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className="text-sm font-bold text-zinc-800">
-                                        Thực tế làm được{" "}
+                                        Sản lượng thực tế (Actual Yield){" "}
                                         <span className="font-normal text-zinc-500">(mặc định = kế hoạch)</span>
                                     </FormLabel>
                                     <FormControl>
@@ -124,10 +135,38 @@ export default function CompleteProductionModal({
                             )}
                         />
 
+                        {/* Yield & Wastage Summary */}
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className={`rounded-xl p-3 ${yieldPercent >= 95 ? "bg-green-50 border border-green-200" : yieldPercent >= 80 ? "bg-amber-50 border border-amber-200" : "bg-red-50 border border-red-200"}`}>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Hiệu suất (Yield)</p>
+                                <p className={`mt-1 text-2xl font-black tabular-nums ${yieldPercent >= 95 ? "text-green-700" : yieldPercent >= 80 ? "text-amber-700" : "text-red-700"}`}>
+                                    {yieldPercent}%
+                                </p>
+                            </div>
+                            <div className={`rounded-xl p-3 ${wastageAmount > 0 ? "bg-red-50 border border-red-200" : "bg-green-50 border border-green-200"}`}>
+                                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Hao hụt (Wastage)</p>
+                                <div className="mt-1 flex items-baseline gap-1.5">
+                                    <p className={`text-2xl font-black tabular-nums ${wastageAmount > 0 ? "text-red-700" : "text-green-700"}`}>
+                                        {Math.round(wastageAmount * 100) / 100}
+                                    </p>
+                                    {wastageAmount > 0 && (
+                                        <span className="text-xs font-semibold text-red-500">
+                                            ({wastagePercent}%)
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
                         {shortfall && (
                             <div className="flex gap-2 rounded-lg border border-amber-500/50 bg-amber-50 p-3 text-sm text-amber-950">
                                 <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden />
-                                <p>Thấp hơn kế hoạch — chọn lý do hao hụt.</p>
+                                <div>
+                                    <p className="font-semibold">Sản lượng thấp hơn kế hoạch</p>
+                                    <p className="mt-0.5 text-xs text-amber-800">
+                                        Thiếu <span className="font-bold">{Math.round(wastageAmount * 100) / 100} {order.unit}</span> so với BOM chuẩn. Vui lòng chọn lý do hao hụt bên dưới.
+                                    </p>
+                                </div>
                             </div>
                         )}
 

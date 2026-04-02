@@ -55,12 +55,26 @@ export default function ClaimDetailModal({
                                 {detailItems.map((item, index: number) => {
                                     const row = item as Record<string, unknown>;
                                     return (
-                                        <div key={`${String(row.productName ?? "item")}-${index}`} className="rounded-2xl border border-gray-100 p-3">
-                                            <p className="font-semibold text-text-main">{String(row.productName ?? "Sản phẩm")}</p>
-                                            <p className="text-xs text-text-muted">SKU: {String(row.sku ?? "-")}</p>
-                                            <p className="text-xs text-text-muted">Thiếu: {String(row.quantityMissing ?? 0)}</p>
-                                            <p className="text-xs text-text-muted">Hư hỏng: {String(row.quantityDamaged ?? 0)}</p>
-                                            <p className="text-xs text-text-muted">Lý do: {String(row.reason ?? "-")}</p>
+                                        <div key={`${String(row.productName ?? "item")}-${index}`} className="rounded-2xl border border-gray-100 p-4">
+                                            <div className="flex items-start gap-4">
+                                                {typeof row.imageUrl === 'string' && row.imageUrl && (
+                                                    <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-lg bg-gray-50 border border-gray-100">
+                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                        <img
+                                                            src={String(row.imageUrl)}
+                                                            alt={String(row.productName ?? "Sản phẩm")}
+                                                            className="h-full w-full object-cover"
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div className="flex-1 space-y-1">
+                                                    <p className="font-semibold text-text-main">{String(row.productName ?? "Sản phẩm")}</p>
+                                                    <p className="text-xs text-text-muted">SKU: {String(row.sku ?? "-")}</p>
+                                                    <p className="text-xs text-text-muted">Thiếu: {String(row.quantityMissing ?? 0)}</p>
+                                                    <p className="text-xs text-text-muted">Hư hỏng: {String(row.quantityDamaged ?? 0)}</p>
+                                                    <p className="text-xs text-text-muted">Lý do: {String(row.reason ?? "-")}</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     );
                                 })}

@@ -11,6 +11,27 @@ interface PickingDetailModalProps {
     pickingData: ShipmentPickingList;
 }
 
+/** FEFO Traffic-light: returns badge class + label based on days until expiry */
+function getExpiryBadge(expiryDate?: string): { className: string; label: string } {
+    if (!expiryDate) return { className: "bg-gray-100 text-gray-500", label: "N/A" };
+
+    const now = new Date();
+    const expiry = new Date(expiryDate);
+    const diffMs = expiry.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays < 0) {
+        return { className: "bg-red-600 text-white animate-pulse", label: "ĐÃ HẾT HẠN" };
+    }
+    if (diffDays <= 7) {
+        return { className: "bg-red-100 text-red-700 border border-red-200", label: `Còn ${diffDays} ngày` };
+    }
+    if (diffDays <= 15) {
+        return { className: "bg-amber-100 text-amber-700 border border-amber-200", label: `Còn ${diffDays} ngày` };
+    }
+    return { className: "bg-green-100 text-green-700 border border-green-200", label: `Còn ${diffDays} ngày` };
+}
+
 export default function PickingDetailModal({
     shipmentNo,
     onClose,
@@ -39,11 +60,12 @@ export default function PickingDetailModal({
                 <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 flex-shrink-0">
                     <div>
                         <h3 className="text-lg font-bold text-text-main">Danh sách Lấy hàng</h3>
-                        <p className="text-xs text-text-muted">#{shipmentNo}</p>
+                        <p className="text-xs text-text-muted">Chuyến hàng #{shipmentNo}</p>
                     </div>
                     <button
                         type="button"
                         onClick={onClose}
+                        title="Đóng"
                         className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
                     >
                         <XMarkIcon className="h-5 w-5 text-gray-400" />
@@ -74,13 +96,13 @@ export default function PickingDetailModal({
                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                     <div>
                                         <p className="text-xs text-gray-400">Mã vận đơn</p>
-                                        <p className="font-semibold text-text-main truncate" title={pickingData.shipment_id}>
+                                        <p className="font-mono font-semibold text-text-main truncate" title={pickingData.shipment_id}>
                                             {pickingData.shipment_id?.slice(0, 8).toUpperCase() || "-"}
                                         </p>
                                     </div>
                                     <div>
                                         <p className="text-xs text-gray-400">Mã đơn hàng</p>
-                                        <p className="font-semibold text-text-main truncate" title={pickingData.order_id}>
+                                        <p className="font-mono font-semibold text-text-main truncate" title={pickingData.order_id}>
                                             {pickingData.order_id?.slice(0, 8).toUpperCase() || "-"}
                                         </p>
                                     </div>
@@ -98,51 +120,61 @@ export default function PickingDetailModal({
                                     <p className="text-sm text-text-muted text-center py-8">Không có sản phẩm nào</p>
                                 ) : (
                                     <div className="space-y-3">
-                                        {pickingData.items.map((item, index) => (
-                                            <div
-                                                key={`${item.batch_code}-${index}`}
-                                                className="flex gap-4 p-3 rounded-2xl border border-gray-100 hover:border-gray-200 transition-colors"
-                                            >
-                                                {/* Product Image */}
-                                                <div className="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0 relative">
-                                                    {item.image_url ? (
-                                                        <Image
-                                                            src={item.image_url}
-                                                            alt={item.product_name || "Sản phẩm"}
-                                                            fill
-                                                            className="object-cover"
-                                                        />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                                            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                                            </svg>
+                                        {pickingData.items.map((item, index) => {
+                                            const expiryBadge = getExpiryBadge(item.expiry_date);
+
+                                            return (
+                                                <div
+                                                    key={`${item.batch_code}-${index}`}
+                                                    className="flex gap-4 p-3 rounded-2xl border border-gray-100 hover:border-gray-200 transition-colors"
+                                                >
+                                                    {/* Product Image */}
+                                                    <div className="w-16 h-16 rounded-xl bg-gray-100 overflow-hidden flex-shrink-0 relative">
+                                                        {item.image_url ? (
+                                                            <Image
+                                                                src={item.image_url}
+                                                                alt={item.product_name || "Sản phẩm"}
+                                                                fill
+                                                                className="object-cover"
+                                                            />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-gray-300">
+                                                                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                                                </svg>
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Product Info */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-semibold text-text-main truncate">{item.product_name || "Sản phẩm"}</p>
+                                                        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-500">
+                                                            <span>SKU: <span className="font-medium text-gray-700">{item.sku || "-"}</span></span>
+                                                            <span>Lô: <span className="rounded bg-violet-50 px-1.5 py-0.5 font-mono font-bold text-violet-700">{item.batch_code || "-"}</span></span>
                                                         </div>
-                                                    )}
-                                                </div>
+                                                        {/* FEFO Expiry Badge */}
+                                                        <div className="mt-1.5">
+                                                            <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${expiryBadge.className}`}>
+                                                                {expiryBadge.label}
+                                                            </span>
+                                                        </div>
+                                                    </div>
 
-                                                {/* Product Info */}
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="font-semibold text-text-main truncate">{item.product_name || "Sản phẩm"}</p>
-                                                    <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500">
-                                                        <span>SKU: <span className="font-medium text-gray-700">{item.sku || "-"}</span></span>
-                                                        <span>Lô: <span className="font-medium text-gray-700">{item.batch_code || "-"}</span></span>
+                                                    {/* Quantity & Expiry */}
+                                                    <div className="flex flex-col items-end justify-between text-right">
+                                                        <div className="text-right">
+                                                            <p className="text-lg font-bold text-primary">{item.quantity || "-"}</p>
+                                                            <p className="text-[10px] text-gray-400 uppercase">Số lượng</p>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="text-xs font-medium text-gray-600">{formatDate(item.expiry_date)}</p>
+                                                            <p className="text-[10px] text-gray-400 uppercase">Hạn dùng</p>
+                                                        </div>
                                                     </div>
                                                 </div>
-
-                                                {/* Quantity & Expiry */}
-                                                <div className="flex flex-col items-end justify-between text-right">
-                                                    <div className="text-right">
-                                                        <p className="text-lg font-bold text-primary">{item.quantity || "-"}</p>
-                                                        <p className="text-[10px] text-gray-400 uppercase">SL</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="text-xs font-medium text-gray-600">{formatDate(item.expiry_date)}</p>
-                                                        <p className="text-[10px] text-gray-400 uppercase">Hạn dùng</p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
                                     </div>
                                 )}
                             </div>

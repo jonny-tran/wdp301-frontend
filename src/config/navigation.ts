@@ -146,27 +146,27 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
         },
     ],
     [Role.SUPPLY_COORDINATOR]: [
-        { name: "Dashboard", href: "/supply", icon: HomeIcon },
+        { name: "Tổng quan", href: "/supply", icon: HomeIcon },
         {
-            name: "Orders",
+            name: "Đơn hàng",
             href: "/supply/orders",
             icon: ClipboardDocumentListIcon,
             requiredPermission: { resource: Resource.ORDER, action: P.ORDER_READ_ALL_PENDING }
         },
         // {
-        //     name: "Allocation",
+        //     name: "Phân bổ",
         //     href: "/supply/allocation",
         //     icon: Squares2X2Icon,
         //     requiredPermission: { resource: Resource.ORDER, action: P.ORDER_APPROVE }
         // },
         {
-            name: "Delivery",
+            name: "Giao hàng",
             href: "/supply/delivery",
             icon: TruckIcon,
             requiredPermission: { resource: Resource.DELIVERY, action: P.DELIVERY_SCHEDULE }
         },
         {
-            name: "Issues",
+            name: "Khiếu nại",
             href: "/supply/issues",
             icon: ExclamationTriangleIcon,
             requiredPermission: { resource: Resource.CLAIM, action: P.CLAIM_READ_ALL }

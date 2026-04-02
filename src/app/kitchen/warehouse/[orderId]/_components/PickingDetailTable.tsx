@@ -11,6 +11,19 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import type { PickingTaskItem } from "@/types/warehouse";
 
+/** FEFO Traffic-light: returns badge class + label based on days until expiry */
+function getExpiryBadgeStyle(expiryDate?: string): { badgeClass: string; label: string } {
+    if (!expiryDate) return { badgeClass: "bg-gray-100 text-gray-500", label: "N/A" };
+    const now = new Date();
+    const expiry = new Date(expiryDate);
+    const diffMs = expiry.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return { badgeClass: "bg-red-600 text-white animate-pulse", label: "HẾT HẠN" };
+    if (diffDays <= 7) return { badgeClass: "bg-red-100 text-red-700 border border-red-300", label: `${diffDays}d` };
+    if (diffDays <= 15) return { badgeClass: "bg-amber-100 text-amber-700 border border-amber-300", label: `${diffDays}d` };
+    return { badgeClass: "bg-green-100 text-green-700 border border-green-300", label: `${diffDays}d` };
+}
+
 export type PickingLineStatus = "pending" | "verified" | "issue";
 
 export type PickingLineState = {
@@ -183,12 +196,21 @@ export default function PickingDetailTable({
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-                                        <div className="rounded-xl bg-zinc-50 px-3 py-2">
-                                            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">HSD</p>
-                                            <p className="text-sm font-bold tabular-nums text-zinc-900">
-                                                {line.expiry ? String(line.expiry).slice(0, 10) : "—"}
-                                            </p>
-                                        </div>
+                                        {/* Expiry with FEFO Traffic-Light */}
+                                        {(() => {
+                                            const expBadge = getExpiryBadgeStyle(line.expiry);
+                                            return (
+                                                <div className="rounded-xl bg-zinc-50 px-3 py-2">
+                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Hạn sử dụng (FEFO)</p>
+                                                    <p className="text-sm font-bold tabular-nums text-zinc-900">
+                                                        {line.expiry ? String(line.expiry).slice(0, 10) : "—"}
+                                                    </p>
+                                                    <span className={`mt-1 inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${expBadge.badgeClass}`}>
+                                                        {expBadge.label}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })()}
                                         <div className="rounded-xl bg-zinc-50 px-3 py-2">
                                             <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500">SL gợi ý</p>
                                             <p className="text-lg font-black tabular-nums text-zinc-900">{line.suggestedQty}</p>
