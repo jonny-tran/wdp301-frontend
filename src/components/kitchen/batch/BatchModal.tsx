@@ -1,11 +1,14 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUpload } from "@/hooks/useUpload";
 import { UpdateBatchBodyType } from "@/schemas/product";
 import { Batch } from "@/types/product";
 import { BatchStatus } from "@/utils/enum";
 import { CalendarIcon, CubeIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { SyntheticEvent, useEffect, useState } from "react";
+import Image from "next/image";
+import { SyntheticEvent, useState } from "react";
 
 interface BatchModalProps {
     isOpen: boolean;
@@ -28,20 +31,21 @@ export function BatchModal({ isOpen, onClose, onSubmit, initialData, isPending, 
     const [imageUrl, setImageUrl] = useState("");
     const [status, setStatus] = useState<BatchStatus | "">("");
     const { uploadImage } = useUpload();
+    const [prevInitialData, setPrevInitialData] = useState(initialData);
 
-    useEffect(() => {
+    if (initialData !== prevInitialData) {
+        setPrevInitialData(initialData);
         if (!initialData) {
             setInitialQuantity("");
             setImageUrl("");
             setStatus("");
-            return;
+        } else {
+            const qty = initialData.initialQuantity ?? initialData.currentQuantity;
+            setInitialQuantity(qty !== undefined && qty !== null ? String(qty) : "");
+            setImageUrl(initialData.imageUrl ?? "");
+            setStatus((initialData.status as BatchStatus) ?? "");
         }
-
-        const qty = initialData.initialQuantity ?? initialData.currentQuantity;
-        setInitialQuantity(qty !== undefined && qty !== null ? String(qty) : "");
-        setImageUrl(initialData.imageUrl ?? "");
-        setStatus((initialData.status as BatchStatus) ?? "");
-    }, [initialData]);
+    }
 
     if (!isOpen) return null;
 
@@ -75,9 +79,9 @@ export function BatchModal({ isOpen, onClose, onSubmit, initialData, isPending, 
                         <CubeIcon className="h-5 w-5" />
                         <span className="text-sm font-bold uppercase">Cập nhật lô hàng - {initialData?.batchCode}</span>
                     </div>
-                    <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+                    <Button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-full transition-colors">
                         <XMarkIcon className="h-5 w-5" />
-                    </button>
+                    </Button>
                 </div>
 
                 {/* Loading overlay */}
@@ -92,7 +96,14 @@ export function BatchModal({ isOpen, onClose, onSubmit, initialData, isPending, 
                     <div className="flex justify-center">
                         <div className="w-32 h-32 rounded-full border-2 border-black flex items-center justify-center overflow-hidden bg-gray-50">
                             {imageUrl ? (
-                                <img src={imageUrl} alt="Batch" className="w-full h-full object-cover" />
+                                <Image
+                                    src={imageUrl}
+                                    alt="Batch"
+                                    width={128}
+                                    height={128}
+                                    className="w-full h-full object-cover"
+                                    unoptimized
+                                />
                             ) : (
                                 <span className="text-xs font-bold text-gray-400">Ảnh</span>
                             )}
@@ -121,17 +132,21 @@ export function BatchModal({ isOpen, onClose, onSubmit, initialData, isPending, 
                                 <div className="flex items-center gap-1 text-[10px] font-bold uppercase text-gray-500 mb-1">
                                     Status
                                 </div>
-                                <select
-                                    value={status || initialData?.status || ""}
-                                    onChange={(e) => setStatus(e.target.value as BatchStatus | "")}
-                                    className="w-full text-sm font-medium bg-transparent outline-none cursor-pointer"
+                                <Select
+                                    value={(status || initialData?.status || "") as string}
+                                    onValueChange={(val) => setStatus(val as BatchStatus)}
                                 >
-                                    {BATCH_STATUS_OPTIONS.map((opt) => (
-                                        <option key={opt.value} value={opt.value}>
-                                            {opt.label}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <SelectTrigger className="w-full text-sm font-medium bg-transparent border-none p-0 h-auto focus:ring-0 focus:ring-offset-0 shadow-none">
+                                        <SelectValue placeholder="Chọn trạng thái" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {BATCH_STATUS_OPTIONS.map((opt) => (
+                                            <SelectItem key={opt.value} value={opt.value}>
+                                                {opt.label}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
 

@@ -11,7 +11,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { P } from "@/lib/authz";
-import { cn } from "@/lib/utils";
 import type { PickingTaskListItem } from "@/types/warehouse";
 import { Resource } from "@/utils/constant";
 import { format } from "date-fns";
@@ -31,7 +30,6 @@ interface WarehouseTasksTableProps {
 
 function canCancelWarehouseTask(task: PickingTaskListItem): boolean {
   const s = task.status?.trim().toUpperCase();
-  if (!s) return true;
   return s === "APPROVED" || s === "PICKING";
 }
 
@@ -61,7 +59,7 @@ export default function WarehouseTasksTable({
   };
 
   return (
-    <div className="px-2 pb-2 sm:px-4">
+    <div className="w-full overflow-x-auto">
       <CancelPickingTaskDialog
         open={cancelOrderId != null}
         onOpenChange={(open) => {
@@ -72,17 +70,17 @@ export default function WarehouseTasksTable({
       />
       <Table>
         <TableHeader>
-          <TableRow className="border-b-2 border-zinc-200 bg-zinc-50 hover:bg-zinc-50">
-            <TableHead className="w-14 font-bold text-zinc-700">STT</TableHead>
-            <TableHead className="font-bold text-zinc-700">Mã đơn</TableHead>
-            <TableHead className="font-bold text-zinc-700">
+          <TableRow className="border-b border-zinc-200 bg-zinc-50 hover:bg-zinc-50">
+            <TableHead className="w-16 font-semibold text-zinc-500">STT</TableHead>
+            <TableHead className="font-semibold text-zinc-500">Mã đơn</TableHead>
+            <TableHead className="font-semibold text-zinc-500">
               Cửa hàng đích
             </TableHead>
-            <TableHead className="text-right font-bold text-zinc-700">
+            <TableHead className="text-right font-semibold text-zinc-500">
               Tổng mặt hàng
             </TableHead>
-            <TableHead className="font-bold text-zinc-700">Ngày tạo</TableHead>
-            <TableHead className="w-[200px] text-right font-bold text-zinc-700">
+            <TableHead className="font-semibold text-zinc-500">Ngày tạo</TableHead>
+            <TableHead className="text-right font-semibold text-zinc-500">
               Thao tác
             </TableHead>
           </TableRow>
@@ -92,7 +90,7 @@ export default function WarehouseTasksTable({
             <TableRow>
               <TableCell
                 colSpan={6}
-                className="py-12 text-center text-sm font-medium text-zinc-500"
+                className="h-32 text-center text-zinc-500"
               >
                 Đang tải danh sách tác vụ kho…
               </TableCell>
@@ -101,17 +99,15 @@ export default function WarehouseTasksTable({
             <TableRow>
               <TableCell
                 colSpan={6}
-                className="py-12 text-center text-sm font-semibold text-red-600"
+                className="h-32 text-center font-medium text-red-500"
               >
-                Không tải được danh sách. Thử làm mới trang.
+                Không tải được danh sách. Vui lòng thử lại.
               </TableCell>
             </TableRow>
           ) : tasks.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="py-14 text-center">
-                <p className="text-base font-semibold text-zinc-800">
-                  Hiện không có đơn chờ soạn hàng
-                </p>
+              <TableCell colSpan={6} className="h-32 text-center text-zinc-500">
+                Hiện không có đơn chờ soạn hàng
               </TableCell>
             </TableRow>
           ) : (
@@ -120,9 +116,7 @@ export default function WarehouseTasksTable({
               return (
                 <TableRow
                   key={oid || String(index)}
-                  className={cn(
-                    "cursor-pointer border-zinc-100 transition-colors hover:bg-amber-50/60",
-                  )}
+                  className="cursor-pointer border-zinc-100 transition-colors hover:bg-zinc-100 data-[state=selected]:bg-muted"
                   role="button"
                   tabIndex={0}
                   onClick={() => goDetail(oid)}
@@ -133,26 +127,26 @@ export default function WarehouseTasksTable({
                     }
                   }}
                 >
-                  <TableCell className="font-bold text-zinc-900">
-                    #{rowStart + index + 1}
+                  <TableCell className="font-semibold tabular-nums text-zinc-900">
+                    {rowStart + index + 1}
                   </TableCell>
-                  <TableCell className="font-mono text-sm font-bold text-zinc-900">
+                  <TableCell className="font-mono font-semibold text-amber-700">
                     {oid || "—"}
                   </TableCell>
-                  <TableCell className="font-medium text-zinc-800">
+                  <TableCell className="text-zinc-800">
                     {task.storeName ?? "—"}
                   </TableCell>
-                  <TableCell className="text-right text-sm font-black tabular-nums text-zinc-900">
+                  <TableCell className="text-right tabular-nums text-zinc-900">
                     {task.totalItems ?? "—"}
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-sm text-zinc-600">
+                  <TableCell className="text-sm text-zinc-500">
                     {formatCreatedAt(task.createdAt)}
                   </TableCell>
                   <TableCell
                     className="text-right"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="flex flex-wrap justify-end gap-2">
+                    <div className="ml-auto inline-flex max-w-full flex-wrap items-center justify-end gap-1.5 rounded-lg border border-zinc-200 bg-zinc-50/90 p-1 shadow-sm backdrop-blur-[2px] dark:border-zinc-700 dark:bg-zinc-900/80">
                       <Can
                         I={P.WAREHOUSE_CANCEL_PICKING_TASK}
                         on={Resource.WAREHOUSE}
@@ -160,12 +154,12 @@ export default function WarehouseTasksTable({
                         {canCancelWarehouseTask(task) ? (
                           <Button
                             type="button"
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
-                            className="font-bold text-red-600 hover:bg-red-50 hover:text-red-700"
+                            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-900/60 dark:hover:bg-red-950/50"
                             onClick={() => setCancelOrderId(oid)}
                           >
-                            Hủy Task
+                            Hủy
                           </Button>
                         ) : null}
                       </Can>
@@ -175,9 +169,8 @@ export default function WarehouseTasksTable({
                       >
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="secondary"
                           size="sm"
-                          className="font-bold"
                           disabled={isResetting}
                           onClick={() => onReset(oid)}
                         >
@@ -187,10 +180,10 @@ export default function WarehouseTasksTable({
                       <Button
                         type="button"
                         size="sm"
-                        className="font-bold"
+                        className="bg-amber-600 text-white hover:bg-amber-700"
                         onClick={() => goDetail(oid)}
                       >
-                        Mở soạn hàng
+                        Soạn hàng
                       </Button>
                     </div>
                   </TableCell>

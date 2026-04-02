@@ -113,33 +113,33 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
         },
     ],
     [Role.CENTRAL_KITCHEN_STAFF]: [
-        { name: "Dashboard", href: "/kitchen/dashboard", icon: HomeIcon },
+        { name: "Tổng quan", href: "/kitchen/dashboard", icon: HomeIcon },
         {
-            name: "Inventory",
+            name: "Tồn kho",
             href: "/kitchen/inventory",
             icon: CubeIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_SUMMARY }
         },
         {
-            name: "Production",
+            name: "Sản xuất",
             href: "/kitchen/production",
             icon: BeakerIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_SUMMARY }
         },
         {
-            name: "Inbound",
+            name: "Nhập hàng",
             href: "/kitchen/inbound",
             icon: InboxArrowDownIcon,
             requiredPermission: { resource: Resource.INBOUND, action: P.INBOUND_CREATE_RECEIPT }
         },
         {
-            name: "Batches",
+            name: "Lô hàng",
             href: "/kitchen/batches",
             icon: CubeIcon,
             requiredPermission: { resource: Resource.INBOUND, action: P.INBOUND_READ_BATCH_LABEL }
         },
         {
-            name: "Warehouse",
+            name: "Kho hàng",
             href: "/kitchen/warehouse",
             icon: ArchiveBoxIcon,
             requiredPermission: { resource: Resource.WAREHOUSE, action: P.WAREHOUSE_READ_TASKS }

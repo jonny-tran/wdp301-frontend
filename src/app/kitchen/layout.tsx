@@ -10,7 +10,9 @@ export default function KitchenLayout({
 }) {
     return (
         <BaseLayout title="Central Kitchen System">
-            <div className="min-h-0 bg-[#fafaf9] text-zinc-900">{children}</div>
+            <div className="min-h-screen bg-zinc-50/50 pb-20 text-zinc-900">
+                {children}
+            </div>
             <KitchenScanFab />
         </BaseLayout>
     );

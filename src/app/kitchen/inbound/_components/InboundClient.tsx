@@ -2,13 +2,13 @@
 
 import { useInbound } from "@/hooks/useInbound";
 import { ReceiptStatus } from "@/utils/enum";
-import { InboxArrowDownIcon } from "@heroicons/react/24/outline";
+import { Receipt } from "@/types/inbound";
+import { InboxArrowDownIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { useMemo, useState } from "react";
 import InboundDraftBoard from "./InboundDraftBoard";
 import InboundHistoryColumn from "./InboundHistoryColumn";
 import ReceiptDetailModal from "./ReceiptDetailModal";
 import InboundCreateModal from "./InboundCreateModal";
-import { PlusIcon } from "@heroicons/react/24/outline";
 import Can from "@/components/shared/Can";
 import { P } from "@/lib/authz";
 import { Resource } from "@/utils/constant";
@@ -20,7 +20,7 @@ const QUERY_CONFIG = {
 };
 
 export default function InboundClient() {
-    const { receiptList } = useInbound();
+    const { receiptList, deleteReceipt } = useInbound();
     const [selectedReceiptId, setSelectedReceiptId] = useState<string | null>(null);
     const [selectedReceiptCode, setSelectedReceiptCode] = useState<string>("");
     const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -38,13 +38,17 @@ export default function InboundClient() {
     });
 
     const draftReceipts = useMemo(() => {
-        const data = (draftReceiptsQuery.data ?? {}) as { items?: unknown[]; data?: { items?: unknown[] } };
-        return Array.isArray(data.items) ? data.items : Array.isArray(data.data?.items) ? data.data.items : [];
+        const raw = draftReceiptsQuery.data;
+        if (!raw) return [];
+        const data = raw as { items?: unknown[]; data?: { items?: unknown[] } };
+        return (Array.isArray(data.items) ? data.items : Array.isArray(data.data?.items) ? data.data.items : []) as Receipt[];
     }, [draftReceiptsQuery.data]);
 
     const completedReceipts = useMemo(() => {
-        const data = (completedReceiptsQuery.data ?? {}) as { items?: unknown[]; data?: { items?: unknown[] } };
-        return Array.isArray(data.items) ? data.items : Array.isArray(data.data?.items) ? data.data.items : [];
+        const raw = completedReceiptsQuery.data;
+        if (!raw) return [];
+        const data = raw as { items?: unknown[]; data?: { items?: unknown[] } };
+        return (Array.isArray(data.items) ? data.items : Array.isArray(data.data?.items) ? data.data.items : []) as Receipt[];
     }, [completedReceiptsQuery.data]);
 
     const handleSelect = (id: string, code: string) => {
@@ -53,45 +57,55 @@ export default function InboundClient() {
         setIsDetailOpen(true);
     };
 
+    const handleDelete = async (id: string) => {
+        if (!window.confirm("Bạn có chắc chắn muốn xóa vĩnh viễn phiếu nhập nháp này?\nThao tác này không thể hoàn tác.")) {
+            return;
+        }
+        await deleteReceipt.mutateAsync(id);
+    };
+
     return (
-        <div className="space-y-8">
-            <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
-                <div className="flex flex-col gap-1">
-                    <h1 className="flex items-center gap-3 text-3xl font-black tracking-tight text-text-main">
-                        <div className="rounded-2xl bg-primary/10 p-2.5 text-primary">
-                            <InboxArrowDownIcon className="h-7 w-7" />
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                <div>
+                    <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-amber-50 p-2.5 text-amber-600">
+                            <InboxArrowDownIcon className="h-6 w-6" />
                         </div>
-                        Xác nhận hàng về (Inbound)
-                    </h1>
-                    <p className="pl-1 text-text-muted">
-                        Chốt phiếu để hệ thống tự sinh mã lô (BAT-…), đối soát SL nhận với dự kiến và in nhãn ngay tại quầy.
-                    </p>
+                        <div>
+                            <h1 className="text-2xl font-bold text-zinc-900">Nhập hàng</h1>
+                            <p className="text-sm text-zinc-500">
+                                Chốt phiếu để hệ thống tự sinh mã lô, đối soát số lượng và in nhãn.
+                            </p>
+                        </div>
+                    </div>
                 </div>
                 <Can I={P.INBOUND_CREATE_RECEIPT} on={Resource.INBOUND}>
                     <button
                         onClick={() => setIsCreateOpen(true)}
-                        className="flex items-center gap-2 rounded-full bg-primary px-8 py-4 text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-lg shadow-primary/20 transition-all hover:bg-primary-dark active:scale-95"
+                        className="flex items-center gap-2 rounded-xl bg-zinc-900 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-zinc-800 active:scale-[0.98]"
                     >
                         <PlusIcon className="h-4 w-4" />
-                        Tạo phiếu nháp
+                        Tạo phiếu nhập
                     </button>
                 </Can>
             </div>
 
-            <div className="grid grid-cols-1 gap-8 xl:grid-cols-2 xl:items-start">
-                <InboundDraftBoard
-                    drafts={draftReceipts as Record<string, unknown>[]}
-                    isLoading={draftReceiptsQuery.isLoading}
-                    isError={draftReceiptsQuery.isError}
-                    onSelect={handleSelect}
-                />
-                <InboundHistoryColumn
-                    receipts={completedReceipts as Record<string, unknown>[]}
-                    isLoading={completedReceiptsQuery.isLoading}
-                    isError={completedReceiptsQuery.isError}
-                    onSelect={handleSelect}
-                />
-            </div>
+            {/* Stacked full-width sections */}
+            <InboundDraftBoard
+                drafts={draftReceipts}
+                isLoading={draftReceiptsQuery.isLoading}
+                isError={draftReceiptsQuery.isError}
+                onSelect={handleSelect}
+                onDelete={handleDelete}
+            />
+            <InboundHistoryColumn
+                receipts={completedReceipts}
+                isLoading={completedReceiptsQuery.isLoading}
+                isError={completedReceiptsQuery.isError}
+                onSelect={handleSelect}
+            />
 
             <ReceiptDetailModal
                 isOpen={isDetailOpen}

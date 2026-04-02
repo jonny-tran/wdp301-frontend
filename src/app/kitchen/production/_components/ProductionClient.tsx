@@ -6,7 +6,6 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { productionRequest } from "@/apiRequest/production";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { HttpError } from "@/lib/errors";
 import {
     isOrderActiveStatus,
@@ -295,64 +294,63 @@ export default function ProductionClient() {
     };
 
     return (
-        <div className="space-y-8 pb-10">
-            <header className="border-b-4 border-zinc-900 pb-6">
-                <div className="flex flex-wrap items-end justify-between gap-4">
-                    <div>
-                        <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-600">Central Kitchen</p>
-                        <h1 className="mt-1 text-3xl font-black tracking-tight text-zinc-950 md:text-4xl">
-                            Điều độ sản xuất
-                        </h1>
-                        <p className="mt-2 max-w-2xl text-base font-medium text-zinc-600">
-                            Wizard: <strong className="text-zinc-900">Lấy lô (FEFO)</strong> → Sản xuất →{" "}
-                            <strong className="text-zinc-900">Ghi nhận thành phẩm</strong>. Nút lớn, tương phản cao cho
-                            kiosk bếp.
-                        </p>
-                    </div>
-                    <div className="flex items-center gap-2 rounded-lg border-2 border-zinc-800 bg-zinc-900 px-4 py-2 text-white">
-                        <Activity className="size-6 text-amber-400" aria-hidden />
-                        <span className="text-sm font-bold uppercase tracking-wide">Production</span>
+        <div className="space-y-6 pb-10">
+            {/* Page Header */}
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+                <div>
+                    <div className="flex items-center gap-3">
+                        <div className="rounded-xl bg-violet-50 p-2.5 text-violet-600">
+                            <Activity className="h-6 w-6" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-zinc-900">Điều độ sản xuất</h1>
+                            <p className="text-sm text-zinc-500">
+                                Lấy lô (FEFO) → Sản xuất → Ghi nhận thành phẩm
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </header>
+            </div>
 
-            <section className="grid gap-4 md:grid-cols-3">
+            {/* KPI Cards */}
+            <div className="grid gap-4 md:grid-cols-3">
                 {kpiCards.map((k) => (
-                    <Card
+                    <div
                         key={k.key}
-                        className="border-2 border-zinc-800 bg-white shadow-[4px_4px_0_0_rgb(24_24_27)]"
+                        className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm"
                     >
-                        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                            <span className="text-sm font-bold uppercase tracking-wide text-zinc-500">{k.title}</span>
-                            <k.icon className="size-6 text-amber-600" aria-hidden />
-                        </CardHeader>
-                        <CardContent>
-                            <p className="text-3xl font-black tabular-nums text-zinc-950">{k.value}</p>
-                            <p className="mt-2 text-sm font-medium text-zinc-600">{k.sub}</p>
-                        </CardContent>
-                    </Card>
+                        <div className="flex items-start justify-between">
+                            <span className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{k.title}</span>
+                            <div className="rounded-lg bg-zinc-100 p-1.5 text-zinc-500">
+                                <k.icon className="h-4 w-4" aria-hidden />
+                            </div>
+                        </div>
+                        <p className="mt-3 text-3xl font-bold tabular-nums text-zinc-900">{k.value}</p>
+                        <p className="mt-1 text-sm text-zinc-500">{k.sub}</p>
+                    </div>
                 ))}
-            </section>
+            </div>
 
-            <div className="flex flex-wrap gap-2 border-b-4 border-zinc-900 pb-1">
+            {/* Tabs */}
+            <div className="flex gap-1 rounded-xl bg-zinc-100 p-1">
                 {(
                     [
-                        { id: "orders" as const, label: "Active Orders", icon: Activity },
-                        { id: "recipes" as const, label: "Recipe Book", icon: BookOpen },
-                        { id: "history" as const, label: "Production History", icon: History },
+                        { id: "orders" as const, label: "Lệnh sản xuất", icon: Activity },
+                        { id: "recipes" as const, label: "Công thức", icon: BookOpen },
+                        { id: "history" as const, label: "Lịch sử", icon: History },
                     ] as const
                 ).map((tab) => (
                     <button
                         key={tab.id}
                         type="button"
                         onClick={() => setMainTab(tab.id)}
-                        className={`flex min-h-[52px] items-center gap-2 rounded-t-lg border-2 border-b-0 px-6 text-base font-bold transition-colors ${
+                        className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
                             mainTab === tab.id
-                                ? "border-zinc-900 bg-zinc-900 text-white"
-                                : "border-transparent bg-zinc-200 text-zinc-700 hover:bg-zinc-300"
+                                ? "bg-white text-zinc-900 shadow-sm"
+                                : "text-zinc-500 hover:text-zinc-700"
                         }`}
                     >
-                        <tab.icon className="size-5" aria-hidden />
+                        <tab.icon className="h-4 w-4" aria-hidden />
                         {tab.label}
                     </button>
                 ))}
@@ -360,31 +358,32 @@ export default function ProductionClient() {
 
             {mainTab === "orders" && (
                 <div className="space-y-4">
+                    {/* Status Filters */}
                     <div className="flex flex-wrap gap-2">
                         {(
                             [
                                 { id: "ALL" as const, label: "Tất cả" },
-                                { id: "PENDING" as const, label: "PENDING" },
-                                { id: "IN_PROGRESS" as const, label: "IN_PROGRESS" },
-                                { id: "COMPLETED" as const, label: "COMPLETED" },
+                                { id: "PENDING" as const, label: "Chờ xử lý" },
+                                { id: "IN_PROGRESS" as const, label: "Đang sản xuất" },
+                                { id: "COMPLETED" as const, label: "Hoàn tất" },
                             ] as const
                         ).map((chip) => (
                             <button
                                 key={chip.id}
                                 type="button"
                                 onClick={() => setOrderStatusFilter(chip.id)}
-                                className={`min-h-[48px] rounded-lg border-2 px-5 text-sm font-black uppercase tracking-wide transition-colors ${
+                                className={`rounded-lg px-4 py-2 text-sm font-medium transition-all ${
                                     orderStatusFilter === chip.id
-                                        ? "border-zinc-900 bg-zinc-900 text-white"
-                                        : "border-zinc-300 bg-white text-zinc-700 hover:bg-zinc-100"
+                                        ? "bg-zinc-900 text-white shadow-sm"
+                                        : "bg-white text-zinc-600 border border-zinc-200 hover:bg-zinc-50"
                                 }`}
                             >
                                 {chip.label}
                             </button>
                         ))}
                     </div>
-                    <p className="text-sm font-medium text-zinc-600">
-                        Bấm vào một dòng lệnh để xem chi tiết (FEFO, lô TP, nhật ký kho).
+                    <p className="text-sm text-zinc-500">
+                        Bấm vào dòng lệnh để xem chi tiết (FEFO, lô TP, nhật ký kho).
                     </p>
                     <ProductionOrderTable
                         orders={filteredOrdersForTable}
@@ -406,7 +405,7 @@ export default function ProductionClient() {
 
             {mainTab === "history" && (
                 <>
-                    <p className="text-sm font-medium text-zinc-600">
+                    <p className="text-sm text-zinc-500">
                         Bấm vào dòng để xem chi tiết lệnh đã hoàn tất.
                     </p>
                     <ProductionOrderTable
