@@ -75,8 +75,7 @@ export default function ClaimResolveModal({
     }
   };
 
-  const claimInfo =
-    (detailData as { data?: Claim } | null)?.data || detailData;
+  const claimInfo = (detailData as { data?: Claim } | null)?.data || detailData;
 
   const statusInfo = STATUS_MAP[claimInfo?.status || ""] || {
     label: claimInfo?.status || "---",
@@ -149,13 +148,16 @@ export default function ClaimResolveModal({
                 </span>
                 <span className="text-sm font-bold text-slate-900">
                   {claimInfo?.createdAt
-                    ? new Date(claimInfo.createdAt).toLocaleDateString("vi-VN", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })
+                    ? new Date(claimInfo.createdAt).toLocaleDateString(
+                        "vi-VN",
+                        {
+                          day: "2-digit",
+                          month: "2-digit",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )
                     : "---"}
                 </span>
               </div>

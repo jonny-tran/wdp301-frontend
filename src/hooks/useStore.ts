@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import { storeRequest } from "@/apiRequest/store";
 import { handleErrorApi } from "@/lib/errors";
@@ -92,8 +93,8 @@ export const useStore = () => {
         const res = await storeRequest.createStaff(data); 
         return res.data;
     },
-    onSuccess: (data) => {
-        const count = data?.count || 0;
+    onSuccess: (data: any) => {
+            const count = data?.count || 0;
         toast.success(`Đã ghi danh ${count} nhân sự thành công!`);
         queryClient.invalidateQueries({ queryKey: KEY.stores });
     },

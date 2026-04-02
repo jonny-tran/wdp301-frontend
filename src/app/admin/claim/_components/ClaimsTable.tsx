@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { format } from "date-fns";
@@ -30,7 +31,7 @@ export default function ClaimsTable({
   isLoading: boolean;
   onViewDetail: (id: string) => void;
 }) {
-  // LOADING
+  // 1. LOADING STATE
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3">
@@ -42,7 +43,7 @@ export default function ClaimsTable({
     );
   }
 
-  // EMPTY
+  // 2. EMPTY STATE
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 gap-3 animate-in fade-in">
@@ -80,6 +81,9 @@ export default function ClaimsTable({
         </thead>
         <tbody className="divide-y divide-slate-50 bg-white">
           {items.map((claim, index) => {
+            // FIX: Đảm bảo lấy đúng ID định danh từ Backend (id hoặc claimId)
+            const targetId = claim.id || (claim as any).claimId;
+
             const statusInfo = STATUS_MAP[claim.status] || {
               label: claim.status,
               className: "bg-slate-50 text-slate-500 border-slate-200",
@@ -87,10 +91,10 @@ export default function ClaimsTable({
 
             return (
               <tr
-                key={claim.claimId ?? `claim-${index}`}
+                key={targetId ?? `claim-${index}`}
                 className="group hover:bg-slate-50 transition-colors duration-200"
               >
-                {/* DATE */}
+                {/* DATE COLUMN */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex flex-col gap-0.5">
                     <span className="text-sm font-bold text-slate-900">
@@ -106,7 +110,7 @@ export default function ClaimsTable({
                   </div>
                 </td>
 
-                {/* SHIPMENT ID */}
+                {/* SHIPMENT ID COLUMN */}
                 <td className="px-6 py-4">
                   <span
                     className="font-bold text-slate-700 text-xs font-mono truncate max-w-[250px] block"
@@ -116,7 +120,7 @@ export default function ClaimsTable({
                   </span>
                 </td>
 
-                {/* STATUS */}
+                {/* STATUS COLUMN */}
                 <td className="px-6 py-4 text-center">
                   <span
                     className={`inline-block px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase border ${statusInfo.className}`}
@@ -125,10 +129,12 @@ export default function ClaimsTable({
                   </span>
                 </td>
 
-                {/* ACTIONS */}
+                {/* ACTIONS COLUMN: Luôn truyền targetId để fix lỗi detail */}
                 <td className="px-6 py-4 text-right">
                   <Button
-                    onClick={() => onViewDetail(claim.claimId)}
+                    onClick={() => {
+                      if (targetId) onViewDetail(String(targetId));
+                    }}
                     className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-50 text-slate-700 border border-slate-200 rounded-xl text-xs font-bold hover:bg-primary hover:text-white hover:border-primary transition-all active:scale-95"
                   >
                     <EyeIcon className="h-3.5 w-3.5" />
