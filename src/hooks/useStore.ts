@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client'
 import { storeRequest } from "@/apiRequest/store";
 import { handleErrorApi } from "@/lib/errors";

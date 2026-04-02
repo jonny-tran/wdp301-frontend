@@ -33,12 +33,10 @@ export default function ConfigClient() {
   const { data, isLoading } = useQuery({
     queryKey: ["system-configs"],
     queryFn: () =>
-      http
-        .get<SystemConfig[]>(ENDPOINT_CLIENT.SYSTEM_CONFIGS)
-        .then((res) => {
-          // res.data chính là payload thực tế (T) — http.ts đã unwrap ResponseData
-          return Array.isArray(res.data) ? res.data : [];
-        }),
+      http.get<SystemConfig[]>(ENDPOINT_CLIENT.SYSTEM_CONFIGS).then((res) => {
+        // res.data chính là payload thực tế (T) — http.ts đã unwrap ResponseData
+        return Array.isArray(res.data) ? res.data : [];
+      }),
   });
 
   // 2. Mutation cập nhật — FIX: URL không còn spaces
