@@ -105,12 +105,12 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
             href: "/manager/supplier",
             icon: BuildingOffice2Icon,
         },
-        {
-            name: "Đơn vị tính",
-            href: "/manager/baseUnits",
-            icon: ArchiveBoxIcon,
-            requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_CATEGORIES }
-        },
+        // {
+        //     name: "Đơn vị tính",
+        //     href: "/manager/baseUnits",
+        //     icon: ArchiveBoxIcon,
+        //     requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_CATEGORIES }
+        // },
         {
             name: "Khiếu nại",
             href: "/manager/claim",
