@@ -113,60 +113,60 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
         },
     ],
     [Role.CENTRAL_KITCHEN_STAFF]: [
-        { name: "Dashboard", href: "/kitchen/dashboard", icon: HomeIcon },
+        { name: "Tổng quan", href: "/kitchen/dashboard", icon: HomeIcon },
         {
-            name: "Inventory",
+            name: "Tồn kho",
             href: "/kitchen/inventory",
             icon: CubeIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_SUMMARY }
         },
         {
-            name: "Production",
+            name: "Sản xuất",
             href: "/kitchen/production",
             icon: BeakerIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_SUMMARY }
         },
         {
-            name: "Inbound",
+            name: "Nhập hàng",
             href: "/kitchen/inbound",
             icon: InboxArrowDownIcon,
             requiredPermission: { resource: Resource.INBOUND, action: P.INBOUND_CREATE_RECEIPT }
         },
         {
-            name: "Batches",
+            name: "Lô hàng",
             href: "/kitchen/batches",
             icon: CubeIcon,
             requiredPermission: { resource: Resource.INBOUND, action: P.INBOUND_READ_BATCH_LABEL }
         },
         {
-            name: "Warehouse",
+            name: "Kho hàng",
             href: "/kitchen/warehouse",
             icon: ArchiveBoxIcon,
             requiredPermission: { resource: Resource.WAREHOUSE, action: P.WAREHOUSE_READ_TASKS }
         },
     ],
     [Role.SUPPLY_COORDINATOR]: [
-        { name: "Dashboard", href: "/supply", icon: HomeIcon },
+        { name: "Tổng quan", href: "/supply", icon: HomeIcon },
         {
-            name: "Orders",
+            name: "Đơn hàng",
             href: "/supply/orders",
             icon: ClipboardDocumentListIcon,
             requiredPermission: { resource: Resource.ORDER, action: P.ORDER_READ_ALL_PENDING }
         },
         // {
-        //     name: "Allocation",
+        //     name: "Phân bổ",
         //     href: "/supply/allocation",
         //     icon: Squares2X2Icon,
         //     requiredPermission: { resource: Resource.ORDER, action: P.ORDER_APPROVE }
         // },
         {
-            name: "Delivery",
+            name: "Giao hàng",
             href: "/supply/delivery",
             icon: TruckIcon,
             requiredPermission: { resource: Resource.DELIVERY, action: P.DELIVERY_SCHEDULE }
         },
         {
-            name: "Issues",
+            name: "Khiếu nại",
             href: "/supply/issues",
             icon: ExclamationTriangleIcon,
             requiredPermission: { resource: Resource.CLAIM, action: P.CLAIM_READ_ALL }

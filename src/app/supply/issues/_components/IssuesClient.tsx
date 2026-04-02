@@ -83,12 +83,12 @@ export default function IssuesClient({ searchParams }: IssuesClientProps) {
 
     const detailQuery = claimDetail(detailTargetId);
     const detailClaimNo = useMemo(() => {
-        const index = claims.findIndex((claim) => (claim.id || claim.claimId) === detailTargetId);
+        const index = claims.findIndex((claim) => claim.id === detailTargetId);
         return index >= 0 ? rowStart + index + 1 : undefined;
     }, [claims, detailTargetId, rowStart]);
     const resolveClaimNo = useMemo(() => {
         if (!resolveTarget) return undefined;
-        const index = claims.findIndex((claim) => (claim.id || claim.claimId) === (resolveTarget.id || resolveTarget.claimId));
+        const index = claims.findIndex((claim) => claim.id === resolveTarget.id);
         return index >= 0 ? rowStart + index + 1 : undefined;
     }, [claims, resolveTarget, rowStart]);
 
@@ -161,7 +161,7 @@ export default function IssuesClient({ searchParams }: IssuesClientProps) {
 
         try {
             await resolveClaim.mutateAsync({
-                id: resolveTarget.id || resolveTarget.claimId,
+                id: resolveTarget.id,
                 data: {
                     status: resolveStatus,
                     resolutionNote: resolveNote.trim() || undefined,
@@ -170,11 +170,11 @@ export default function IssuesClient({ searchParams }: IssuesClientProps) {
 
             await Promise.all([
                 queryClient.invalidateQueries({ queryKey: KEY.claims }),
-                queryClient.invalidateQueries({ queryKey: QUERY_KEY.claims.detail(resolveTarget.claimId) }),
+                queryClient.invalidateQueries({ queryKey: QUERY_KEY.claims.detail(resolveTarget.id) }),
             ]);
 
             handleRefresh();
-            if (detailTargetId === resolveTarget.claimId) {
+            if (detailTargetId === resolveTarget.id) {
                 detailQuery.refetch();
             }
             setResolveTarget(null);

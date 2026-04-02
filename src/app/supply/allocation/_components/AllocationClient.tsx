@@ -88,6 +88,33 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
   const approvedOrders: Order[] = approvedQuery.data?.items || [];
   const shipments: Shipment[] = shipmentQuery.data?.items || [];
 
+  // Fetch review data for all pending orders to check canFulfill
+  const reviewQueries = useMemo(
+    () =>
+      pendingOrders.map((order) =>
+        reviewOrder(order.id)
+      ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [pendingOrders.length, pendingQuery.dataUpdatedAt]
+  );
+
+  // Map orderId → canFulfill (true if ALL items can be fulfilled)
+  const orderCanFulfillMap = useMemo(() => {
+    const map = new Map<string, boolean>();
+    reviewQueries.forEach((q) => {
+      if (q.data?.items) {
+        const allCanFulfill = q.data.items.every(
+          (item: { canFulfill: boolean }) => item.canFulfill
+        );
+        const orderId = q.data.orderId as string;
+        if (orderId) map.set(orderId, allCanFulfill);
+      }
+    });
+    return map;
+  }, [reviewQueries]);
+
+  const isAnyReviewLoading = reviewQueries.some((q) => q.isLoading);
+
   const pendingMeta = useMemo(
     () => normalizeMeta(pendingQuery.data?.meta, parsedQuery.page, parsedQuery.limit, pendingOrders.length),
     [parsedQuery.limit, parsedQuery.page, pendingOrders.length, pendingQuery.data]
@@ -123,7 +150,7 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
     const approvedActivity = approvedOrders.map((order, index) => ({
       key: `approved-${order.id}`,
       title: `Đơn hàng #${index + 1} đã duyệt`,
-      subtitle: `Cửa hàng: ${order.storeId}`,
+      subtitle: `Cửa hàng: ${order.store?.name ?? order.storeId}`,
       status: formatStatusLabel(order.status),
       statusClass: getStatusBadgeClass(order.status),
       time: order.deliveryDate,
@@ -194,23 +221,12 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
     router.push(`${pathname}?${query}`);
   };
 
-  const invalidateOrders = async (orderId: string) => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: KEY.orders }),
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY.orders.review(orderId) }),
-      queryClient.invalidateQueries({ queryKey: KEY.shipments }),
-    ]);
-  };
-
   const approve = async (orderId: string, force = false) => {
     try {
       await approveOrder.mutateAsync({
         id: orderId,
         data: force ? { force_approve: true } : {},
       });
-
-      await invalidateOrders(orderId);
-      refreshAll();
 
       if (reviewTargetId === orderId) setReviewTargetId("");
       setForceTargetId("");
@@ -234,9 +250,6 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
         id: rejectTargetId,
         data: { reason: rejectReason.trim() },
       });
-
-      await invalidateOrders(rejectTargetId);
-      refreshAll();
 
       if (reviewTargetId === rejectTargetId) setReviewTargetId("");
       setRejectTargetId("");
@@ -298,6 +311,8 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
               isLoading={pendingQuery.isLoading}
               isError={pendingQuery.isError}
               isMutating={isMutating}
+              isCheckingStock={isAnyReviewLoading}
+              orderCanFulfillMap={orderCanFulfillMap}
               onReview={setReviewTargetId}
               onApprove={(orderId) => approve(orderId)}
               onReject={setRejectTargetId}

@@ -102,7 +102,7 @@ export const useProduct = () => {
     })
   }
 
-  const batchDetail = (id: number) => {
+  const batchDetail = (id: string | number) => {
     return useQuery({
       queryKey: QUERY_KEY.products.batchDetail(id),
       queryFn: async () => {

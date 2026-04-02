@@ -1,6 +1,6 @@
 import { EyeIcon } from "@heroicons/react/24/outline";
 import { OrderStatus } from "@/utils/enum";
-import { formatAmount, formatDate, formatStatusLabel, getStatusBadgeClass } from "@/app/supply/_components/format";
+import { formatDate, formatStatusLabel, getStatusBadgeClass } from "@/app/supply/_components/format";
 import { Order } from "@/types/order";
 import Can from "@/components/shared/Can";
 import { P } from "@/lib/authz";
@@ -35,7 +35,6 @@ export default function OrdersTable({
                         <th className="px-6 py-3">STT</th>
                         <th className="px-6 py-3">Cửa hàng</th>
                         <th className="px-6 py-3">Ngày giao</th>
-                        <th className="px-6 py-3 text-right">Tổng cộng</th>
                         <th className="px-6 py-3 text-center">Trạng thái</th>
                         <th className="px-6 py-3 text-right">Thao tác</th>
                     </tr>
@@ -43,15 +42,15 @@ export default function OrdersTable({
                 <tbody className="divide-y divide-gray-100">
                     {isLoading ? (
                         <tr>
-                            <td colSpan={6} className="px-6 py-8 text-sm text-text-muted">Đang tải đơn hàng...</td>
+                            <td colSpan={5} className="px-6 py-8 text-sm text-text-muted">Đang tải đơn hàng...</td>
                         </tr>
                     ) : isError ? (
                         <tr>
-                            <td colSpan={6} className="px-6 py-8 text-sm text-red-500">Không thể tải danh sách đơn hàng.</td>
+                            <td colSpan={5} className="px-6 py-8 text-sm text-red-500">Không thể tải danh sách đơn hàng.</td>
                         </tr>
                     ) : orders.length === 0 ? (
                         <tr>
-                            <td colSpan={6} className="px-6 py-8 text-sm text-text-muted">Không có đơn hàng nào khớp với bộ lọc.</td>
+                            <td colSpan={5} className="px-6 py-8 text-sm text-text-muted">Không có đơn hàng nào khớp với bộ lọc.</td>
                         </tr>
                     ) : (
                         orders.map((order, index) => (
@@ -62,7 +61,6 @@ export default function OrdersTable({
                                 </td>
                                 <td className="px-6 py-4 text-text-main">{order.store?.name}</td>
                                 <td className="px-6 py-4 text-text-muted">{formatDate(order.deliveryDate)}</td>
-                                <td className="px-6 py-4 text-right text-text-main">{formatAmount(order.totalAmount)}</td>
                                 <td className="px-6 py-4 text-center">
                                     <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase ${getStatusBadgeClass(order.status)}`}>
                                         {formatStatusLabel(order.status)}
@@ -86,7 +84,7 @@ export default function OrdersTable({
                                                         disabled={!!mutatingOrderId && mutatingOrderId === order.id}
                                                         className="rounded-lg bg-green-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-60"
                                                     >
-                                                        {mutatingOrderId === order.id ? "..." : "Approve"}
+                                                        {mutatingOrderId === order.id ? "..." : "Duyệt"}
                                                     </button>
                                                 </Can>
                                                 <Can I={P.ORDER_REJECT} on={Resource.ORDER}>
@@ -95,7 +93,7 @@ export default function OrdersTable({
                                                         disabled={!!mutatingOrderId && mutatingOrderId === order.id}
                                                         className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-600 hover:bg-red-100 disabled:opacity-60"
                                                     >
-                                                        {mutatingOrderId === order.id ? "..." : "Reject"}
+                                                        {mutatingOrderId === order.id ? "..." : "Từ chối"}
                                                     </button>
                                                 </Can>
                                             </>
