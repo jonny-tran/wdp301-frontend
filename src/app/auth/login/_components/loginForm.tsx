@@ -17,6 +17,7 @@ export default function LoginForm() {
   const { setTokenFromContext } = useAuthContext();
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
   const {
     register,
     handleSubmit,
@@ -44,9 +45,9 @@ export default function LoginForm() {
     <div className="w-full">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-extrabold text-text-main mb-2">
-          Welcome Back
+          Đăng Nhập
         </h1>
-        <p className="text-text-muted text-sm">Please login to your account</p>
+        <p className="text-text-muted text-sm">Vui lòng đăng nhập vào tài khoản của bạn</p>
       </div>
 
       {error && (
@@ -56,10 +57,11 @@ export default function LoginForm() {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* Email */}
         <div className="space-y-1">
           <input
             type="email"
-            placeholder="Email address"
+            placeholder="Địa chỉ Email"
             {...register("email")}
             className={`w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all placeholder:text-gray-400 text-text-main ${errors.email ? "!border-red-500 bg-red-50/50" : ""}`}
           />
@@ -68,11 +70,12 @@ export default function LoginForm() {
           )}
         </div>
 
+        {/* Mật khẩu */}
         <div className="space-y-1 relative">
           <div className="relative">
             <input
               type={showPassword ? "text" : "password"}
-              placeholder="Password"
+              placeholder="Mật khẩu"
               {...register("password")}
               className={`w-full bg-gray-50 border border-transparent rounded-2xl px-6 py-4 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/50 transition-all placeholder:text-gray-400 text-text-main ${errors.password ? "!border-red-500 bg-red-50/50" : ""}`}
             />
@@ -95,14 +98,15 @@ export default function LoginForm() {
           )}
         </div>
 
-        <div className="flex justify-end">
+        {/* Quên mật khẩu (Nếu cần dùng thì bỏ comment) */}
+        {/* <div className="flex justify-end">
           <Link
             href="/auth/forgot-password"
             className="text-xs font-bold text-text-muted hover:text-primary transition-colors"
           >
-            Forgot password?
+            Quên mật khẩu?
           </Link>
-        </div>
+        </div> */}
 
         <Button
           type="submit"
@@ -110,9 +114,12 @@ export default function LoginForm() {
           className="w-full bg-primary text-white font-bold rounded-2xl py-4 shadow-lg shadow-primary/25 hover:bg-primary-dark transition-all active:scale-[0.98] uppercase text-xs tracking-widest disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {login.isPending ? (
-            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              <span>ĐANG XỬ LÝ...</span>
+            </>
           ) : (
-            "LOGIN"
+            "ĐĂNG NHẬP"
           )}
         </Button>
       </form>

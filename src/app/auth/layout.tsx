@@ -41,16 +41,15 @@ export default function AuthLayout({
 
           <div className="relative z-10 mt-4">
             <h2 className="text-4xl font-extrabold mb-4 leading-[1.1] tracking-tight">
-              Simplify <br />
-              management with <br />
-              our dashboard.
+             Đơn giản hóa<br />
+             việc quản lý với <br />
+              bảng điều khiển của chúng tôi.
             </h2>
             {/* Artistic underline / accent */}
             <div className="w-24 h-1.5 bg-secondary rounded-full -mt-2 opacity-80"></div>
 
             <p className="text-white/80 text-sm mt-8 max-w-[280px] leading-relaxed">
-              Simplify your franchise operations management with our
-              user-friendly admin dashboard.
+              Đơn giản hóa việc quản lý hoạt động cửa hàng của bạn với bảng điều khiển quản trị thân thiện.
             </p>
           </div>
 
