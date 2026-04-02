@@ -11,6 +11,8 @@ interface PendingOrdersGridProps {
     isLoading: boolean;
     isError: boolean;
     isMutating: boolean;
+    isCheckingStock: boolean;
+    orderCanFulfillMap: Map<string, boolean>;
     onReview: (orderId: string) => void;
     onApprove: (orderId: string) => void;
     onReject: (orderId: string) => void;
@@ -22,12 +24,14 @@ export default function PendingOrdersGrid({
     isLoading,
     isError,
     isMutating,
+    isCheckingStock,
+    orderCanFulfillMap,
     onReview,
     onApprove,
     onReject,
 }: PendingOrdersGridProps) {
-    if (isLoading) {
-        return <p className="text-sm text-text-muted">Đang tải đơn hàng chờ...</p>;
+    if (isLoading || isCheckingStock) {
+        return <p className="text-sm text-text-muted">Đang kiểm tra tồn kho...</p>;
     }
 
     if (isError) {
@@ -51,7 +55,7 @@ export default function PendingOrdersGrid({
                             {formatStatusLabel(order.status)}
                         </span>
                     </div>
-                    <p className="mt-1 text-xs text-text-muted">Cửa hàng: {order.storeId}</p>
+                    <p className="mt-1 text-xs text-text-muted">Cửa hàng: {order.store?.name ?? order.storeId}</p>
                     <p className="text-xs text-text-muted">Ngày giao: {formatDateTime(order.deliveryDate)}</p>
 
                     <div className="mt-3 grid grid-cols-3 gap-2">
@@ -63,13 +67,23 @@ export default function PendingOrdersGrid({
                             Xem xét
                         </button>
                         <Can I={P.ORDER_APPROVE} on={Resource.ORDER}>
-                            <button
-                                onClick={() => onApprove(order.id)}
-                                disabled={isMutating}
-                                className="rounded-lg bg-green-600 px-2 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-60"
-                            >
-                                Approve
-                            </button>
+                            {orderCanFulfillMap.get(order.id) === false ? (
+                                <button
+                                    disabled
+                                    className="rounded-lg bg-gray-200 px-2 py-1.5 text-xs font-bold text-gray-400 cursor-not-allowed"
+                                    title="Không đủ tồn kho để duyệt"
+                                >
+                                    Hết tồn kho
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => onApprove(order.id)}
+                                    disabled={isMutating}
+                                    className="rounded-lg bg-green-600 px-2 py-1.5 text-xs font-bold text-white hover:bg-green-700 disabled:opacity-60"
+                                >
+                                    Approve
+                                </button>
+                            )}
                         </Can>
                         <Can I={P.ORDER_REJECT} on={Resource.ORDER}>
                             <button

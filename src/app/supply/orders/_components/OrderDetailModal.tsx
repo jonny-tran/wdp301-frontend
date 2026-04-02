@@ -170,7 +170,7 @@ export default function OrderDetailModal({
                                                 </p>
 
                                                 <p className="font-semibold text-green-600">
-                                                    Duyệt: {item.quantityApproved}
+                                                    Duyệt: {item.quantityApproved ?? "–"}
                                                 </p>
 
                                             </div>

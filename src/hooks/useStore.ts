@@ -92,8 +92,8 @@ export const useStore = () => {
         const res = await storeRequest.createStaff(data); 
         return res.data;
     },
-    onSuccess: (data) => {
-        const count = data?.count || 0;
+    onSuccess: (data: any) => {
+        const count = (data as any)?.count || 0;
         toast.success(`Đã ghi danh ${count} nhân sự thành công!`);
         queryClient.invalidateQueries({ queryKey: KEY.stores });
     },
