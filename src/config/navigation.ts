@@ -14,6 +14,7 @@ import {
     ExclamationTriangleIcon,
     BeakerIcon,
     QueueListIcon,
+    BuildingOffice2Icon,
 } from "@heroicons/react/24/outline";
 import { Role } from "@/utils/enum";
 import { Resource } from "@/utils/constant";
@@ -98,6 +99,11 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
             href: "/manager/shipment",
             icon: TruckIcon,
             requiredPermission: { resource: Resource.REPORT, action: P.REPORT_LEAD_TIME }
+        },
+                {
+            name: "Nhà cung cấp",
+            href: "/manager/supplier",
+            icon: BuildingOffice2Icon,
         },
         {
             name: "Đơn vị tính",
