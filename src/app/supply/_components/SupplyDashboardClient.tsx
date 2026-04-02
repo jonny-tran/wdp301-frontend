@@ -27,6 +27,11 @@ export default function SupplyDashboardClient() {
     const inTransitShipments = inTransitShipmentsQuery.data?.items || [];
     const pendingClaims = pendingClaimsQuery.data?.items || [];
 
+    // Use meta.totalItems for KPI (not items.length which is capped by limit)
+    const pendingOrdersTotal = pendingOrdersQuery.data?.meta?.totalItems ?? pendingOrders.length;
+    const inTransitShipmentsTotal = inTransitShipmentsQuery.data?.meta?.totalItems ?? inTransitShipments.length;
+    const pendingClaimsTotal = pendingClaimsQuery.data?.meta?.totalItems ?? pendingClaims.length;
+
     const handleRefresh = () => {
         pendingOrdersQuery.refetch();
         inTransitShipmentsQuery.refetch();
@@ -50,9 +55,9 @@ export default function SupplyDashboardClient() {
             </div>
 
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <DashboardKpiCard label="Pending Orders" value={pendingOrders.length} href="/supply/orders" />
-                <DashboardKpiCard label="In-Transit Shipments" value={inTransitShipments.length} href="/supply/delivery" />
-                <DashboardKpiCard label="Pending Claims" value={pendingClaims.length} href="/supply/issues" />
+                <DashboardKpiCard label="Pending Orders" value={pendingOrdersTotal} href="/supply/orders" />
+                <DashboardKpiCard label="In-Transit Shipments" value={inTransitShipmentsTotal} href="/supply/delivery" />
+                <DashboardKpiCard label="Pending Claims" value={pendingClaimsTotal} href="/supply/issues" />
             </div>
 
             <section className="rounded-3xl border border-gray-100 bg-white p-5 shadow-sm">
@@ -71,7 +76,7 @@ export default function SupplyDashboardClient() {
                         errorMessage="Failed to load order list."
                         emptyMessage="No pending orders."
                         items={pendingOrders as any[]}
-                        renderSecondaryLine={(item) => `Store: ${String(item.storeName ?? item.storeId ?? "-")}`}
+                        renderSecondaryLine={(item) => `Store: ${(item as any).store?.name ?? item.storeId ?? "-"}`}
                         renderDateLine={() => "Delivery date"}
                         dateKey="deliveryDate"
                     />

@@ -1,5 +1,5 @@
 import { formatStatusLabel } from "@/app/supply/_components/format";
-import { Order, OrderReviewItem } from "@/types/order";
+import { OrderReviewItem } from "@/types/order";
 
 interface AllocationReviewModalProps {
     orderNo?: number;
@@ -51,22 +51,7 @@ export default function AllocationReviewModal({
                             <p className="font-semibold text-text-main">Đơn hàng số: {orderNo ? `#${orderNo}` : "-"}</p>
                             <p className="text-text-muted">Cửa hàng: {storeName ?? "-"}</p>
                             <p className="text-text-muted">Trạng thái: {formatStatusLabel(String(status ?? ""))}</p>
-                            <p className="text-text-muted">Khả thi: {fulfillableCount}/{reviewItems.length}</p>
-                        </div>
-
-                        <div className="max-h-[520px] space-y-3 overflow-y-auto pr-1">
-                            {reviewItems.map((item, index) => (
-                                <div key={`${item.productName}-${index}`} className="rounded-xl border border-gray-100 p-3">
-                                    <p className="font-semibold text-text-main">{item.productName ?? "Sản phẩm"}</p>
-                                    <div className="mt-1 grid grid-cols-3 gap-2 text-[11px] text-text-muted">
-                                        <span>YC: {item.requestedQty ?? 0}</span>
-                                        <span>Tồn: {item.currentStock ?? 0}</span>
-                                        <span className={item.canFulfill ? "text-green-600" : "text-red-600"}>
-                                            {item.canFulfill ? "Khả thi" : "Thiếu"}
-                                        </span>
-                                    </div>
-                                </div>
-                            ))}
+                            <p className="text-text-muted">Khả thi: {fulfillableCount}/{reviewItems.length} mặt hàng</p>
                         </div>
                     </div>
                 )}

@@ -151,14 +151,6 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
         router.push(`${pathname}?${query}`);
     };
 
-    const invalidateOrderData = async (orderId: string) => {
-        await Promise.all([
-            queryClient.invalidateQueries({ queryKey: KEY.orders }),
-            queryClient.invalidateQueries({ queryKey: QUERY_KEY.orders.detail(orderId) }),
-            queryClient.invalidateQueries({ queryKey: QUERY_KEY.orders.review(orderId) }),
-        ]);
-    };
-
     const handleApprove = async (order: Order, force = false) => {
         try {
             setMutatingOrderId(order.id);
@@ -167,8 +159,6 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
                 data: force ? { force_approve: true } : {},
             });
 
-            await invalidateOrderData(order.id);
-            refreshData();
             setForceTarget(null);
             setForceMessage("");
             if (detailTargetId === order.id) {
@@ -198,9 +188,6 @@ export default function OrdersClient({ searchParams }: OrdersClientProps) {
                 id: rejectTarget.id,
                 data: { reason: rejectReason.trim() },
             });
-
-            await invalidateOrderData(rejectTarget.id);
-            refreshData();
 
             if (detailTargetId === rejectTarget.id) {
                 setDetailTargetId("");
