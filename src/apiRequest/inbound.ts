@@ -36,4 +36,5 @@ export const inboundRequest = {
         http.patch(ENDPOINT_CLIENT.INBOUND_VARIANCE_APPROVAL(id), data),
 
     reprintBatch: (data: ReprintBatchBodyType) => http.post<ReprintLog>(ENDPOINT_CLIENT.INBOUND_REPRINT_BATCH, data),
+    deleteReceipt: (id: string) => http.delete(ENDPOINT_CLIENT.INBOUND_RECEIPT_DETAIL(id)),
 };

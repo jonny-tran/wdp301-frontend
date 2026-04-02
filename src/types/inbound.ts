@@ -31,6 +31,7 @@ export type ReceiptItem = {
 export type Receipt = {
     receiptId?: string;
     id?: string;
+    receiptCode?: string;
     supplierId: number;
     supplierName?: string;
     supplier?: { name?: string; contactName?: string; phone?: string };
@@ -38,6 +39,8 @@ export type Receipt = {
     expectedDeliveryDate?: string;
     items?: ReceiptItem[];
     note?: string | null;
+    user?: { username: string };
+    createdBy?: { username: string };
     createdAt: string;
     completedAt?: string;
     totalItems?: number;

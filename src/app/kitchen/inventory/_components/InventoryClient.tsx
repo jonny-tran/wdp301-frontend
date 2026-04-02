@@ -16,9 +16,6 @@ import {
 import InventoryStats from "./InventoryStats";
 import InventorySummaryTable from "./InventorySummaryTable";
 import StockAdjustmentModal from "./StockAdjustmentModal";
-import TransactionHistoryTable from "./TransactionHistoryTable";
-
-type MainTab = "stock" | "history";
 
 type AdjustContext = {
     productId: number;
@@ -36,16 +33,14 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
     const pathname = usePathname();
     const searchParamsHook = useSearchParams();
 
-    const [mainTab, setMainTab] = useState<MainTab>("stock");
     const [expandedProductIds, setExpandedProductIds] = useState<Set<number>>(() => new Set());
-    const [txPage, setTxPage] = useState(1);
 
     const [adjustOpen, setAdjustOpen] = useState(false);
     const [adjustCtx, setAdjustCtx] = useState<AdjustContext | null>(null);
 
     const parsedQuery = useMemo(() => parseKitchenInventoryQuery(searchParams, { page: 1, limit: 10, sortOrder: "DESC" }), [searchParams]);
 
-    const { kitchenSummary, inventoryAgingReport, inventoryTransactions } = useInventory();
+    const { kitchenSummary, inventoryAgingReport } = useInventory();
 
     const listQuery = kitchenSummary({
         page: parsedQuery.page,
@@ -63,21 +58,10 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
 
     const agingQuery = inventoryAgingReport({ daysThreshold: 7 });
 
-    const txQuery = inventoryTransactions(
-        { page: txPage, limit: 10, sortOrder: "DESC" },
-        { enabled: mainTab === "history" },
-    );
-
     const summaryItems = listQuery.data?.items ?? [];
     const meta = useMemo(
         () => normalizeKitchenInventoryMeta(listQuery.data?.meta, parsedQuery.page, parsedQuery.limit, summaryItems.length),
         [parsedQuery.limit, parsedQuery.page, summaryItems.length, listQuery.data?.meta],
-    );
-
-    const txItems = txQuery.data?.items ?? [];
-    const txMeta = useMemo(
-        () => normalizeKitchenInventoryMeta(txQuery.data?.meta, txPage, 10, txItems.length),
-        [txPage, txItems.length, txQuery.data?.meta],
     );
 
     const categoryOptions = useMemo(() => {
@@ -179,111 +163,78 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
     };
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col gap-4 px-1 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <h1 className="text-3xl font-black tracking-tight text-slate-900">Tồn kho bếp trung tâm</h1>
-                    <p className="mt-1 text-sm text-slate-500">
-                        Theo dõi theo sản phẩm, mở rộng theo lô (FEFO). Điều chỉnh tay qua API{" "}
-                        <code className="rounded bg-slate-100 px-1 text-xs">POST /inventory/adjust</code>.
-                    </p>
-                </div>
-            </div>
-
-            <div className="flex gap-2 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
-                <button
-                    type="button"
-                    onClick={() => setMainTab("stock")}
-                    className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
-                        mainTab === "stock" ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:bg-slate-50"
-                    }`}
-                >
-                    Tồn hiện tại
-                </button>
-                <button
-                    type="button"
-                    onClick={() => {
-                        setMainTab("history");
-                        setTxPage(1);
-                    }}
-                    className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-bold transition ${
-                        mainTab === "history" ? "bg-slate-900 text-white shadow" : "text-slate-600 hover:bg-slate-50"
-                    }`}
-                >
-                    Nhật ký giao dịch
-                </button>
-            </div>
-
-            {mainTab === "stock" && (
-                <>
-                    <InventoryStats
-                        totalSkus={totalSkus}
-                        nearExpiryBatches={nearExpiryStats.count}
-                        nearExpiryLoading={agingQuery.isLoading}
-                        nearExpiryUnavailable={nearExpiryStats.unavailable}
-                        outOfStockSkus={outOfStockSkus}
-                    />
-
-                    <BaseFilter filters={filterConfig} />
-
-                    <div className="overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white shadow-lg shadow-slate-200/40">
-                        <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
-                            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Bảng tổng hợp</h2>
-                        </div>
-
-                        <InventorySummaryTable
-                            items={displayItems}
-                            expandedProductIds={expandedProductIds}
-                            onToggleExpand={toggleExpand}
-                            onAdjustBatch={({ productId, productName, unit, batch }) =>
-                                openAdjust({ productId, productName, unit, initialBatchId: batch.batchId })
-                            }
-                            onAdjustProduct={(p: KitchSummary) =>
-                                openAdjust({ productId: p.productId, productName: p.productName, unit: p.unit })
-                            }
-                            isLoading={listQuery.isLoading}
-                            isError={listQuery.isError}
-                        />
-
-                        <div className="border-t border-slate-100 px-6 py-4">
-                            <BasePagination
-                                currentPage={meta.currentPage}
-                                totalPages={meta.totalPages}
-                                onPageChange={handlePageChange}
-                                totalItems={meta.totalItems}
-                                itemsPerPage={meta.itemsPerPage}
-                            />
-                        </div>
+        <div className="min-h-screen bg-zinc-50">
+            <div className="mx-auto max-w-7xl space-y-6 p-6">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+                            Quản lý Tồn kho
+                        </h1>
+                        <p className="mt-1 text-sm text-zinc-500">
+                            Theo dõi tồn kho theo sản phẩm, mở rộng chi tiết theo lô (FEFO).
+                        </p>
                     </div>
-                </>
-            )}
-
-            {mainTab === "history" && (
-                <div className="overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white p-6 shadow-lg shadow-slate-200/40">
-                    <h2 className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-slate-500">
-                        Audit trail — GET /inventory/transactions
-                    </h2>
-                    <TransactionHistoryTable
-                        items={txItems}
-                        meta={txMeta}
-                        isLoading={txQuery.isLoading}
-                        isError={txQuery.isError}
-                        onPageChange={setTxPage}
-                    />
                 </div>
-            )}
 
-            <StockAdjustmentModal
-                open={adjustOpen}
-                onOpenChange={(o) => {
-                    setAdjustOpen(o);
-                    if (!o) setAdjustCtx(null);
-                }}
-                productId={adjustCtx?.productId ?? null}
-                productName={adjustCtx?.productName ?? ""}
-                unit={adjustCtx?.unit ?? ""}
-                initialBatchId={adjustCtx?.initialBatchId}
-            />
+                {/* Stats Cards */}
+                <InventoryStats
+                    totalSkus={totalSkus}
+                    nearExpiryBatches={nearExpiryStats.count}
+                    nearExpiryLoading={agingQuery.isLoading}
+                    nearExpiryUnavailable={nearExpiryStats.unavailable}
+                    outOfStockSkus={outOfStockSkus}
+                />
+
+                {/* Filter Bar */}
+                <BaseFilter filters={filterConfig} />
+
+                {/* Summary Table */}
+                <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+                    <div className="border-b border-zinc-100 px-6 py-4">
+                        <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                            Bảng tổng hợp tồn kho
+                        </h2>
+                    </div>
+
+                    <InventorySummaryTable
+                        items={displayItems}
+                        expandedProductIds={expandedProductIds}
+                        onToggleExpand={toggleExpand}
+                        onAdjustBatch={({ productId, productName, unit, batch }) =>
+                            openAdjust({ productId, productName, unit, initialBatchId: batch.batchId })
+                        }
+                        onAdjustProduct={(p: KitchSummary) =>
+                            openAdjust({ productId: p.productId, productName: p.productName, unit: p.unit })
+                        }
+                        isLoading={listQuery.isLoading}
+                        isError={listQuery.isError}
+                    />
+
+                    <div className="border-t border-zinc-100 px-6 py-4">
+                        <BasePagination
+                            currentPage={meta.currentPage}
+                            totalPages={meta.totalPages}
+                            onPageChange={handlePageChange}
+                            totalItems={meta.totalItems}
+                            itemsPerPage={meta.itemsPerPage}
+                        />
+                    </div>
+                </div>
+
+                {/* Stock Adjustment Modal */}
+                <StockAdjustmentModal
+                    open={adjustOpen}
+                    onOpenChange={(o) => {
+                        setAdjustOpen(o);
+                        if (!o) setAdjustCtx(null);
+                    }}
+                    productId={adjustCtx?.productId ?? null}
+                    productName={adjustCtx?.productName ?? ""}
+                    unit={adjustCtx?.unit ?? ""}
+                    initialBatchId={adjustCtx?.initialBatchId}
+                />
+            </div>
         </div>
     );
 }

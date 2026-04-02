@@ -85,7 +85,7 @@ export default function NavSidebar({
             <nav className="flex-1 flex flex-col gap-2 px-3">
                 {items.map((item) => {
                     const currentPath = pathname;
-                    const isDashboard = item.name === "Dashboard";
+                    const isDashboard = item.name === "Dashboard" || item.name === "Tổng quan";
                     const isActive = isDashboard
                         ? item.href === currentPath
                         : currentPath === item.href || currentPath.startsWith(item.href + "/");
@@ -152,26 +152,26 @@ export default function NavSidebar({
                         <button
                             className={`flex items-center transition-colors ${isCollapsed ? "justify-center h-10 w-10 mx-auto" : "px-4 gap-4 h-10 w-full"
                                 } text-red-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg mt-[5px]`}
-                            title={isCollapsed ? "Logout" : ""}
+                            title={isCollapsed ? "Đăng xuất" : ""}
                         >
                             <LogOut className="w-5 h-5 shrink-0 text-red-500" />
-                            {!isCollapsed && <span className="text-sm font-medium text-red-500">Logout</span>}
+                            {!isCollapsed && <span className="text-sm font-medium text-red-500">Đăng xuất</span>}
                         </button>
                     </AlertDialogTrigger>
                     <AlertDialogContent className="bg-[#1A1A1A] border-gray-800 text-white">
                         <AlertDialogHeader>
-                            <AlertDialogTitle>Confirm Logout</AlertDialogTitle>
+                            <AlertDialogTitle>Xác nhận đăng xuất</AlertDialogTitle>
                             <AlertDialogDescription className="text-gray-400">
-                                Are you sure you want to log out of your session?
+                                Bạn có chắc chắn muốn đăng xuất khỏi phiên làm việc?
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
-                            <AlertDialogCancel className="bg-transparent border-gray-700 text-white hover:bg-gray-800 hover:text-white">Cancel</AlertDialogCancel>
+                            <AlertDialogCancel className="bg-transparent border-gray-700 text-white hover:bg-gray-800 hover:text-white">Hủy</AlertDialogCancel>
                             <AlertDialogAction
                                 onClick={handleLogout}
                                 className="bg-red-600 hover:bg-red-700 text-white border-none"
                             >
-                                Logout
+                                Đăng xuất
                             </AlertDialogAction>
                         </AlertDialogFooter>
                     </AlertDialogContent>
@@ -188,7 +188,7 @@ export default function NavSidebar({
                     ) : (
                         <>
                             <ChevronLeftIcon className="w-5 h-5" />
-                            <span className="text-sm font-medium">Collapse</span>
+                            <span className="text-sm font-medium">Thu gọn</span>
                         </>
                     )}
                 </button>

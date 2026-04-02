@@ -1,4 +1,4 @@
-﻿import { HttpError } from "@/lib/errors";
+import { HttpError } from "@/lib/errors";
 
 export function formatDate(value?: string | Date | null) {
     if (!value) return "-";
@@ -69,6 +69,9 @@ export function formatStatusLabel(status?: string) {
         in_transit: "Đang vận chuyển",
         picking: "Đang lấy hàng",
         claimed: "Đã khiếu nại",
+        preparing: "Đang chuẩn bị",
+        draft: "Bản nháp",
+        in_progress: "Đang thực hiện",
     };
 
     const key = status.toLowerCase();

@@ -128,10 +128,25 @@ export const useInbound = () => {
         });
     };
 
+    const deleteReceipt = useMutation({
+        mutationFn: async (id: string) => {
+            const res = await inboundRequest.deleteReceipt(id);
+            return res.data;
+        },
+        onSuccess: () => {
+            toast.success("Đã xóa phiếu nhập nháp");
+            queryClient.invalidateQueries({ queryKey: KEY.receipts });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
+
     return {
         createReceipt,
         addReceiptItem,
         completeReceipt,
+        deleteReceipt,
         deleteReceiptItem,
         varianceApproval,
         reprintBatch,

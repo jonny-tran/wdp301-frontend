@@ -78,7 +78,10 @@ export const useOrder = () => {
         },
         onSuccess: () => {
             toast.success('Đơn hàng đã được duyệt')
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: KEY.orders })
+            queryClient.invalidateQueries({ queryKey: KEY.shipments })
         },
     })
 
@@ -89,6 +92,8 @@ export const useOrder = () => {
         },
         onSuccess: () => {
             toast.success('Đơn hàng đã bị từ chối')
+        },
+        onSettled: () => {
             queryClient.invalidateQueries({ queryKey: KEY.orders })
         }
     })

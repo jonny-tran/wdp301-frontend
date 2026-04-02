@@ -21,7 +21,7 @@ export const productRequest = {
   restoreProduct: (id: number) => http.patch<Product>(ENDPOINT_CLIENT.RESTORE_PRODUCT(id), {}),
 
   // GET /products/batches/:id
-  getBatchDetail: (id: number) => http.get<Batch>(ENDPOINT_CLIENT.BATCH_DETAIL(id)),
+  getBatchDetail: (id: string | number) => http.get<Batch>(ENDPOINT_CLIENT.BATCH_DETAIL(id)),
 
   // PATCH /products/batches/:id
   updateBatch: (id: number, data: UpdateBatchBodyType) => http.patch<Batch>(ENDPOINT_CLIENT.UPDATE_BATCH(id), data),

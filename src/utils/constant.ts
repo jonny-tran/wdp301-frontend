@@ -144,7 +144,7 @@ export const QUERY_KEY = {
         list: (query: QueryProduct) => [...KEY.products, 'list', query] as const,
         detail: (id: number) => [...KEY.products, 'detail', id] as const,
         batchList: (query: QueryBatch) => [...KEY.products, 'batch-list', query] as const,
-        batchDetail: (id: number) => [...KEY.products, 'batch-detail', id] as const,
+        batchDetail: (id: string | number) => [...KEY.products, 'batch-detail', id] as const,
     },
 
     // ======================
