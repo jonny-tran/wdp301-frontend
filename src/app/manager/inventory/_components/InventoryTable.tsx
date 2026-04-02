@@ -1,14 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Fragment, useState } from "react";
-import {
-  PlusIcon,
-  ArchiveBoxIcon,
-  InboxIcon,
-} from "@heroicons/react/24/outline";
-import Can from "@/components/shared/Can";
-import { P } from "@/lib/authz";
-import { Resource } from "@/utils/constant";
+import { InboxIcon } from "@heroicons/react/24/outline";
 import {
   Table,
   TableBody,
@@ -17,7 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import KitchenBatchDetails from "./KitchenBatchDetails";
@@ -59,9 +52,7 @@ function TableSkeleton() {
           <TableCell className="text-center">
             <Skeleton className="h-5 w-24 mx-auto" />
           </TableCell>
-          <TableCell className="text-right pr-6">
-            <Skeleton className="h-8 w-16 rounded-md inline-block" />
-          </TableCell>
+          {/* Skeleton cho Action đã ẩn */}
         </TableRow>
       ))}
     </>
@@ -72,11 +63,12 @@ export default function InventoryTable({
   items,
   isLoading,
   isError,
-  onAdjust,
+  // onAdjust, // Tạm thời không dùng đến logic adjust ở table này
 }: InventoryTableProps) {
   const [expandedProductId, setExpandedProductId] = useState<number | null>(
     null,
   );
+
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -104,21 +96,22 @@ export default function InventoryTable({
     <Table>
       <TableHeader>
         <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
-          <TableHead className="pl-6 text-xs font-semibold text-slate-500 w-[35%]">
+          <TableHead className="pl-6 text-xs font-semibold text-slate-500 w-[40%]">
             Sản phẩm / SKU
           </TableHead>
-          <TableHead className="text-xs font-semibold text-slate-500 w-[20%]">
+          <TableHead className="text-xs font-semibold text-slate-500 w-[25%]">
             Kho quản lý
           </TableHead>
           <TableHead className="text-center text-xs font-semibold text-slate-500 w-[15%]">
             Tồn kho
           </TableHead>
-          <TableHead className="text-center text-xs font-semibold text-slate-500 w-[15%]">
+          <TableHead className="text-center text-xs font-semibold text-slate-500 w-[20%]">
             Trạng thái
           </TableHead>
-          <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[15%]">
+          {/* Ẩn Header Thao tác */}
+          {/* <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[15%]">
             Thao tác
-          </TableHead>
+          </TableHead> */}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -140,7 +133,9 @@ export default function InventoryTable({
                     <p className="font-semibold text-slate-900">
                       {item.productName}
                     </p>
-                    <p className="text-xs text-slate-500">SKU: {item.sku}</p>
+                    <p className="text-xs text-slate-500 uppercase tracking-wider">
+                      SKU: {item.sku}
+                    </p>
                   </div>
                 </TableCell>
                 <TableCell>
@@ -149,10 +144,10 @@ export default function InventoryTable({
                   </span>
                 </TableCell>
                 <TableCell className="text-center">
-                  <span className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
+                  <span className="text-lg font-black text-slate-900 group-hover:text-blue-600 transition-colors italic">
                     {item.totalQuantity.toLocaleString()}
                   </span>
-                  <span className="text-xs text-slate-500 ml-1">
+                  <span className="text-[10px] font-bold text-slate-400 ml-1 uppercase italic">
                     {item.unit}
                   </span>
                 </TableCell>
@@ -167,42 +162,29 @@ export default function InventoryTable({
                           : "bg-red-50 text-red-700 border-red-200"
                     }
                   >
-                    {item.status === "normal"
-                      ? "Normal"
-                      : item.status === "low-stock"
-                        ? "Low Stock"
-                        : "Out of Stock"}
+                    {item.status.toUpperCase()}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-right pr-6">
-                  {/* Hiển thị cố định, không dùng opacity-0 để tránh bị ẩn */}
-                  <div
-                    className="flex justify-end gap-1 transition-all duration-200"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+
+                {/* Ẩn Cell Thao tác */}
+                {/* <TableCell className="text-right pr-6">
+                  <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
                     {onAdjust && (
                       <Can I={P.PRODUCT_UPDATE} on={Resource.PRODUCT}>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="h-8 gap-2 border-slate-200 bg-white text-slate-900 hover:bg-orange-50 hover:text-orange-600 hover:border-orange-200 transition-all rounded-xl shadow-sm px-4"
-                          onClick={() => onAdjust(item)}
-                        >
-                          <PlusIcon className="h-3.5 w-3.5 stroke-[2.5px] text-orange-600" />
-                          <span className="text-[10px] font-black tracking-[0.1em]">
-                            Adjust
-                          </span>
-                        </Button>
+                        <Button ...>Adjust</Button>
                       </Can>
                     )}
                   </div>
-                </TableCell>
+                </TableCell> */}
               </TableRow>
 
               {expandedProductId === item.productId && (
-                <TableRow>
-                  <TableCell colSpan={5} className="bg-slate-50 p-0">
-                    <div className="px-6 pb-6 pt-2">
+                <TableRow className="bg-slate-50/30">
+                  <TableCell
+                    colSpan={4}
+                    className="p-0 border-b border-slate-100"
+                  >
+                    <div className="px-8 pb-8 pt-4 animate-in fade-in slide-in-from-top-2 duration-300">
                       <KitchenBatchDetails
                         productId={item.productId}
                         embedded
