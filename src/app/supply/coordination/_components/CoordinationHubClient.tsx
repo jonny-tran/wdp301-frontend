@@ -121,7 +121,7 @@ export default function CoordinationHubClient() {
       return res.data;
     },
     onSuccess: () => {
-      toast.success("Đã gửi Inquiry cho Bếp (đơn chuyển sang coordinating)");
+      toast.success("Đã gửi yêu cầu cho Bếp");
       void queryClient.invalidateQueries({ queryKey: ["coordination-hub"] });
       void queryClient.invalidateQueries({ queryKey: ["orders"] });
     },
@@ -168,7 +168,7 @@ export default function CoordinationHubClient() {
             Trung tâm điều phối
           </h1>
           <p className="mt-1 text-base text-text-muted">
-            Xem tổng cầu theo ngày giao, gửi Inquiry cho Bếp, và duyệt hàng loạt
+            Xem tổng cầu theo ngày giao, gửi yêu cầu cho Bếp, và duyệt hàng loạt
             theo phân bổ.
           </p>
         </div>
@@ -319,24 +319,13 @@ export default function CoordinationHubClient() {
                       className="px-3 py-10 text-center text-sm text-zinc-600"
                       colSpan={5}
                     >
-                      Chưa có dữ liệu để tổng hợp (không có đơn
-                      pending/coordinating trong ngày, hoặc chưa tải được kho
-                      bếp).
+                      Chưa có dữ liệu để tổng hợp (không có đơn trong ngày, hoặc
+                      chưa tải được kho bếp).
                     </td>
                   </tr>
                 )}
             </tbody>
           </table>
-        </div>
-
-        <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-950">
-          <span className="font-extrabold">Quy tắc:</span>{" "}
-          <span className="font-bold">No Backorders</span>. Khi chốt phân bổ (ví
-          dụ 80%), phần còn thiếu bị hủy ngay và cần ghi log{" "}
-          <span className="font-mono text-[13px] font-bold">
-            SHORTAGE_BY_COORDINATOR
-          </span>{" "}
-          ở BE. FEFO vẫn do BE xử lý khi thực xuất kho.
         </div>
       </section>
 
@@ -344,7 +333,7 @@ export default function CoordinationHubClient() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-sm font-extrabold uppercase tracking-wide text-text-main">
-              Batch allocation
+              Phân bổ hàng loạt
             </h2>
             <p className="mt-1 text-base text-zinc-600">
               Chọn các đơn của ngày {deliveryDate} và kéo % để “chia đều khó
@@ -406,8 +395,7 @@ export default function CoordinationHubClient() {
                         className="px-3 py-10 text-center text-sm text-zinc-600"
                         colSpan={4}
                       >
-                        Không có đơn phù hợp (pending / coordinating /
-                        waiting_for_production) trong ngày.
+                        Không có đơn phù hợp trong ngày.
                       </td>
                     </tr>
                   )}
@@ -449,43 +437,65 @@ export default function CoordinationHubClient() {
             <p className="text-base font-extrabold text-zinc-900">
               Tỷ lệ phân bổ
             </p>
-            <p className="mt-1 text-sm text-zinc-600">
-              Công thức: quantity_approved = quantity_requested * (percentage /
-              100). (BE làm tròn theo rule)
-            </p>
 
             <div className="mt-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-zinc-700">%</span>
-                <span className="text-2xl font-black tabular-nums text-violet-700">
+                <span className="text-[10px] font-black uppercase italic text-slate-400 tracking-widest">
+                  Tỷ lệ phân bổ
+                </span>
+                {/* Màu sắc chuyển sang Violet để nhấn mạnh vùng an toàn */}
+                <span className="text-2xl font-black tabular-nums text-violet-700 italic">
                   {allocationPercentage}%
                 </span>
               </div>
+
               <Input
                 type="range"
-                min={0}
+                min={60} // 💡 Giới hạn thanh kéo tối thiểu là 60
                 max={100}
                 value={allocationPercentage}
-                onChange={(e) =>
-                  setAllocationPercentage(Number(e.target.value))
-                }
-                className="mt-2 w-full accent-violet-700"
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  // Chặn dưới 60 ngay lập tức
+                  setAllocationPercentage(val < 60 ? 60 : val);
+                }}
+                className="mt-2 w-full accent-violet-700 cursor-pointer"
               />
-              <div className="mt-2 flex items-center gap-2">
+
+              <div className="mt-2 flex items-center gap-3">
                 <Input
                   type="number"
-                  min={0}
+                  min={60} // 💡 Chặn nút bấm giảm của trình duyệt
                   max={100}
                   value={allocationPercentage}
-                  onChange={(e) =>
-                    setAllocationPercentage(Number(e.target.value))
-                  }
-                  className="h-10 w-[110px]"
+                  onChange={(e) => {
+                    let val = Number(e.target.value);
+                    // Logic chặn nhập từ bàn phím
+                    if (val > 100) val = 100;
+                    if (val < 60 && e.target.value !== "") val = 60;
+
+                    setAllocationPercentage(val);
+                  }}
+                  // Ép style "lì" cho ô nhập số
+                  className="h-10 w-[110px] rounded-xl border-2 border-slate-200 font-black italic text-slate-900 focus:border-violet-700 transition-all"
                 />
-                <span className="text-sm text-zinc-600">
-                  Đã chọn: <span className="font-bold">{selectedCount}</span>
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase italic leading-none">
+                    Số lượng đã chọn
+                  </span>
+                  <span className="text-sm font-black text-slate-900 italic">
+                    {selectedCount}{" "}
+                    <span className="text-[10px] text-slate-400">Đơn vị</span>
+                  </span>
+                </div>
               </div>
+
+              {/* Hint nhắc nhở Manager */}
+              {allocationPercentage === 60 && (
+                <p className="mt-2 text-[9px] font-bold text-amber-600 uppercase italic animate-pulse">
+                  ⚠ Mức tối thiểu yêu cầu là 60%
+                </p>
+              )}
             </div>
 
             <div className="mt-4">
@@ -535,13 +545,9 @@ export default function CoordinationHubClient() {
                 >
                   {batchApproveMutation.isPending
                     ? "Đang duyệt hàng loạt…"
-                    : "Batch Approve"}
+                    : "Duyệt lô hàng"}
                 </Button>
               </Can>
-              <p className="mt-2 text-[11px] text-zinc-500">
-                API: `PATCH /orders/coordination/batch-approve` (transaction,
-                FEFO, tạo shipment).
-              </p>
             </div>
           </div>
         </div>
