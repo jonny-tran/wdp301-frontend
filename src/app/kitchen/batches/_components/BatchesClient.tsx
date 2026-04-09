@@ -1,14 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
 import { BasePagination } from "@/components/layout/BasePagination";
-import { BatchModal } from "@/components/kitchen/batch/BatchModal";
 import { useProduct } from "@/hooks/useProduct";
-import { handleErrorApi } from "@/lib/errors";
-import { UpdateBatchBodyType } from "@/schemas/product";
 import { Batch } from "@/types/product";
 import { createPaginationSearchParams, normalizeMeta, parseKitchenListQuery, RawSearchParams } from "@/app/kitchen/_components/query";
 import BatchesTable from "./BatchesTable";
@@ -21,14 +17,13 @@ export default function BatchesClient({ searchParams }: BatchesClientProps) {
     const router = useRouter();
     const pathname = usePathname();
     const searchParamsHook = useSearchParams();
-    const queryClient = useQueryClient();
 
     const parsedQuery = useMemo(
         () => parseKitchenListQuery(searchParams, { page: 1, limit: 10, sortOrder: "DESC" }),
         [searchParams],
     );
 
-    const { batchList, batchDetail, updateBatch } = useProduct();
+    const { batchList } = useProduct();
 
     const listQuery = batchList({
         page: parsedQuery.page,
@@ -43,9 +38,6 @@ export default function BatchesClient({ searchParams }: BatchesClientProps) {
         [batches.length, listQuery.data, parsedQuery.limit, parsedQuery.page],
     );
     const rowStart = (meta.currentPage - 1) * meta.itemsPerPage;
-
-    const [editingBatchId, setEditingBatchId] = useState<number | null>(null);
-    const detailQuery = batchDetail(editingBatchId ?? 0);
 
     const filterConfig: FilterConfig[] = [
         {
@@ -73,33 +65,12 @@ export default function BatchesClient({ searchParams }: BatchesClientProps) {
         router.push(`${pathname}?${query}`);
     };
 
-    const handleSubmitUpdate = async (payload: UpdateBatchBodyType) => {
-        if (!editingBatchId) return;
-
-        if (payload.initialQuantity === undefined && !payload.imageUrl && !payload.status) {
-            setEditingBatchId(null);
-            return;
-        }
-
-        try {
-            await updateBatch.mutateAsync({
-                id: editingBatchId,
-                data: payload,
-            });
-            await queryClient.invalidateQueries({ queryKey: ["batch-list"] });
-            await queryClient.invalidateQueries({ queryKey: ["batch-detail", editingBatchId] });
-            setEditingBatchId(null);
-        } catch (error) {
-            handleErrorApi({ error });
-        }
-    };
-
     return (
         <div className="space-y-6">
             <div className="flex items-end justify-between">
                 <div>
                     <h1 className="text-2xl font-black text-text-main">Quản lý Lô hàng</h1>
-                    <p className="text-sm text-text-muted">Xem và cập nhật các lô hàng trong kho từ dữ liệu hệ thống.</p>
+                    <p className="text-sm text-text-muted">Xem các lô hàng trong kho từ dữ liệu hệ thống.</p>
                 </div>
             </div>
 
@@ -111,7 +82,6 @@ export default function BatchesClient({ searchParams }: BatchesClientProps) {
                     rowStart={rowStart}
                     isLoading={listQuery.isLoading}
                     isError={listQuery.isError}
-                    onEdit={setEditingBatchId}
                 />
 
                 <div className="border-t border-gray-100 px-6 py-4">
@@ -125,24 +95,6 @@ export default function BatchesClient({ searchParams }: BatchesClientProps) {
                 </div>
             </div>
 
-            <BatchModal
-                isOpen={Boolean(editingBatchId)}
-                onClose={() => setEditingBatchId(null)}
-                onSubmit={handleSubmitUpdate}
-                initialData={
-                    (() => {
-                        const detail = detailQuery.data as Batch | null;
-                        const listItem = batches.find(b => b.id === editingBatchId);
-                        if (!detail) return null;
-                        return {
-                            ...detail,
-                            status: listItem?.status ?? detail.status
-                        };
-                    })()
-                }
-                isPending={updateBatch.isPending}
-                isLoadingData={detailQuery.isLoading}
-            />
         </div>
     );
 }

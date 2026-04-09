@@ -1,4 +1,3 @@
-import { PencilSquareIcon } from "@heroicons/react/24/outline";
 import { Batch } from "@/types/product";
 import { useMemo } from "react";
 
@@ -7,7 +6,6 @@ interface BatchesTableProps {
     rowStart: number;
     isLoading: boolean;
     isError: boolean;
-    onEdit: (batchId: number) => void;
 }
 
 export default function BatchesTable({
@@ -15,7 +13,6 @@ export default function BatchesTable({
     rowStart,
     isLoading,
     isError,
-    onEdit,
 }: BatchesTableProps) {
     const hasProduct = useMemo(() => batches.some((b) => b.productName), [batches]);
     const hasImage = useMemo(() => batches.some((b) => b.imageUrl), [batches]);
@@ -55,7 +52,6 @@ export default function BatchesTable({
                         {hasCurrentQty && <th className="px-6 py-3 text-right">Số lượng hiện tại</th>}
                         {hasExpiry && <th className="px-6 py-3">Hạn dùng</th>}
                         {hasStatus && <th className="px-6 py-3">Trạng thái</th>}
-                        <th className="px-6 py-3 text-right">Thao tác</th>
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -101,15 +97,6 @@ export default function BatchesTable({
                                         </span>
                                     </td>
                                 )}
-                                <td className="px-6 py-4 text-right">
-                                    <button
-                                        onClick={() => onEdit(batch.id)}
-                                        className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-semibold text-text-main hover:border-primary/40 hover:text-primary"
-                                    >
-                                        <PencilSquareIcon className="h-4 w-4" />
-                                        Sửa
-                                    </button>
-                                </td>
                             </tr>
                         ))
                     )}

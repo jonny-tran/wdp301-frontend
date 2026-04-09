@@ -65,21 +65,6 @@ export default function InventoryAdjustModal({ isOpen, onClose }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-500">
-                ID Kho
-              </label>
-              <input
-                {...register("warehouseId", { valueAsNumber: true })}
-                className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 font-bold focus:ring-2 ring-primary/20 outline-none"
-                placeholder="Nhập ID"
-              />
-              {errors.warehouseId && (
-                <p className="text-[9px] font-bold text-red-500 ml-1 uppercase">
-                  {errors.warehouseId.message}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-500">
                 ID Lô hàng
               </label>
               <input
@@ -88,18 +73,17 @@ export default function InventoryAdjustModal({ isOpen, onClose }: Props) {
                 placeholder="Nhập ID"
               />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-500">
-              Số lượng điều chỉnh (+/-)
-            </label>
-            <input
-              {...register("adjustmentQuantity", { valueAsNumber: true })}
-              type="number"
-              className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 font-bold focus:ring-2 ring-primary/20 outline-none"
-              placeholder="Ví dụ: 10 hoặc -5"
-            />
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-slate-500">
+                Số lượng thực tế
+              </label>
+              <input
+                {...register("actualQuantity", { valueAsNumber: true })}
+                type="number"
+                className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 font-bold focus:ring-2 ring-primary/20 outline-none"
+                placeholder="VD: 48.5"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -107,13 +91,14 @@ export default function InventoryAdjustModal({ isOpen, onClose }: Props) {
               Lý do điều chỉnh
             </label>
             <select
-              {...register("reason")}
+              {...register("reasonCode")}
               className="w-full bg-slate-50 border border-slate-100 rounded-2xl py-4 px-6 font-bold focus:ring-2 ring-primary/20 outline-none appearance-none"
             >
-              <option value="DAMAGED">Hàng hư hỏng</option>
-              <option value="EXPIRED">Hàng hết hạn</option>
-              <option value="LOST">Thất thoát</option>
-              <option value="INVENTORY_COUNT">Kiểm kê định kỳ</option>
+              <option value="DAMAGE">Hư hỏng (DAMAGE)</option>
+              <option value="WASTE">Hao hụt / hủy (WASTE)</option>
+              <option value="PRODUCTION_WASTE">Hao hụt sản xuất (PRODUCTION_WASTE)</option>
+              <option value="INPUT_ERROR">Sai số nhập liệu (INPUT_ERROR)</option>
+              <option value="EXPIRED">Hết hạn (EXPIRED)</option>
             </select>
           </div>
 

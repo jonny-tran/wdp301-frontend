@@ -89,7 +89,7 @@ export default function InboundCreateModal({
                                     defaultValue=""
                                     className={`w-full appearance-none rounded-full border border-slate-200 bg-white px-8 py-4 text-sm font-bold text-slate-900 outline-none shadow-sm focus:ring-4 focus:ring-primary/5 transition-all ${errors.supplierId ? "border-red-500 bg-red-50" : ""}`}
                                 >
-                                    <option value="" disabled>Choose a supplier...</option>
+                                    <option value="" disabled>Chọn nhà cung cấp...</option>
                                     {suppliers.map((s: any) => (
                                         <option key={s.id} value={s.id}>
                                             {s.name}
@@ -103,7 +103,7 @@ export default function InboundCreateModal({
                                 </div>
                             </div>
                             {errors.supplierId && <p className="text-[10px] text-red-500 ml-4">{errors.supplierId.message}</p>}
-                            {suppliersQuery.isLoading && <p className="text-[10px] text-primary animate-pulse ml-4 italic">Loading suppliers...</p>}
+                            {suppliersQuery.isLoading && <p className="text-[10px] text-primary animate-pulse ml-4 italic">Đang tải nhà cung cấp...</p>}
                         </div>
 
                         {/* Notes */}
@@ -114,7 +114,7 @@ export default function InboundCreateModal({
                             </label>
                             <textarea
                                 {...register("note")}
-                                placeholder="Any specific instructions for this shipment..."
+                                placeholder="Ghi chú thêm cho phiếu nhập (nếu có)..."
                                 className={`w-full rounded-[2rem] border border-slate-200 bg-white px-8 py-4 text-sm font-bold text-slate-900 outline-none shadow-sm focus:ring-4 focus:ring-primary/5 transition-all min-h-[120px] resize-none placeholder:text-slate-300 ${errors.note ? "border-red-500 bg-red-50" : ""}`}
                             />
                             {errors.note && <p className="text-[10px] text-red-500 ml-4">{errors.note.message}</p>}
@@ -134,7 +134,7 @@ export default function InboundCreateModal({
                             disabled={isSubmitting}
                             className="flex items-center justify-center gap-3 rounded-full bg-primary px-10 py-4 text-[10px] font-black uppercase tracking-[0.3em] text-white hover:bg-primary-dark shadow-xl shadow-primary/20 disabled:bg-slate-300 transition-all active:scale-95"
                         >
-                            {isSubmitting ? "Starting..." : "Start Receiving"}
+                            {isSubmitting ? "Đang tạo..." : "Tạo phiếu nhập"}
                         </button>
                     </div>
                 </form>

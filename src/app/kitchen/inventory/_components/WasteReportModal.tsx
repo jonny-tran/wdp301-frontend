@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useInventory } from "@/hooks/useInventory";
-import { useUpload } from "@/hooks/useUpload";
 import { handleErrorApi } from "@/lib/errors";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type WasteReportModalProps = {
     open: boolean;
@@ -30,46 +29,30 @@ export default function WasteReportModal({
     physicalQuantity,
 }: WasteReportModalProps) {
     const { reportWaste } = useInventory();
-    const { uploadImage } = useUpload();
-    const [reason, setReason] = useState<"EXPIRED" | "DAMAGED" | "">("");
+    const [reason, setReason] = useState<"EXPIRED" | "DAMAGED" | undefined>(undefined);
     const [note, setNote] = useState("");
-    const [quantity, setQuantity] = useState<number>(physicalQuantity > 0 ? physicalQuantity : 0);
-    const [evidenceImage, setEvidenceImage] = useState("");
-
-    const exceedsFivePercent = physicalQuantity > 0 && quantity > physicalQuantity * 0.05;
 
     const onSubmit = async () => {
         if (!reason) return;
         try {
             await reportWaste.mutateAsync({
                 batchId,
-                quantity,
                 reason,
                 note: note.trim() || undefined,
-                evidenceImage: evidenceImage.trim() || undefined,
             });
             onOpenChange(false);
-            setReason("");
+            setReason(undefined);
             setNote("");
-            setEvidenceImage("");
-            setQuantity(physicalQuantity > 0 ? physicalQuantity : 0);
         } catch (error) {
             handleErrorApi({ error });
         }
     };
 
-    const disabled =
-        reportWaste.isPending ||
-        uploadImage.isPending ||
-        !reason ||
-        physicalQuantity <= 0 ||
-        quantity <= 0 ||
-        quantity > physicalQuantity ||
-        (exceedsFivePercent && !evidenceImage.trim());
+    const disabled = reportWaste.isPending || reason == null || physicalQuantity <= 0;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md border-zinc-200 bg-white text-zinc-900">
                 <DialogHeader>
                     <DialogTitle>Báo hủy lô (Waste)</DialogTitle>
                     <DialogDescription>
@@ -78,55 +61,28 @@ export default function WasteReportModal({
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="space-y-1">
-                        <Label>Số lượng hủy</Label>
-                        <Input
-                            type="number"
-                            min={0}
-                            max={physicalQuantity}
-                            step="any"
-                            value={quantity}
-                            onChange={(e) => setQuantity(Number(e.target.value))}
-                        />
-                        <p className="text-xs text-zinc-500">
-                            Nếu hủy lớn hơn 5% tồn vật lý, bắt buộc tải ảnh chứng minh.
-                        </p>
-                    </div>
-                    <div className="space-y-1">
                         <Label>Lý do tiêu hủy</Label>
-                        <select
-                            className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+                        <Select
                             value={reason}
-                            onChange={(e) => setReason(e.target.value as "EXPIRED" | "DAMAGED" | "")}
+                            onValueChange={(value) => setReason(value as "EXPIRED" | "DAMAGED")}
                         >
-                            <option value="">-- Chọn lý do --</option>
-                            <option value="EXPIRED">EXPIRED - Hết hạn</option>
-                            <option value="DAMAGED">DAMAGED - Hỏng hóc</option>
-                        </select>
+                            <SelectTrigger className="w-full bg-white text-zinc-900">
+                                <SelectValue placeholder="-- Chọn lý do --" />
+                            </SelectTrigger>
+                            <SelectContent className="bg-white text-zinc-900">
+                                <SelectItem value="EXPIRED">EXPIRED - Hết hạn</SelectItem>
+                                <SelectItem value="DAMAGED">DAMAGED - Hỏng hóc</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
                     <div className="space-y-1">
                         <Label>Ghi chú</Label>
-                        <Textarea value={note} onChange={(e) => setNote(e.target.value)} placeholder="Chi tiết thêm (tuỳ chọn)..." />
-                    </div>
-                    <div className="space-y-1">
-                        <Label>Ảnh chứng minh {exceedsFivePercent ? <span className="text-red-600">*</span> : null}</Label>
-                        <Input
-                            type="file"
-                            accept="image/*"
-                            onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (!file) return;
-                                try {
-                                    const uploaded = await uploadImage.mutateAsync(file);
-                                    const url = (uploaded as { url?: string; imageUrl?: string })?.url ?? (uploaded as { imageUrl?: string })?.imageUrl;
-                                    if (url) setEvidenceImage(url);
-                                } catch (error) {
-                                    handleErrorApi({ error });
-                                } finally {
-                                    if (e.target) e.target.value = "";
-                                }
-                            }}
+                        <Textarea
+                            className="bg-white text-zinc-900"
+                            value={note}
+                            onChange={(e) => setNote(e.target.value)}
+                            placeholder="Chi tiết thêm (tuỳ chọn)..."
                         />
-                        {evidenceImage && <p className="text-xs text-emerald-700">Đã tải ảnh chứng minh.</p>}
                     </div>
                 </div>
                 <DialogFooter>

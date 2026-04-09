@@ -242,7 +242,7 @@ export default function InventorySummaryTable({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-8 text-xs"
+                        className="h-8 border-zinc-300 bg-white text-xs text-zinc-800 hover:bg-zinc-100 hover:text-zinc-900"
                         onClick={() => onToggleExpand(item.productId)}
                       >
                         {expanded ? "Ẩn lô" : "Xem lô"}

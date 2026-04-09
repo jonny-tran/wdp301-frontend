@@ -74,7 +74,7 @@ export default function InventoryStats({
                             <p className="mt-1 text-2xl font-semibold tabular-nums tracking-tight text-zinc-900">
                                 {c.value}
                             </p>
-                            <p className="mt-1 flex items-start gap-1 text-xs leading-snug text-zinc-400">
+                            <p className="mt-1 flex items-start gap-1 text-xs leading-snug text-zinc-500">
                                 {c.label === "Hết hàng" && outOfStockSkus > 0 && (
                                     <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-rose-500" />
                                 )}

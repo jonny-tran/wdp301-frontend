@@ -104,11 +104,11 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
             <p className="mb-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
                 Chi tiết lô — sắp xếp FEFO (HSD tăng dần)
             </p>
-            <Table className="text-xs">
+            <div className="overflow-x-auto">
+            <Table className="min-w-[820px] text-xs">
                 <TableHeader>
                     <TableRow className="hover:bg-transparent">
                         <TableHead className="font-semibold text-zinc-700">Mã lô</TableHead>
-                        <TableHead className="min-w-[120px] font-semibold text-zinc-700">Nguồn (lineage)</TableHead>
                         <TableHead className="font-semibold text-zinc-700">HSD</TableHead>
                         <TableHead className="min-w-[100px] font-semibold text-zinc-700">Độ tươi</TableHead>
                         <TableHead className="text-right font-semibold text-zinc-700">Vật lý</TableHead>
@@ -122,8 +122,10 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
                     {sorted.map((batch) => {
                         const st = batchExpiryUiStatus(batch.expiryDate);
                         const days = batchExpiryDaysUntil(batch.expiryDate);
+                        const hasStock = Number(batch.totalQuantity ?? 0) > 0;
                         const expired = st === "expired";
                         const nearExpiry = st === "near";
+                        const statusUi: "out" | BatchExpiryUiStatus = hasStock ? st : "out";
                         const fmt =
                             parseExpiryDay(batch.expiryDate)?.toLocaleDateString("vi-VN", {
                                 day: "2-digit",
@@ -136,18 +138,15 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
                                 key={batch.batchId}
                                 className={cn(
                                     "transition-colors",
-                                    expired && "bg-red-50 hover:bg-red-100/80",
-                                    nearExpiry && "bg-red-50 hover:bg-red-100/80",
-                                    !expired && !nearExpiry && "bg-white/80 hover:bg-zinc-100/80",
+                                    statusUi === "expired" && "bg-red-50 hover:bg-red-100/80",
+                                    statusUi === "near" && "bg-red-50 hover:bg-red-100/80",
+                                    statusUi === "out" && "bg-zinc-100/70 hover:bg-zinc-100",
+                                    statusUi === "good" && "bg-white/80 hover:bg-zinc-100/80",
                                 )}
                             >
                                 {/* Batch Code — bold */}
-                                <TableCell className="font-mono font-semibold text-zinc-900">
+                                <TableCell className="max-w-[220px] break-all font-mono font-semibold text-zinc-900">
                                     {batch.batchCode || "—"}
-                                </TableCell>
-
-                                <TableCell className="font-mono text-xs text-zinc-600 break-all">
-                                    {batch.parentBatchCode ?? (batch.parentBatchId != null ? `#${batch.parentBatchId}` : "—")}
                                 </TableCell>
 
                                 {/* Expiry Date — FEFO alarm styling */}
@@ -164,7 +163,7 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
                                         <span
                                             className={cn(
                                                 "ml-1 text-[10px]",
-                                                expired || nearExpiry ? "text-red-500" : "text-zinc-400",
+                                                statusUi === "expired" || statusUi === "near" ? "text-red-500" : "text-zinc-400",
                                             )}
                                         >
                                             ({days < 0 ? "quá hạn" : `còn ${days} ngày`})
@@ -190,12 +189,17 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
 
                                 {/* Status Badge */}
                                 <TableCell>
-                                    {st === "expired" && (
+                                    {statusUi === "out" && (
+                                        <Badge variant="destructive" className="text-[10px]">
+                                            Hết hàng
+                                        </Badge>
+                                    )}
+                                    {statusUi === "expired" && (
                                         <Badge variant="destructive" className="text-[10px]">
                                             Hết hạn
                                         </Badge>
                                     )}
-                                    {st === "near" && (
+                                    {statusUi === "near" && (
                                         <Badge
                                             variant="secondary"
                                             className="border-red-200 bg-red-50 text-[10px] text-red-700"
@@ -203,7 +207,7 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
                                             Sắp hết hạn
                                         </Badge>
                                     )}
-                                    {st === "good" && (
+                                    {statusUi === "good" && (
                                         <Badge variant="outline" className="border-emerald-200 text-[10px] text-emerald-800">
                                             Tốt
                                         </Badge>
@@ -213,7 +217,7 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
                                 {/* Action */}
                                 <TableCell className="text-right">
                                     <div className="flex flex-wrap justify-end gap-1">
-                                        {onWaste && (
+                                        {hasStock && onWaste && (
                                             <Button
                                                 type="button"
                                                 variant="secondary"
@@ -224,15 +228,17 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
                                                 Báo hủy
                                             </Button>
                                         )}
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-7 text-[10px]"
-                                            onClick={() => onAdjust(batch)}
-                                        >
-                                            Điều chỉnh
-                                        </Button>
+                                        {hasStock && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-7 text-[10px]"
+                                                onClick={() => onAdjust(batch)}
+                                            >
+                                                Điều chỉnh
+                                            </Button>
+                                        )}
                                     </div>
                                 </TableCell>
                             </TableRow>
@@ -240,6 +246,7 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
                     })}
                 </TableBody>
             </Table>
+            </div>
         </div>
     );
 }

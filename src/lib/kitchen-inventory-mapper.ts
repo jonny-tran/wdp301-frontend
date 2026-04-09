@@ -106,6 +106,33 @@ export function normalizeInventoryAgingReportFromApi(raw: unknown): InventoryAgi
         const o = raw as Record<string, unknown>;
         const inner = o.data ?? o.items ?? o.results;
         if (Array.isArray(inner)) return inner as InventoryAgingReport;
+
+        const dataObj = o.data && typeof o.data === "object" ? (o.data as Record<string, unknown>) : undefined;
+        const buckets = (dataObj?.buckets ?? o.buckets) as Record<string, unknown> | undefined;
+        if (buckets && typeof buckets === "object") {
+            const fromBuckets: InventoryAgingReport = [];
+            const groups = ["critical", "warning", "good"] as const;
+            groups.forEach((group) => {
+                const rows = buckets[group];
+                if (!Array.isArray(rows)) return;
+                rows.forEach((row, idx) => {
+                    const r = readRecord(row);
+                    const expiry = String(r.expiryDate ?? r.expiry_date ?? "");
+                    const diffMs = expiry ? new Date(expiry).getTime() - Date.now() : Number.NaN;
+                    const daysUntilExpiry = Number.isFinite(diffMs) ? Math.ceil(diffMs / 86400000) : 0;
+                    fromBuckets.push({
+                        batchId: Number(r.batchId ?? r.batch_id ?? idx + 1),
+                        batchCode: String(r.batchCode ?? r.batch_code ?? ""),
+                        productName: String(r.productName ?? r.product_name ?? ""),
+                        currentQuantity: parseDecimalLike(r.currentQuantity ?? r.current_quantity ?? r.quantity ?? 0),
+                        expiryDate: expiry,
+                        daysUntilExpiry,
+                        status: group === "critical" ? "expired" : group,
+                    });
+                });
+            });
+            return fromBuckets;
+        }
     }
     return [];
 }

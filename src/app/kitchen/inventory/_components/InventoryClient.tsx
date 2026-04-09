@@ -8,7 +8,6 @@ import { useInventory } from "@/hooks/useInventory";
 import type { RawSearchParams } from "@/app/kitchen/_components/query";
 import type { KitchSummary } from "@/types/inventory";
 import { normalizeInventoryAgingReportFromApi } from "@/lib/kitchen-inventory-mapper";
-import { TransactionType } from "@/utils/enum";
 import {
     createPaginationSearchParams,
     normalizeKitchenInventoryMeta,
@@ -17,7 +16,6 @@ import {
 import InventoryStats from "./InventoryStats";
 import InventorySummaryTable from "./InventorySummaryTable";
 import StockAdjustmentModal from "./StockAdjustmentModal";
-import TransactionHistoryTable from "./TransactionHistoryTable";
 import WasteReportModal from "./WasteReportModal";
 
 type AdjustContext = {
@@ -40,8 +38,6 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
 
     const [adjustOpen, setAdjustOpen] = useState(false);
     const [adjustCtx, setAdjustCtx] = useState<AdjustContext | null>(null);
-    const [auditTypeFilter, setAuditTypeFilter] = useState<"all" | "reservation" | "production_consume" | "waste">("all");
-    const [auditPage, setAuditPage] = useState(1);
     const [wasteCtx, setWasteCtx] = useState<{
         batchId: number;
         batchCode: string;
@@ -52,11 +48,11 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
 
     const parsedQuery = useMemo(() => parseKitchenInventoryQuery(searchParams, { page: 1, limit: 10, sortOrder: "DESC" }), [searchParams]);
 
-    const { kitchenSummary, inventoryAgingReport, inventoryTransactions } = useInventory();
+    const { kitchenSummary, inventoryAgingReport, inventoryWasteDetailReport } = useInventory();
 
     const listQuery = kitchenSummary({
-        page: parsedQuery.page,
-        limit: parsedQuery.limit,
+        page: 1,
+        limit: 500,
         search: parsedQuery.search,
         sortOrder: parsedQuery.sortOrder,
     });
@@ -69,44 +65,42 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
     });
 
     const agingQuery = inventoryAgingReport({ daysThreshold: 7 });
-    const auditQuery = inventoryTransactions(
-        {
-            page: auditPage,
-            limit: 8,
-            sortOrder: "DESC",
-            ...(auditTypeFilter === "all" ? {} : { type: auditTypeFilter as TransactionType }),
-        },
-        { enabled: true },
-    );
-
+    const today = new Date();
+    const fromDate = useMemo(() => {
+        const d = new Date(today);
+        d.setDate(d.getDate() - 30);
+        return d.toISOString().slice(0, 10);
+    }, [today]);
+    const toDate = useMemo(() => today.toISOString().slice(0, 10), [today]);
+    const wasteDetailQuery = inventoryWasteDetailReport({ startDate: fromDate, endDate: toDate });
     const summaryItems = listQuery.data?.items ?? [];
-    const meta = useMemo(
-        () => normalizeKitchenInventoryMeta(listQuery.data?.meta, parsedQuery.page, parsedQuery.limit, summaryItems.length),
-        [parsedQuery.limit, parsedQuery.page, summaryItems.length, listQuery.data?.meta],
-    );
 
-    const categoryOptions = useMemo(() => {
-        const s = new Set<string>();
-        summaryItems.forEach((i) => {
-            s.add(i.categoryName?.trim() || "Không phân loại");
-        });
-        return [...s].sort((a, b) => a.localeCompare(b, "vi"));
-    }, [summaryItems]);
-
-    const displayItems = useMemo(() => {
+    const filteredItems = useMemo(() => {
         return summaryItems.filter((item) => {
             const physical = item.totalPhysical;
             if (parsedQuery.stockStatus === "out_of_stock" && physical > 0) return false;
             if (parsedQuery.stockStatus === "low_stock" && !item.isLowStock) return false;
             if (parsedQuery.stockStatus === "in_stock" && (item.isLowStock || physical <= 0)) return false;
-
-            if (parsedQuery.category !== "all") {
-                const cat = item.categoryName?.trim() || "Không phân loại";
-                if (cat !== parsedQuery.category) return false;
-            }
             return true;
         });
-    }, [summaryItems, parsedQuery.stockStatus, parsedQuery.category]);
+    }, [summaryItems, parsedQuery.stockStatus]);
+
+    const meta = useMemo(
+        () =>
+            normalizeKitchenInventoryMeta(
+                undefined,
+                parsedQuery.page,
+                parsedQuery.limit,
+                filteredItems.length,
+            ),
+        [filteredItems.length, parsedQuery.limit, parsedQuery.page],
+    );
+
+    const displayItems = useMemo(() => {
+        const start = (meta.currentPage - 1) * meta.itemsPerPage;
+        const end = start + meta.itemsPerPage;
+        return filteredItems.slice(start, end);
+    }, [filteredItems, meta.currentPage, meta.itemsPerPage]);
 
     const nearExpiryStats = useMemo(() => {
         if (agingQuery.isError) return { count: null as number | null, unavailable: true };
@@ -119,6 +113,16 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
     const kpiItems = kpiQuery.data?.items ?? [];
     const totalSkus = kpiQuery.data?.meta?.totalItems ?? kpiItems.length;
     const outOfStockSkus = useMemo(() => kpiItems.filter((i) => i.totalPhysical <= 0).length, [kpiItems]);
+    const wasteLogs = useMemo(() => {
+        const raw = wasteDetailQuery.data as
+            | { data?: Array<{ transactionId?: number; batchCode?: string; productName?: string; wastedQuantity?: number; wasteReason?: string; reasonNote?: string; note?: string; createdAt?: string; createdBy?: string }> }
+            | { data?: { data?: Array<{ transactionId?: number; batchCode?: string; productName?: string; wastedQuantity?: number; wasteReason?: string; reasonNote?: string; note?: string; createdAt?: string; createdBy?: string }> } }
+            | undefined;
+        const list = Array.isArray((raw as { data?: unknown[] })?.data)
+            ? ((raw as { data?: unknown[] }).data as Array<{ transactionId?: number; batchCode?: string; productName?: string; wastedQuantity?: number; wasteReason?: string; reasonNote?: string; note?: string; createdAt?: string; createdBy?: string }>)
+            : ((raw as { data?: { data?: Array<{ transactionId?: number; batchCode?: string; productName?: string; wastedQuantity?: number; wasteReason?: string; reasonNote?: string; note?: string; createdAt?: string; createdBy?: string }> } })?.data?.data ?? []);
+        return list.slice(0, 8);
+    }, [wasteDetailQuery.data]);
 
     const filterConfig: FilterConfig[] = useMemo(
         () => [
@@ -142,14 +146,6 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                 placeholder: "Tất cả",
             },
             {
-                key: "category",
-                label: "Danh mục",
-                type: "select",
-                defaultValue: parsedQuery.category === "all" ? "all" : parsedQuery.category,
-                options: categoryOptions.map((c) => ({ label: c, value: c })),
-                placeholder: "Tất cả",
-            },
-            {
                 key: "limit",
                 label: "Số dòng",
                 type: "select",
@@ -161,7 +157,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                 ],
             },
         ],
-        [categoryOptions, parsedQuery.category, parsedQuery.limit, parsedQuery.stockStatus],
+        [parsedQuery.limit, parsedQuery.stockStatus],
     );
 
     const handlePageChange = (nextPage: number) => {
@@ -185,7 +181,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
 
     return (
         <div className="min-h-screen bg-zinc-50">
-            <div className="mx-auto max-w-7xl space-y-6 p-6">
+            <div className="mx-auto max-w-[96rem] space-y-6 p-6">
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>
@@ -253,44 +249,40 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                 </div>
 
                 <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 px-6 py-4">
-                        <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
-                            Audit log timeline
-                        </h2>
-                        <div className="flex items-center gap-2">
-                            <label className="text-xs text-zinc-600">Loại giao dịch</label>
-                            <select
-                                value={auditTypeFilter}
-                                onChange={(e) => {
-                                    setAuditTypeFilter(e.target.value as typeof auditTypeFilter);
-                                    setAuditPage(1);
-                                }}
-                                className="h-9 rounded-md border border-zinc-300 bg-white px-2 text-sm"
-                            >
-                                <option value="all">Tất cả</option>
-                                <option value="reservation">reservation</option>
-                                <option value="production_consume">production_consume</option>
-                                <option value="waste">waste</option>
-                            </select>
+                        <div className="border-b border-zinc-100 px-6 py-4">
+                            <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                                Nhật ký truy vết tiêu hủy (mới nhất)
+                            </h2>
+                        </div>
+                        <div className="px-6 py-4">
+                            {wasteDetailQuery.isLoading ? (
+                                <p className="py-8 text-sm text-zinc-500">Đang tải waste-report...</p>
+                            ) : wasteDetailQuery.isError ? (
+                                <p className="py-8 text-sm text-red-600">Không tải được nhật ký tiêu hủy.</p>
+                            ) : wasteLogs.length === 0 ? (
+                                <p className="py-8 text-sm text-zinc-500">Chưa có bản ghi tiêu hủy.</p>
+                            ) : (
+                                <div className="space-y-2">
+                                    {wasteLogs.map((row, idx) => (
+                                        <div key={`${row.transactionId ?? idx}`} className="rounded-md border border-zinc-200 p-3 text-sm">
+                                            <div className="flex flex-wrap items-center justify-between gap-2">
+                                                <p className="font-medium text-zinc-900">{row.productName ?? "—"}</p>
+                                                <span className="text-xs text-zinc-500">
+                                                    {row.createdAt ? new Date(row.createdAt).toLocaleString("vi-VN") : "—"}
+                                                </span>
+                                            </div>
+                                            <p className="mt-1 text-xs text-zinc-600">
+                                                Lô: <span className="font-mono">{row.batchCode ?? "—"}</span> · SL hủy: {Number(row.wastedQuantity ?? 0).toLocaleString("vi-VN")}
+                                            </p>
+                                            <p className="mt-1 text-xs text-zinc-600">
+                                                Lý do: <span className="font-medium">{row.wasteReason ?? "—"}</span> · Ghi chú: {row.reasonNote ?? row.note ?? "—"} · Người thao tác: {row.createdBy ?? "—"}
+                                            </p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
-                    <div className="px-6 py-4">
-                        <TransactionHistoryTable
-                            items={auditQuery.data?.items ?? []}
-                            meta={
-                                normalizeKitchenInventoryMeta(
-                                    auditQuery.data?.meta,
-                                    auditPage,
-                                    8,
-                                    (auditQuery.data?.items ?? []).length,
-                                )
-                            }
-                            isLoading={auditQuery.isLoading}
-                            isError={auditQuery.isError}
-                            onPageChange={setAuditPage}
-                        />
-                    </div>
-                </div>
 
                 {/* Stock Adjustment Modal */}
                 <StockAdjustmentModal

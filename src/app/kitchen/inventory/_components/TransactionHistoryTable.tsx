@@ -35,7 +35,7 @@ export default function TransactionHistoryTable({
     onPageChange,
 }: TransactionHistoryTableProps) {
     if (isLoading) {
-        return <p className="py-12 text-center text-sm text-slate-500">Đang tải nhật ký giao dịch…</p>;
+        return <p className="py-12 text-center text-sm text-zinc-500">Đang tải nhật ký giao dịch…</p>;
     }
 
     if (isError) {
@@ -49,7 +49,7 @@ export default function TransactionHistoryTable({
 
     if (items.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center gap-2 py-16 text-slate-500">
+            <div className="flex flex-col items-center justify-center gap-2 py-16 text-zinc-500">
                 <FileText className="size-10 opacity-40" />
                 <p className="text-sm">Chưa có bản ghi giao dịch.</p>
             </div>
@@ -60,15 +60,15 @@ export default function TransactionHistoryTable({
         <div className="space-y-4">
             <div className="space-y-3">
                 {items.map((row) => (
-                    <div key={row.transactionId} className="rounded-xl border border-slate-200 bg-white p-3">
+                    <div key={row.transactionId} className="rounded-xl border border-zinc-200 bg-white p-3">
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="text-xs text-slate-600">{formatWhen(row.date)}</p>
+                            <p className="text-xs text-zinc-600">{formatWhen(row.date)}</p>
                             <Badge variant="outline" className="font-mono text-[10px] uppercase">
                                 {row.type || "—"}
                             </Badge>
                         </div>
-                        <div className="mt-2 text-sm font-semibold text-slate-900">{row.productName || "—"}</div>
-                        <div className="mt-1 text-xs text-slate-600">
+                        <div className="mt-2 text-sm font-semibold text-zinc-900">{row.productName || "—"}</div>
+                        <div className="mt-1 text-xs text-zinc-600">
                             Lô: <span className="font-mono">{row.batchCode || "—"}</span>
                         </div>
                         <div className="mt-1 text-xs">
@@ -77,12 +77,12 @@ export default function TransactionHistoryTable({
                                 {row.quantity > 0 ? `+${row.quantity}` : row.quantity}
                             </span>
                         </div>
-                        <p className="mt-1 text-xs text-slate-600">{row.note || "—"}</p>
+                        <p className="mt-1 text-xs text-zinc-600">{row.note || "—"}</p>
                     </div>
                 ))}
             </div>
 
-            <div className="border-t border-slate-100 pt-4">
+            <div className="border-t border-zinc-100 pt-4">
                 <BasePagination
                     currentPage={meta.currentPage}
                     totalPages={meta.totalPages}
