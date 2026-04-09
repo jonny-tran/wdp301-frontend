@@ -15,6 +15,7 @@ import {
     BeakerIcon,
     QueueListIcon,
     BuildingOffice2Icon,
+    GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 import { Role } from "@/utils/enum";
 import { Resource } from "@/utils/constant";
@@ -42,6 +43,11 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
             href: "/admin/shipment",
             icon: TruckIcon,
             requiredPermission: { resource: Resource.STORE, action: P.STORE_READ_LIST }
+        },
+        {
+            name: "Hậu Cần",
+            href: "/manager/logistics",
+            icon: GlobeAltIcon, 
         },
         {
             name: "Khiếu nại",
@@ -100,17 +106,22 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
             icon: TruckIcon,
             requiredPermission: { resource: Resource.REPORT, action: P.REPORT_LEAD_TIME }
         },
-                {
+        {
+            name: "Hậu Cần",
+            href: "/manager/logistics",
+            icon: GlobeAltIcon, 
+        },
+        {
             name: "Nhà cung cấp",
             href: "/manager/supplier",
             icon: BuildingOffice2Icon,
         },
-        // {
-        //     name: "Đơn vị tính",
-        //     href: "/manager/baseUnits",
-        //     icon: ArchiveBoxIcon,
-        //     requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_CATEGORIES }
-        // },
+        {
+            name: "Đơn vị tính",
+            href: "/manager/baseUnits",
+            icon: ArchiveBoxIcon,
+            requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_CATEGORIES }
+        },
         {
             name: "Khiếu nại",
             href: "/manager/claim",
