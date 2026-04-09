@@ -1,5 +1,5 @@
 "use client";
-
+import { cn } from "@/lib/utils";
 import { useEffect, useMemo } from "react";
 import {
   useFieldArray,
@@ -337,10 +337,10 @@ export default function RecipeFormModal({ open, onClose, recipeId }: Props) {
                       type="button"
                       variant="outline"
                       size="sm"
-                      className="gap-1"
+                      className="gap-1   text-slate-900  tracking-tighter hover:text-slate-950 hover:bg-slate-50"
                       onClick={() => append({ productId: 0, quantity: 1 })}
                     >
-                      <Plus className="h-3.5 w-3.5" />
+                      <Plus className="h-3.5 w-3.5 text-slate-800" />
                       Thêm dòng
                     </Button>
                   </div>
@@ -391,7 +391,7 @@ export default function RecipeFormModal({ open, onClose, recipeId }: Props) {
                           name={`items.${index}.productId`}
                           render={({ field: rowField }) => (
                             <FormItem>
-                              <FormLabel className="text-xs">
+                              <FormLabel className=" font-black  text-slate-400 ml-2 tracking-widest">
                                 Nguyên liệu
                               </FormLabel>
                               <Select
@@ -404,13 +404,23 @@ export default function RecipeFormModal({ open, onClose, recipeId }: Props) {
                                 disabled={rawQuery.isLoading}
                               >
                                 <FormControl>
-                                  <SelectTrigger className="bg-white border-slate-200">
+                                  {/* 💡 Sửa: Tăng border lên 2, shadow nhẹ, và ép màu chữ dựa trên value */}
+                                  <SelectTrigger
+                                    className={cn(
+                                      "h-11 rounded-xl border-2 bg-white transition-all shadow-sm focus:ring-0",
+                                      rowField.value
+                                        ? "border-slate-900 text-slate-900  "
+                                        : "border-slate-200 text-slate-300 ",
+                                    )}
+                                  >
                                     <SelectValue placeholder="Chọn NL (raw_material)" />
                                   </SelectTrigger>
                                 </FormControl>
+
+                                {/* Dark Mode Content để tăng độ nghệ */}
                                 <SelectContent
                                   position="popper"
-                                  className="z-[200] max-h-60"
+                                  className="z-[200] max-h-60 rounded-2xl border-none bg-[#1A1A1A] text-white p-2 shadow-2xl"
                                 >
                                   {rawProducts
                                     .filter((p) => p.id !== outputId)
@@ -418,13 +428,17 @@ export default function RecipeFormModal({ open, onClose, recipeId }: Props) {
                                       <SelectItem
                                         key={p.id}
                                         value={String(p.id)}
+                                        className="rounded-xl font-bold italic uppercase py-3 px-4 focus:bg-white/10 focus:text-white transition-all cursor-pointer text-[10px]"
                                       >
-                                        {p.name} ({p.sku})
+                                        {p.name}{" "}
+                                        <span className="opacity-50 ml-1">
+                                          ({p.sku})
+                                        </span>
                                       </SelectItem>
                                     ))}
                                 </SelectContent>
                               </Select>
-                              <FormMessage />
+                              <FormMessage className="text-[10px] font-bold italic ml-2" />
                             </FormItem>
                           )}
                         />

@@ -61,7 +61,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
           onClick={handleBack}
           className="h-10 w-10 rounded-xl bg-white shadow-md hover:bg-primary-dark hover:text-white transition-all border border-slate-100 p-0 group"
         >
-          <ArrowLeftIcon className="h-5 w-5 stroke-[2.5px] group-hover:-translate-x-1 transition-transform" />
+          <ArrowLeftIcon className="h-5 w-5 stroke-[2.5px] text-black group-hover:-translate-x-1 transition-transform " />
         </Button>
         <div>
           <h1 className="text-2xl font-black uppercase italic text-black tracking-tighter leading-none">
@@ -132,7 +132,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
                 </span>
               </h3>
             </div>
-            <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">
+            <span className="text-[9px] font-bold text-slate-800 uppercase tracking-widest">
               {product.batches?.length || 0} Lô hàng
             </span>
           </div>

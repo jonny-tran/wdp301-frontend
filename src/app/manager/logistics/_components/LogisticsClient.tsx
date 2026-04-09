@@ -3,11 +3,14 @@
 
 import { useState } from "react";
 import { useLogistics } from "@/hooks/useLogistics";
-import { Truck, Map, Plus, Globe2 } from "lucide-react";
+import { Truck, Map, Plus, Globe2, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import VehicleTable from "./VehicleTable";
 import RouteTable from "./RouteTable";
 import LogisticsModal from "./LogisticsModal";
+// Import các Detail View đã viết
+import VehicleDetailView from "./VehicleDetailView";
+import RouteDetailView from "./RouteDetailView";
 import { Vehicle, Route } from "@/types/logistics";
 import {
   AlertDialog,
@@ -24,6 +27,10 @@ export default function LogisticsClient() {
   const [activeTab, setActiveTab] = useState<"vehicles" | "routes">("vehicles");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingData, setEditingData] = useState<Vehicle | Route | null>(null);
+
+  // State quản lý xem chi tiết
+  const [viewingItem, setViewingItem] = useState<any>(null);
+
   const [deleteTarget, setDeleteTarget] = useState<{
     id: number;
     name: string;
@@ -35,49 +42,61 @@ export default function LogisticsClient() {
     useCreateVehicle,
     useCreateRoute,
     useDeleteVehicle,
+    useDeleteRoute, 
   } = useLogistics();
 
   const { data: vehicles, isLoading: loadingVehicles } = useGetVehicles();
   const { data: routes, isLoading: loadingRoutes } = useGetRoutes();
 
-  // --- HANDLERS CHO TABLE ---
+  // --- HANDLERS ---
   const handleEdit = (item: any) => {
     setEditingData(item);
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = (item: any) => {
-    setDeleteTarget({
-      id: item.id,
-      name: item.licensePlate || item.routeName,
-    });
-  };
-
   const handleConfirmDelete = () => {
     if (deleteTarget) {
-      // Hiện tại mới có useDeleteVehicle trong hook, bạn có thể bổ sung useDeleteRoute sau
       if (activeTab === "vehicles") {
         useDeleteVehicle.mutate(deleteTarget.id);
+      } else {
+        useDeleteRoute.mutate(deleteTarget.id);
       }
       setDeleteTarget(null);
     }
   };
 
   const handleFormSubmit = (data: any) => {
-    if (activeTab === "vehicles") {
-      useCreateVehicle.mutate(data, {
-        onSuccess: () => setIsModalOpen(false),
-      });
-    } else {
-      useCreateRoute.mutate(data, {
-        onSuccess: () => setIsModalOpen(false),
-      });
-    }
+    // Thêm logic cập nhật nếu có editingData
+    const action = activeTab === "vehicles" ? useCreateVehicle : useCreateRoute;
+    action.mutate(data, {
+      onSuccess: () => setIsModalOpen(false),
+    });
   };
+
+  // --- LOGIC HIỂN THỊ CHI TIẾT ---
+  if (viewingItem) {
+    return (
+      <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+        <Button
+          variant="ghost"
+          onClick={() => setViewingItem(null)}
+          className="rounded-full hover:bg-slate-100 gap-2 font-black uppercase italic text-[10px] tracking-widest text-slate-400"
+        >
+          <ChevronLeft className="h-4 w-4 stroke-[3px]" /> Quay lại danh sách
+        </Button>
+
+        {activeTab === "vehicles" ? (
+          <VehicleDetailView vehicle={{ data: viewingItem }} />
+        ) : (
+          <RouteDetailView route={{ data: viewingItem }} />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* HEADER */}
+      {/* HEADER SECTION */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
         <div className="flex items-center gap-4">
           <div className="p-4 bg-slate-900 rounded-[2rem] shadow-xl shadow-slate-200 rotate-3 transition-transform hover:rotate-0">
@@ -89,8 +108,8 @@ export default function LogisticsClient() {
             </h1>
             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-1.5 italic">
               {activeTab === "vehicles"
-                ? `${vehicles?.length || 0} Phương tiện trong đội xe`
-                : `${routes?.length || 0} Tuyến đường đang khai thác`}
+                ? `${vehicles?.length || 0} Phương tiện vận tải`
+                : `${routes?.length || 0} Tuyến đường Logistics`}
             </p>
           </div>
         </div>
@@ -109,7 +128,7 @@ export default function LogisticsClient() {
         </Button>
       </div>
 
-      {/* TABS */}
+      {/* TABS SELECTOR */}
       <div className="flex bg-slate-100/80 p-1.5 rounded-[2rem] w-fit border border-slate-200">
         <button
           onClick={() => setActiveTab("vehicles")}
@@ -133,28 +152,30 @@ export default function LogisticsClient() {
         </button>
       </div>
 
-      {/* MAIN TABLE AREA */}
+      {/* TABLES AREA */}
       <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden min-h-[450px]">
         {activeTab === "vehicles" ? (
           <VehicleTable
             data={vehicles || []}
             isLoading={loadingVehicles}
             onEdit={handleEdit}
-            onDelete={handleDeleteClick}
-            onViewDetail={(v) => console.log("View vehicle", v)}
+            onDelete={(v) =>
+              setDeleteTarget({ id: v.id, name: v.licensePlate })
+            }
+            onViewDetail={(v) => setViewingItem(v)} // Cập nhật state xem chi tiết
           />
         ) : (
           <RouteTable
             data={routes || []}
             isLoading={loadingRoutes}
             onEdit={handleEdit}
-            onDelete={handleDeleteClick}
-            onViewDetail={(r) => console.log("View route", r)}
+            onDelete={(r) => setDeleteTarget({ id: r.id, name: r.routeName })}
+            onViewDetail={(r) => setViewingItem(r)} // Cập nhật state xem chi tiết
           />
         )}
       </div>
 
-      {/* MODAL */}
+      {/* MODAL & ALERT DIALOG GIỮ NGUYÊN */}
       <LogisticsModal
         isOpen={isModalOpen}
         type={activeTab}
@@ -167,28 +188,27 @@ export default function LogisticsClient() {
         isPending={useCreateVehicle.isPending || useCreateRoute.isPending}
       />
 
-      {/* DELETE CONFIRMATION */}
       <AlertDialog
         open={!!deleteTarget}
         onOpenChange={() => setDeleteTarget(null)}
       >
-        <AlertDialogContent className="rounded-[2rem] border-none p-8">
+        <AlertDialogContent className="rounded-[2.5rem] border-none p-10 shadow-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-black uppercase italic">
-              Xác nhận gỡ bỏ
+            <AlertDialogTitle className="text-2xl font-black uppercase italic text-slate-900">
+              Xác nhận xóa
             </AlertDialogTitle>
-            <AlertDialogDescription className="font-medium text-slate-500">
-              Bạn có chắc chắn muốn xóa &quot;{deleteTarget?.name}&quot; khỏi hệ
-              thống vận hành?
+            <AlertDialogDescription className="font-bold italic text-slate-400">
+              Bạn có chắc chắn muốn gỡ bỏ &quot;{deleteTarget?.name}&quot; khỏi
+              hệ thống vận hành? Hành động này không thể hoàn tác.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel className="rounded-full font-black uppercase italic text-[10px]">
+          <AlertDialogFooter className="gap-3 mt-6">
+            <AlertDialogCancel className="rounded-full font-black uppercase italic text-[10px] tracking-widest">
               Hủy bỏ
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleConfirmDelete}
-              className="rounded-full bg-red-600 hover:bg-red-700 font-black uppercase italic text-[10px]"
+              className="rounded-full bg-red-600 hover:bg-red-700 font-black uppercase italic text-[10px] tracking-widest"
             >
               Xác nhận xóa
             </AlertDialogAction>
