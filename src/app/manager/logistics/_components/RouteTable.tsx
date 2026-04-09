@@ -111,7 +111,7 @@ export default function RouteTable({
           data.map((route) => (
             <TableRow
               key={route.id}
-              className="group hover:bg-slate-50/50 transition-all border-slate-50"
+              className="group hover:bg-slate-50/50 transition border-slate-50"
             >
               <TableCell className="pl-8 py-5">
                 <div className="flex items-center gap-3">
@@ -163,7 +163,7 @@ export default function RouteTable({
               </TableCell>
 
               <TableCell className="text-right pr-8">
-                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex justify-end gap-1 group-hover:opacity-100 transition-opacity">
                   <Button
                     variant="ghost"
                     size="icon"

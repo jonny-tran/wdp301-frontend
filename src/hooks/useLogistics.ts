@@ -25,6 +25,16 @@ export const useLogistics = () => {
         }
     });
 
+    // 💡 Bổ sung Update Vehicle
+    const useUpdateVehicle = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: CreateVehicleBodyType }) => 
+            logisticsRequest.updateVehicle(id, data),
+        onSuccess: () => {
+            toast.success('Cập nhật phương tiện thành công');
+            queryClient.invalidateQueries({ queryKey: [...LOGISTICS_KEY, 'vehicles'] });
+        }
+    });
+
     const useDeleteVehicle = useMutation({
         mutationFn: (id: number) => logisticsRequest.deleteVehicle(id),
         onSuccess: () => {
@@ -50,11 +60,33 @@ export const useLogistics = () => {
         }
     });
 
+    // 💡 Bổ sung Update Route
+    const useUpdateRoute = useMutation({
+        mutationFn: ({ id, data }: { id: number; data: CreateRouteBodyType }) => 
+            logisticsRequest.updateRoute(id, data),
+        onSuccess: () => {
+            toast.success('Cập nhật tuyến đường thành công');
+            queryClient.invalidateQueries({ queryKey: [...LOGISTICS_KEY, 'routes'] });
+        }
+    });
+
+    // 💡 Yêu cầu của Hàn: Bổ sung Delete Route
+    const useDeleteRoute = useMutation({
+        mutationFn: (id: number) => logisticsRequest.deleteRoute(id),
+        onSuccess: () => {
+            toast.success('Xóa tuyến đường thành công');
+            queryClient.invalidateQueries({ queryKey: [...LOGISTICS_KEY, 'routes'] });
+        }
+    });
+
     return {
         useGetVehicles,
         useCreateVehicle,
+        useUpdateVehicle, 
         useDeleteVehicle,
         useGetRoutes,
-        useCreateRoute
+        useCreateRoute,
+        useUpdateRoute,  
+        useDeleteRoute  
     };
 };
