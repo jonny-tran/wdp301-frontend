@@ -15,6 +15,7 @@ import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
+import ManifestConsolidatePanel from "./ManifestConsolidatePanel";
 import WarehouseTasksTable from "./WarehouseTasksTable";
 
 interface WarehouseClientProps {
@@ -126,6 +127,8 @@ export default function WarehouseClient({
       </div>
 
       <BaseFilter filters={filterConfig} />
+
+      <ManifestConsolidatePanel />
 
       <div className="rounded-3xl border border-gray-100 bg-white shadow-sm">
         <WarehouseTasksTable

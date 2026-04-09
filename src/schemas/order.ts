@@ -15,7 +15,18 @@ export const CreateOrderBody = z.object({
 
 
 export const ApproveOrderBody = z.object({
-    force_approve: z.boolean().optional()
+    force_approve: z.boolean().optional(),
+    price_acknowledged: z.boolean().optional(),
+    production_confirm: z.boolean().optional(),
+    /** Tạo lệnh sản xuất bù độc lập cho phần thiếu */
+    productionRequests: z
+        .array(
+            z.object({
+                productId: z.number().int().positive(),
+                quantity: z.number().positive(),
+            }),
+        )
+        .optional(),
 });
 
 
@@ -26,3 +37,29 @@ export const RejectOrderBody = z.object({
 export type CreateOrderBodyType = z.infer<typeof CreateOrderBody>;
 export type ApproveOrderBodyType = z.infer<typeof ApproveOrderBody>;
 export type RejectOrderBodyType = z.infer<typeof RejectOrderBody>;
+
+export const RequestProductionBody = z.object({
+    note: z.string().max(2000).optional(),
+});
+
+export type RequestProductionBodyType = z.infer<typeof RequestProductionBody>;
+
+export const KitchenProductionResponseBody = z
+    .object({
+        action: z.enum(["accept", "reject"]),
+        note: z.string().optional(),
+    })
+    .superRefine((data, ctx) => {
+        if (data.action === "reject") {
+            const n = data.note?.trim() ?? "";
+            if (n.length < 2) {
+                ctx.addIssue({
+                    code: "custom",
+                    message: "Nhập lý do từ chối (tối thiểu 2 ký tự)",
+                    path: ["note"],
+                });
+            }
+        }
+    });
+
+export type KitchenProductionResponseBodyType = z.infer<typeof KitchenProductionResponseBody>;

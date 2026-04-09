@@ -103,6 +103,7 @@ export const QUERY_KEY = {
         myStore: (query: QueryOrder) => [...KEY.orders, 'my-store', query] as const,
         detail: (id: string) => [...KEY.orders, 'detail', id] as const,
         review: (id: string) => [...KEY.orders, 'review', id] as const,
+        approvalSuggestion: (id: string) => [...KEY.orders, 'approval-suggestion', id] as const,
     },
 
     // ======================
@@ -181,6 +182,7 @@ export const QUERY_KEY = {
         pickingTaskDetail: (id: string) => [...KEY.warehouse, 'picking-task-detail', id] as const,
         shipmentLabel: (id: string) => [...KEY.warehouse, 'shipment-label', id] as const,
         scanCheckBatch: (batchCode: string) => [...KEY.warehouse, 'scan-check-batch', batchCode] as const,
+        vehicles: () => [...KEY.warehouse, 'vehicles'] as const,
     },
 
     // ======================

@@ -1,9 +1,16 @@
 'use client'
 import { orderRequest } from "@/apiRequest/order";
+import { mergeCollaborationIntoOrderDetail } from "@/lib/order-collaboration";
 import { handleErrorApi } from "@/lib/errors";
 import { OrderFillRateQueryType, OrderSLAQueryType } from "@/schemas/analytics";
-import { ApproveOrderBodyType, CreateOrderBodyType, RejectOrderBodyType } from "@/schemas/order";
-import { QueryCatelog, QueryOrder } from "@/types/order";
+import {
+    ApproveOrderBodyType,
+    CreateOrderBodyType,
+    KitchenProductionResponseBody,
+    RejectOrderBodyType,
+    RequestProductionBody,
+} from "@/schemas/order";
+import { type OrderDetail, QueryCatelog, QueryOrder } from "@/types/order";
 import { KEY, QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -44,7 +51,7 @@ export const useOrder = () => {
             queryKey: QUERY_KEY.orders.detail(id),
             queryFn: async () => {
                 const res = await orderRequest.getOrderDetail(id)
-                return res.data
+                return mergeCollaborationIntoOrderDetail(res.data as OrderDetail)
             },
             enabled: !!id
         })
@@ -57,6 +64,17 @@ export const useOrder = () => {
                 return res.data
             },
             enabled: !!id
+        })
+    }
+
+    const approvalSuggestion = (id: string, options?: { enabled?: boolean }) => {
+        return useQuery({
+            queryKey: QUERY_KEY.orders.approvalSuggestion(id),
+            queryFn: async () => {
+                const res = await orderRequest.getApprovalSuggestion(id)
+                return orderRequest.parseApprovalSuggestion(res.data)
+            },
+            enabled: (options?.enabled !== false) && !!id,
         })
     }
 
@@ -79,9 +97,13 @@ export const useOrder = () => {
         onSuccess: () => {
             toast.success('Đơn hàng đã được duyệt')
         },
-        onSettled: () => {
+        onSettled: (_d, _e, variables) => {
             queryClient.invalidateQueries({ queryKey: KEY.orders })
             queryClient.invalidateQueries({ queryKey: KEY.shipments })
+            if (variables?.id) {
+                void queryClient.invalidateQueries({ queryKey: QUERY_KEY.orders.approvalSuggestion(variables.id) })
+                void queryClient.invalidateQueries({ queryKey: QUERY_KEY.orders.review(variables.id) })
+            }
         },
     })
 
@@ -112,6 +134,52 @@ export const useOrder = () => {
         }
     })
 
+    const requestProduction = useMutation({
+        mutationFn: async ({ id, note }: { id: string; note?: string }) => {
+            const body = RequestProductionBody.parse({ note: note?.trim() || undefined })
+            const res = await orderRequest.requestProduction(id, body)
+            return res.data
+        },
+        onSuccess: () => {
+            toast.success('Đã gửi yêu cầu sản xuất thêm cho Bếp trung tâm')
+            void queryClient.invalidateQueries({ queryKey: KEY.orders })
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
+        },
+    })
+
+    const kitchenProductionResponse = useMutation({
+        mutationFn: async ({
+            id,
+            action,
+            note,
+        }: {
+            id: string
+            action: 'accept' | 'reject'
+            note?: string
+        }) => {
+            const body = KitchenProductionResponseBody.parse({
+                action,
+                note: note?.trim() || undefined,
+            })
+            const res = await orderRequest.kitchenProductionResponse(id, body)
+            return res.data
+        },
+        onSuccess: (_data, variables) => {
+            toast.success(
+                variables.action === 'accept'
+                    ? 'Đã xác nhận — đơn trả về điều phối để duyệt'
+                    : 'Đã từ chối — đơn trả về điều phối kèm lý do',
+            )
+            void queryClient.invalidateQueries({ queryKey: KEY.orders })
+            void queryClient.invalidateQueries({ queryKey: QUERY_KEY.orders.detail(variables.id) })
+        },
+        onError: (error) => {
+            handleErrorApi({ error })
+        },
+    })
+
     const fillRateAnalytics = (query: OrderFillRateQueryType) => {
         return useQuery({
             queryKey: QUERY_KEY.analytics.orderFillRate(query),
@@ -137,11 +205,14 @@ export const useOrder = () => {
         approveOrder,
         rejectOrder,
         cancelOrder,
+        requestProduction,
+        kitchenProductionResponse,
         orderList,
         catalogList,
         myStoreOrderList,
         orderDetail,
         reviewOrder,
+        approvalSuggestion,
         fillRateAnalytics,
         slaPerformanceLeadTime
     }

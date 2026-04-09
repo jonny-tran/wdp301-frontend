@@ -57,4 +57,12 @@ export type CreateWarehouseBodyType = z.infer<typeof CreateWarehouseBody>;
 export type ReportIssueBodyType = z.infer<typeof ReportIssueBody>;
 export type CancelPickingTaskBodyType = z.infer<typeof CancelPickingTaskBody>;
 
+export const ConsolidateManifestBody = z.object({
+    orderIds: z.array(z.string().uuid()).min(1, "Chọn ít nhất một đơn"),
+    /** Backend có thể dùng id số hoặc UUID — đối chiếu Swagger */
+    vehicleId: z.union([z.coerce.number().int().positive(), z.string().min(1)]),
+    driverName: z.string().min(1).optional(),
+});
+
+export type ConsolidateManifestBodyType = z.infer<typeof ConsolidateManifestBody>;
 

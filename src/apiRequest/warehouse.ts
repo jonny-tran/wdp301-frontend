@@ -1,7 +1,21 @@
 import http from "@/lib/http";
-import { CancelPickingTaskBodyType, FinalizeBulkShipmentBodyType, ReportIssueBodyType } from "@/schemas/warehouse";
+import {
+    CancelPickingTaskBodyType,
+    ConsolidateManifestBodyType,
+    FinalizeBulkShipmentBodyType,
+    ReportIssueBodyType,
+} from "@/schemas/warehouse";
 import { BaseResponsePagination } from "@/types/base";
-import { IssueReport, PickingTaskDetail, PickingTaskListItem, QueryPickingTask, ScanCheckResult, ShipmentLabel } from "@/types/warehouse";
+import {
+    ConsolidateManifestResult,
+    IssueReport,
+    PickingTaskDetail,
+    PickingTaskListItem,
+    QueryPickingTask,
+    ScanCheckResult,
+    ShipmentLabel,
+    VehicleListItem,
+} from "@/types/warehouse";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
 function unwrapData<T>(raw: unknown): T {
@@ -130,4 +144,52 @@ export const warehouseRequest = {
     },
 
     parseShipmentLabel: (raw: unknown): ShipmentLabel => unwrapData(raw) as ShipmentLabel,
+
+    /** GET /warehouse/vehicles — đối chiếu Swagger nếu 404 */
+    getVehicles: () => http.get<unknown>(ENDPOINT_CLIENT.WAREHOUSE_VEHICLES),
+
+    parseVehiclesList: (raw: unknown): VehicleListItem[] => {
+        const root = unwrapData<unknown>(raw);
+        let arr: unknown = root;
+        if (!Array.isArray(arr) && arr && typeof arr === "object") {
+            const rec = arr as Record<string, unknown>;
+            arr = rec.items ?? rec.data ?? [];
+        }
+        const list = Array.isArray(arr) ? arr : [];
+        return list.map((row) => {
+            const r = row as Record<string, unknown>;
+            const idRaw = r.id ?? r.vehicleId ?? r.vehicle_id;
+            const cap = Number(r.payloadCapacity ?? r.payload_capacity ?? r.maxPayloadKg ?? r.capacity ?? 0);
+            return {
+                id: idRaw != null ? String(idRaw) : "",
+                plateNumber:
+                    r.plateNumber != null
+                        ? String(r.plateNumber)
+                        : r.plate_number != null
+                          ? String(r.plate_number)
+                          : r.licensePlate != null
+                            ? String(r.licensePlate)
+                            : undefined,
+                name: r.name != null ? String(r.name) : undefined,
+                payloadCapacity: Number.isFinite(cap) ? cap : 0,
+            };
+        }).filter((v) => v.id !== "");
+    },
+
+    /** POST /warehouse/manifest/consolidate */
+    consolidateManifest: (dto: ConsolidateManifestBodyType) =>
+        http.post<unknown>(ENDPOINT_CLIENT.WAREHOUSE_MANIFEST_CONSOLIDATE, dto),
+
+    parseConsolidateManifestResult: (raw: unknown): ConsolidateManifestResult => {
+        const o = unwrapData<Record<string, unknown>>(raw);
+        return {
+            manifestId:
+                o.manifestId != null
+                    ? String(o.manifestId)
+                    : o.manifest_id != null
+                      ? String(o.manifest_id)
+                      : undefined,
+            message: o.message != null ? String(o.message) : undefined,
+        };
+    },
 };

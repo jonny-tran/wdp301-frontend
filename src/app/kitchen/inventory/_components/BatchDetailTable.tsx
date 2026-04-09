@@ -76,9 +76,10 @@ interface BatchDetailTableProps {
     isError: boolean;
     unit: string;
     onAdjust: (batch: KitchenBatchRow) => void;
+    onSalvage?: (batch: KitchenBatchRow) => void;
 }
 
-export default function BatchDetailTable({ batches, isLoading, isError, unit, onAdjust }: BatchDetailTableProps) {
+export default function BatchDetailTable({ batches, isLoading, isError, unit, onAdjust, onSalvage }: BatchDetailTableProps) {
     if (isLoading) {
         return (
             <div className="flex items-center gap-2 py-8 pl-14 text-sm text-zinc-500">
@@ -107,13 +108,14 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
                 <TableHeader>
                     <TableRow className="hover:bg-transparent">
                         <TableHead className="font-semibold text-zinc-700">Mã lô</TableHead>
+                        <TableHead className="min-w-[120px] font-semibold text-zinc-700">Nguồn (lineage)</TableHead>
                         <TableHead className="font-semibold text-zinc-700">HSD</TableHead>
                         <TableHead className="min-w-[100px] font-semibold text-zinc-700">Độ tươi</TableHead>
                         <TableHead className="text-right font-semibold text-zinc-700">Vật lý</TableHead>
                         <TableHead className="text-right font-semibold text-zinc-700">Khả dụng</TableHead>
                         <TableHead className="text-right font-semibold text-zinc-700">Đặt trước</TableHead>
                         <TableHead className="font-semibold text-zinc-700">Trạng thái</TableHead>
-                        <TableHead className="w-[100px] text-right font-semibold text-zinc-700">Thao tác</TableHead>
+                        <TableHead className="min-w-[160px] text-right font-semibold text-zinc-700">Thao tác</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -142,6 +144,10 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
                                 {/* Batch Code — bold */}
                                 <TableCell className="font-mono font-semibold text-zinc-900">
                                     {batch.batchCode || "—"}
+                                </TableCell>
+
+                                <TableCell className="font-mono text-xs text-zinc-600 break-all">
+                                    {batch.parentBatchCode ?? (batch.parentBatchId != null ? `#${batch.parentBatchId}` : "—")}
                                 </TableCell>
 
                                 {/* Expiry Date — FEFO alarm styling */}
@@ -206,15 +212,28 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
 
                                 {/* Action */}
                                 <TableCell className="text-right">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        className="h-7 text-[10px]"
-                                        onClick={() => onAdjust(batch)}
-                                    >
-                                        Điều chỉnh
-                                    </Button>
+                                    <div className="flex flex-wrap justify-end gap-1">
+                                        {onSalvage && nearExpiry && !expired && (
+                                            <Button
+                                                type="button"
+                                                variant="secondary"
+                                                size="sm"
+                                                className="h-7 border-amber-300 bg-amber-50 text-[10px] text-amber-900 hover:bg-amber-100"
+                                                onClick={() => onSalvage(batch)}
+                                            >
+                                                Salvage
+                                            </Button>
+                                        )}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-7 text-[10px]"
+                                            onClick={() => onAdjust(batch)}
+                                        >
+                                            Điều chỉnh
+                                        </Button>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         );

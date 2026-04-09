@@ -19,13 +19,17 @@ export enum Role {
 
 export enum OrderStatus {
     PENDING = 'pending',         // Chờ duyệt
+    /** Đang điều phối (Coordinator ↔ Bếp), chưa ra quyết định duyệt/cắt */
+    COORDINATING = 'coordinating',
     APPROVED = 'approved',       // Đã duyệt
     REJECTED = 'rejected',       // Từ chối
     CANCELLED = 'cancelled',     // Đã hủy
     PICKING = 'picking',         // Đang soạn hàng
     DELIVERING = 'delivering',   // Đang giao hàng
     COMPLETED = 'completed',     // Hoàn thành
-    CLAIMED = 'claimed'          // Có khiếu nại
+    CLAIMED = 'claimed',          // Có khiếu nại
+    /** Chờ bếp phản hồi yêu cầu sản xuất thêm (Supply → Kitchen) */
+    WAITING_FOR_PRODUCTION = 'waiting_for_production',
 }
 
 

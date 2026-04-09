@@ -65,6 +65,9 @@ export type KitchenBatchRow = {
     reservedQuantity: number;
     expiryDate: string;
     warehouseId?: number;
+    /** Gia phả (salvage / sản xuất) — nếu API trả */
+    parentBatchId?: number;
+    parentBatchCode?: string;
 };
 
 export type KitchenDetail = {

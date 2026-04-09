@@ -23,7 +23,7 @@ function pickNum(v: unknown, fallback = 0): number {
 export function normalizeStatus(s: unknown): ProductionOrderStatus {
     const u = String(s ?? "").toUpperCase();
     if (u === "DRAFT") {
-        return "PENDING";
+        return "DRAFT";
     }
     if (u === "PENDING" || u === "IN_PROGRESS" || u === "COMPLETED" || u === "CANCELLED") {
         return u as ProductionOrderStatus;
@@ -97,6 +97,13 @@ export function normalizeProductionOrder(raw: Record<string, unknown>): Producti
                 "kg",
         ),
         status: normalizeStatus(raw.status),
+        note: raw.note != null ? pickStr(raw.note) : null,
+        referenceId:
+            raw.referenceId != null
+                ? pickStr(raw.referenceId)
+                : raw.reference_id != null
+                  ? pickStr(raw.reference_id)
+                  : undefined,
         createdAt: pickStr(raw.createdAt ?? raw.created_at ?? new Date().toISOString()),
         updatedAt: raw.updatedAt != null ? pickStr(raw.updatedAt) : raw.updated_at != null ? pickStr(raw.updated_at) : null,
     };

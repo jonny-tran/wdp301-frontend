@@ -24,12 +24,22 @@ export const ENDPOINT_CLIENT = {
     CREATE_ORDER: '/orders',
     MY_STORE_ORDER: '/orders/my-store',
     ORDER_REVIEW: (id: string) => `/orders/coordinator/${id}/review`,
+    ORDER_APPROVAL_SUGGESTION: (id: string) => `/orders/coordinator/${id}/approval-suggestion`,
     APPROVE_ORDER: (id: string) => `/orders/coordinator/${id}/approve`,
+    /** SC — yêu cầu bếp sản xuất thêm (đơn → waiting_for_production) */
+    ORDER_REQUEST_PRODUCTION: (id: string) => `/orders/coordinator/${id}/request-production`,
     REJECT_ORDER: (id: string) => `/orders/coordinator/${id}/reject`,
     CANCEL_ORDER: (id: string) => `/orders/franchise/${id}/cancel`,
     ORDER_DETAIL: (id: string) => `/orders/${id}`,
+    /** Bếp — phản hồi yêu cầu sản xuất (accept | reject) */
+    ORDER_KITCHEN_PRODUCTION_RESPONSE: (id: string) => `/orders/kitchen/${id}/production-response`,
     ORDER_FILL_RATE: '/orders/analytics/fulfillment-rate',
     ORDER_SLA_LEAD_TIME: '/orders/analytics/performance/lead-time',
+
+    // Coordination Hub (ORD-OPTIMIZE)
+    ORDER_COORDINATION_SUMMARY: '/orders/coordination/summary',
+    ORDER_COORDINATION_INQUIRY: '/orders/coordination/inquiry',
+    ORDER_COORDINATION_BATCH_APPROVE: '/orders/coordination/batch-approve',
 
     // Claims
     CLAIMS: '/claims',
@@ -99,6 +109,10 @@ export const ENDPOINT_CLIENT = {
     WAREHOUSE_SHIPMENT_LABEL: (id: string) => `/warehouse/shipments/${id}/label`,
     WAREHOUSE_SCAN_CHECK: '/warehouse/scan-check',
     WAREHOUSE_REPORT_ISSUE: '/warehouse/batch/report-issue',
+    /** Gom đơn cùng route + kiểm tải trọng xe (SC / Manager / Admin) */
+    WAREHOUSE_MANIFEST_CONSOLIDATE: '/warehouse/manifest/consolidate',
+    /** Danh sách xe phục vụ consolidate — đối chiếu Swagger nếu path khác */
+    WAREHOUSE_VEHICLES: '/warehouse/vehicles',
 
     // Inbound
     INBOUND_RECEIPTS: '/inbound/receipts',
@@ -130,4 +144,7 @@ export const ENDPOINT_CLIENT = {
     PRODUCTION_ORDER_DETAIL: (id: string) => `/production/orders/${id}`,
     PRODUCTION_ORDER_START: (id: string) => `/production/orders/${id}/start`,
     PRODUCTION_ORDER_COMPLETE: (id: string) => `/production/orders/${id}/complete`,
+    PRODUCTION_ORDER_CANCEL: (id: string) => `/production/orders/${id}/cancel`,
+    PRODUCTION_SALVAGE: '/production/salvage',
+    PRODUCTION_SALVAGE_COMPLETE: (id: string) => `/production/salvage/${id}/complete`,
 }

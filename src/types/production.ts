@@ -2,10 +2,12 @@ import { BaseRequestPagination } from "./base";
 
 /** Trạng thái lệnh sản xuất — khớp backend (uppercase hoặc lowercase). */
 export type ProductionOrderStatus =
+    | "DRAFT"
     | "PENDING"
     | "IN_PROGRESS"
     | "COMPLETED"
     | "CANCELLED"
+    | "draft"
     | "pending"
     | "in_progress"
     | "completed"
@@ -28,6 +30,8 @@ export type ProductionOrder = {
     actualQuantity?: number | null;
     unit: string;
     status: ProductionOrderStatus;
+    note?: string | null;
+    referenceId?: string;
     createdAt: string;
     updatedAt?: string | null;
 };

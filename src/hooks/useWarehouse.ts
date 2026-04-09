@@ -2,7 +2,13 @@
 
 import { warehouseRequest } from "@/apiRequest/warehouse";
 import { handleErrorApi } from "@/lib/errors";
-import { CancelPickingTaskBody, FinalizeBulkShipmentBodyType, ReportIssueBodyType } from "@/schemas/warehouse";
+import {
+    CancelPickingTaskBody,
+    ConsolidateManifestBody,
+    ConsolidateManifestBodyType,
+    FinalizeBulkShipmentBodyType,
+    ReportIssueBodyType,
+} from "@/schemas/warehouse";
 import { QueryPickingTask } from "@/types/warehouse";
 import { KEY, QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -117,6 +123,34 @@ export const useWarehouse = () => {
             enabled: !!batchCode,
         });
 
+    const vehicleList = (options?: { enabled?: boolean }) =>
+        useQuery({
+            queryKey: QUERY_KEY.warehouse.vehicles(),
+            queryFn: async () => {
+                const res = await warehouseRequest.getVehicles();
+                return warehouseRequest.parseVehiclesList(res.data);
+            },
+            enabled: options?.enabled !== false,
+        });
+
+    const consolidateManifest = useMutation({
+        mutationFn: async (dto: ConsolidateManifestBodyType) => {
+            const body = ConsolidateManifestBody.parse(dto);
+            const res = await warehouseRequest.consolidateManifest(body);
+            return warehouseRequest.parseConsolidateManifestResult(res.data);
+        },
+        onSuccess: (data) => {
+            const mid = data.manifestId ? ` — Manifest: ${data.manifestId}` : "";
+            toast.success(`Đã gom chuyến thành công${mid}`);
+            void queryClient.invalidateQueries({ queryKey: KEY.warehouse });
+            void queryClient.invalidateQueries({ queryKey: KEY.orders });
+            void queryClient.invalidateQueries({ queryKey: KEY.shipments });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
+
     return {
         getPickingTaskList,
         getPickingTaskDetail,
@@ -127,5 +161,7 @@ export const useWarehouse = () => {
         verifyScanCheck,
         shipmentLabel,
         scanCheckBatch,
+        vehicleList,
+        consolidateManifest,
     };
 };

@@ -6,7 +6,7 @@ import BaseFilter, { type FilterConfig } from "@/components/layout/BaseFilter";
 import { BasePagination } from "@/components/layout/BasePagination";
 import { useInventory } from "@/hooks/useInventory";
 import type { RawSearchParams } from "@/app/kitchen/_components/query";
-import type { KitchSummary } from "@/types/inventory";
+import type { KitchenBatchRow, KitchSummary } from "@/types/inventory";
 import { normalizeInventoryAgingReportFromApi } from "@/lib/kitchen-inventory-mapper";
 import {
     createPaginationSearchParams,
@@ -15,6 +15,7 @@ import {
 } from "./inventoryQuery";
 import InventoryStats from "./InventoryStats";
 import InventorySummaryTable from "./InventorySummaryTable";
+import SalvageBatchModal from "./SalvageBatchModal";
 import StockAdjustmentModal from "./StockAdjustmentModal";
 
 type AdjustContext = {
@@ -22,6 +23,14 @@ type AdjustContext = {
     productName: string;
     unit: string;
     initialBatchId?: number | null;
+};
+
+type SalvageContext = {
+    batchId: number;
+    batchCode: string;
+    productId: number;
+    productName: string;
+    maxConsume: number;
 };
 
 interface InventoryClientProps {
@@ -37,6 +46,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
 
     const [adjustOpen, setAdjustOpen] = useState(false);
     const [adjustCtx, setAdjustCtx] = useState<AdjustContext | null>(null);
+    const [salvageCtx, setSalvageCtx] = useState<SalvageContext | null>(null);
 
     const parsedQuery = useMemo(() => parseKitchenInventoryQuery(searchParams, { page: 1, limit: 10, sortOrder: "DESC" }), [searchParams]);
 
@@ -207,6 +217,15 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                         onAdjustProduct={(p: KitchSummary) =>
                             openAdjust({ productId: p.productId, productName: p.productName, unit: p.unit })
                         }
+                        onSalvageBatch={({ productId, productName, batch }: { productId: number; productName: string; batch: KitchenBatchRow }) => {
+                            setSalvageCtx({
+                                batchId: batch.batchId,
+                                batchCode: batch.batchCode || `ID ${batch.batchId}`,
+                                productId,
+                                productName,
+                                maxConsume: Math.max(0, batch.availableQuantity),
+                            });
+                        }}
                         isLoading={listQuery.isLoading}
                         isError={listQuery.isError}
                     />
@@ -234,6 +253,20 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                     unit={adjustCtx?.unit ?? ""}
                     initialBatchId={adjustCtx?.initialBatchId}
                 />
+
+                {salvageCtx && (
+                    <SalvageBatchModal
+                        open
+                        onOpenChange={(o) => {
+                            if (!o) setSalvageCtx(null);
+                        }}
+                        batchId={salvageCtx.batchId}
+                        batchCode={salvageCtx.batchCode}
+                        productId={salvageCtx.productId}
+                        productName={salvageCtx.productName}
+                        maxConsume={salvageCtx.maxConsume}
+                    />
+                )}
             </div>
         </div>
     );

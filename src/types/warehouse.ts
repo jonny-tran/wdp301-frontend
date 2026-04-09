@@ -85,3 +85,16 @@ export type QueryPickingTask = BaseRequestPagination & {
     search?: string;
     sortBy?: string;
 };
+
+/** Xe phục vụ gom manifest — payload theo kg */
+export type VehicleListItem = {
+    id: string;
+    plateNumber?: string;
+    name?: string;
+    payloadCapacity: number;
+};
+
+export type ConsolidateManifestResult = {
+    manifestId?: string;
+    message?: string;
+};

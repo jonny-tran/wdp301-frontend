@@ -69,6 +69,13 @@ export const CompleteProductionBodySchema = z.object({
 
 export type CompleteProductionBodyType = z.infer<typeof CompleteProductionBodySchema>;
 
+/** Body PATCH /production/orders/:id/cancel */
+export const CancelProductionOrderBodySchema = z.object({
+    reason: z.string().trim().min(2, "Nhập lý do từ chối (tối thiểu 2 ký tự)"),
+});
+
+export type CancelProductionOrderBodyType = z.infer<typeof CancelProductionOrderBodySchema>;
+
 /** Body POST /production/orders — tạo lệnh draft (PROD-LOGIC §2). */
 export const CreateProductionOrderBodySchema = z.object({
     productId: z.coerce.number().int().positive("Chọn thành phẩm"),
@@ -91,3 +98,20 @@ export function createCompleteProductionFormSchema(targetQuantity: number) {
         }
     });
 }
+
+/** POST /production/salvage */
+export const CreateSalvageBodySchema = z.object({
+    inputBatchId: z.coerce.number().int().positive("Chọn lô nguyên liệu"),
+    recipeId: z.coerce.string().min(1, "Chọn công thức"),
+    quantityToConsume: z.coerce.number().positive("Số lượng tiêu hao phải > 0"),
+});
+
+export type CreateSalvageBodyType = z.infer<typeof CreateSalvageBodySchema>;
+
+/** POST /production/salvage/:id/complete */
+export const CompleteSalvageBodySchema = z.object({
+    actualYield: z.coerce.number().positive("Sản lượng thực tế phải > 0"),
+    surplusNote: z.string().optional(),
+});
+
+export type CompleteSalvageBodyType = z.infer<typeof CompleteSalvageBodySchema>;

@@ -3,9 +3,15 @@
 import { productionRequest } from "@/apiRequest/production";
 import { handleErrorApi } from "@/lib/errors";
 import {
+    CancelProductionOrderBodySchema,
+    CancelProductionOrderBodyType,
     CompleteProductionBodyType,
+    CompleteSalvageBodySchema,
+    CompleteSalvageBodyType,
     CreateProductionOrderBodyType,
     CreateRecipeApiBody,
+    CreateSalvageBodySchema,
+    CreateSalvageBodyType,
     UpdateRecipeApiBody,
 } from "@/schemas/production";
 import type {
@@ -128,6 +134,22 @@ export function useProduction() {
         },
     });
 
+    const cancelProductionOrder = useMutation({
+        mutationFn: async ({ id, body }: { id: string; body: CancelProductionOrderBodyType }) => {
+            const parsed = CancelProductionOrderBodySchema.parse(body);
+            const res = await productionRequest.cancelOrder(id, parsed);
+            return res.data;
+        },
+        onSuccess: () => {
+            toast.success("Đã từ chối lệnh sản xuất");
+            void queryClient.invalidateQueries({ queryKey: KEY.production });
+            void queryClient.invalidateQueries({ queryKey: KEY.inventory });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
+
     const createRecipe = useMutation({
         mutationFn: async (body: CreateRecipeApiBody) => {
             const res = await productionRequest.createRecipe(body);
@@ -170,6 +192,40 @@ export function useProduction() {
         },
     });
 
+    const createSalvageOrder = useMutation({
+        mutationFn: async (body: CreateSalvageBodyType) => {
+            const parsed = CreateSalvageBodySchema.parse(body);
+            const res = await productionRequest.createSalvage(parsed);
+            const id = productionRequest.parseSalvageCreatedOrderId(res.data);
+            return { raw: res.data, orderId: id };
+        },
+        onSuccess: () => {
+            toast.success("Đã tạo lệnh salvage — hoàn tất để nhập lô thành phẩm");
+            void queryClient.invalidateQueries({ queryKey: KEY.production });
+            void queryClient.invalidateQueries({ queryKey: KEY.inventory });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
+
+    const completeSalvageOrder = useMutation({
+        mutationFn: async ({ id, body }: { id: string; body: CompleteSalvageBodyType }) => {
+            const parsed = CompleteSalvageBodySchema.parse(body);
+            const res = await productionRequest.completeSalvage(id, parsed);
+            return normalizeCompleteProductionResult(res.data);
+        },
+        onSuccess: (data: CompleteProductionResult) => {
+            const code = data.batchCode || "—";
+            toast.success(`Hoàn tất salvage — Lô TP: ${code}`);
+            void queryClient.invalidateQueries({ queryKey: KEY.production });
+            void queryClient.invalidateQueries({ queryKey: KEY.inventory });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
+
     return {
         productionOrders,
         productionOrderDetail,
@@ -177,9 +233,12 @@ export function useProduction() {
         productionRecipeDetail,
         createProductionOrder,
         startProductionOrder,
+        cancelProductionOrder,
         completeProductionOrder,
         createRecipe,
         updateRecipe,
         deleteRecipe,
+        createSalvageOrder,
+        completeSalvageOrder,
     };
 }

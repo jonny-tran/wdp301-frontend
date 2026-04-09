@@ -3,12 +3,16 @@ import {
     normalizeProductionOrder,
     normalizeRecipeDetail,
     normalizeRecipeSummary,
+    parseCreatedProductionOrderId,
     parseProductionOrderDetailPayload,
 } from "@/lib/production-mapper";
 import {
+    CancelProductionOrderBodyType,
     CompleteProductionBodyType,
+    CompleteSalvageBodyType,
     CreateProductionOrderBodyType,
     CreateRecipeApiBody,
+    CreateSalvageBodyType,
     UpdateRecipeApiBody,
 } from "@/schemas/production";
 import { BaseResponsePagination } from "@/types/base";
@@ -75,8 +79,18 @@ export const productionRequest = {
 
     startOrder: (id: string) => http.post<ProductionOrder>(ENDPOINT_CLIENT.PRODUCTION_ORDER_START(id), {}),
 
+    cancelOrder: (id: string, body: CancelProductionOrderBodyType) =>
+        http.patch<unknown>(ENDPOINT_CLIENT.PRODUCTION_ORDER_CANCEL(id), body),
+
     completeOrder: (id: string, body: CompleteProductionBodyType) =>
         http.post<CompleteProductionResult>(ENDPOINT_CLIENT.PRODUCTION_ORDER_COMPLETE(id), body),
+
+    createSalvage: (body: CreateSalvageBodyType) => http.post<unknown>(ENDPOINT_CLIENT.PRODUCTION_SALVAGE, body),
+
+    completeSalvage: (id: string, body: CompleteSalvageBodyType) =>
+        http.post<unknown>(ENDPOINT_CLIENT.PRODUCTION_SALVAGE_COMPLETE(id), body),
+
+    parseSalvageCreatedOrderId: (raw: unknown): string => parseCreatedProductionOrderId(raw),
 
     createRecipe: (body: CreateRecipeApiBody) =>
         http.post<unknown>(ENDPOINT_CLIENT.PRODUCTION_RECIPES, body),
