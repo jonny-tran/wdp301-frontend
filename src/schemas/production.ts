@@ -52,22 +52,20 @@ export const CreateRecipeFormSchema = z
 
 export type CreateRecipeFormValues = z.infer<typeof CreateRecipeFormSchema>;
 
-/** Lý do hao hụt khi thực tế &lt; kế hoạch — gửi wasteReason (chuỗi có nghĩa). */
-export const PRODUCTION_WASTE_PRESETS = [
-    { value: "Burnt — cháy / overcook", label: "Cháy / overcook" },
-    { value: "Dropped — rơi vỡ / đổ", label: "Rơi vỡ / đổ" },
-    { value: "Spillage — tràn / tràn bếp", label: "Tràn / đổ trong quá trình" },
-    { value: "Quality — lỗi chất lượng", label: "Lỗi chất lượng" },
-    { value: "Scale error — cân / đong sai", label: "Cân / đong sai" },
-] as const;
-
 /** Body POST /production/orders/:id/complete (camelCase theo Nest DTO). */
 export const CompleteProductionBodySchema = z.object({
     actualQuantity: z.coerce.number().positive("Số lượng thực nhận phải lớn hơn 0"),
-    wasteReason: z.string().optional(),
+    surplusNote: z.string().optional(),
 });
 
 export type CompleteProductionBodyType = z.infer<typeof CompleteProductionBodySchema>;
+
+/** Body PATCH /production/orders/:id/cancel */
+export const CancelProductionOrderBodySchema = z.object({
+    reason: z.string().trim().min(2, "Nhập lý do từ chối (tối thiểu 2 ký tự)"),
+});
+
+export type CancelProductionOrderBodyType = z.infer<typeof CancelProductionOrderBodySchema>;
 
 /** Body POST /production/orders — tạo lệnh draft (PROD-LOGIC §2). */
 export const CreateProductionOrderBodySchema = z.object({
@@ -79,13 +77,13 @@ export type CreateProductionOrderBodyType = z.infer<typeof CreateProductionOrder
 
 export function createCompleteProductionFormSchema(targetQuantity: number) {
     return CompleteProductionBodySchema.superRefine((data, ctx) => {
-        if (data.actualQuantity < targetQuantity) {
-            const reason = data.wasteReason?.trim() ?? "";
-            if (reason.length < 2) {
+        if (data.actualQuantity > targetQuantity) {
+            const note = data.surplusNote?.trim() ?? "";
+            if (note.length < 2) {
                 ctx.addIssue({
                     code: "custom",
-                    message: "Nhập lý do hao hụt (tối thiểu 2 ký tự) khi thực tế < mục tiêu",
-                    path: ["wasteReason"],
+                    message: "Nhập ghi chú dư (tối thiểu 2 ký tự) khi thực tế > mục tiêu",
+                    path: ["surplusNote"],
                 });
             }
         }

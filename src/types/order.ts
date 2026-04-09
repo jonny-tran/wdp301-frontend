@@ -11,6 +11,13 @@ export type Order = {
     priority: string
     createdAt: string
     updatedAt: string
+    /** Đơn chưa gán shipment — dùng cho gom manifest */
+    shipmentId?: string | null
+    /** Bếp đã đồng ý hỗ trợ sản xuất (sau production-response accept) */
+    isProductionConfirmed?: boolean
+    is_production_confirmed?: boolean
+    requiresProductionConfirm?: boolean
+    requires_production_confirm?: boolean
     store?: Store
 };
 export type OrderReview = {
@@ -27,6 +34,31 @@ export type OrderReviewItem = {
     currentStock: number;
     canFulfill: boolean;
 }
+
+export type ApprovalSuggestionMode = "FULL_APPROVE" | "PARTIAL_FULFILLMENT" | "NO_STOCK";
+
+export type ApprovalSuggestionLine = {
+    productId: number;
+    productName?: string;
+    requested: number;
+    atpAvailable: number;
+    suggestedApprove: number;
+    canceledByStock?: boolean;
+    mode?: ApprovalSuggestionMode;
+    /** Mốc HSD tối thiểu an toàn (YYYY-MM-DD) — có thể theo dòng hoặc dùng giá trị chung ở `ApprovalSuggestion`. */
+    safetyMinimumExpiryDate?: string | null;
+};
+
+export type ApprovalSuggestion = {
+    orderId?: string;
+    lines: ApprovalSuggestionLine[];
+    safetyMinimumExpiryDate?: string | null;
+    travelHoursUsed?: number;
+    bufferHours?: number;
+    summarySuggestion?: string;
+    /** Ví dụ: PARTIAL_STOCK — từ envelope approval-suggestion */
+    summaryStatus?: string;
+};
 
 
 export type CatalogItem = {
@@ -53,6 +85,13 @@ export type Category = {
 }
 
 
+export type OrderCollaborationEvent = {
+    occurredAt: string;
+    kind: "request_production" | "kitchen_accept" | "kitchen_reject" | "system" | "unknown";
+    title: string;
+    detail?: string;
+};
+
 export type OrderDetail = {
     id: string;
     storeId: string;
@@ -65,6 +104,13 @@ export type OrderDetail = {
     updatedAt: string;
     items: OrderDetailItem[];
     store: Store;
+    isProductionConfirmed?: boolean;
+    is_production_confirmed?: boolean;
+    requiresProductionConfirm?: boolean;
+    requires_production_confirm?: boolean;
+    /** BE có thể trả mảng log; nếu không, FE tổng hợp từ note + cờ */
+    collaborationLog?: OrderCollaborationEvent[];
+    collaboration_log?: unknown;
 }
 
 export type OrderDetailItem = {
@@ -73,6 +119,9 @@ export type OrderDetailItem = {
     productId: number;
     quantityRequested: string;
     quantityApproved: string | null;
+    /** Giá snapshot tại lúc đặt — ưu tiên hiển thị trên đơn đã duyệt/hoàn tất */
+    unitPriceAtOrder?: string | null;
+    unit_price_at_order?: string | null;
     product: Product;
 }
 
@@ -87,6 +136,12 @@ export type Product = {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
+    /** Khối lượng một đơn vị (kg) — phục vụ tính tải manifest */
+    weightKg?: number | null;
+    weight_kg?: number | null;
+    /** Thể tích một đơn vị (m3) — phục vụ tính tải manifest */
+    volumeM3?: number | null;
+    volume_m3?: number | null;
 }
 
 export type Store = {
@@ -98,6 +153,9 @@ export type Store = {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
+    routeId?: string | null;
+    route_id?: string | null;
+    route?: { id?: string; estimatedHours?: number | null; estimated_hours?: number | null } | null;
 }
 
 export type QueryOrder = BaseRequestPagination & {

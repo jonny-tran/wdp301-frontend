@@ -19,18 +19,24 @@ export enum Role {
 
 export enum OrderStatus {
     PENDING = 'pending',         // Chờ duyệt
+    /** Đang điều phối (Coordinator ↔ Bếp), chưa ra quyết định duyệt/cắt */
+    COORDINATING = 'coordinating',
     APPROVED = 'approved',       // Đã duyệt
     REJECTED = 'rejected',       // Từ chối
     CANCELLED = 'cancelled',     // Đã hủy
     PICKING = 'picking',         // Đang soạn hàng
     DELIVERING = 'delivering',   // Đang giao hàng
     COMPLETED = 'completed',     // Hoàn thành
-    CLAIMED = 'claimed'          // Có khiếu nại
+    CLAIMED = 'claimed',          // Có khiếu nại
+    /** Chờ bếp phản hồi yêu cầu sản xuất thêm (Supply → Kitchen) */
+    WAITING_FOR_PRODUCTION = 'waiting_for_production',
 }
 
 
 export enum ShipmentStatus {
     PREPARING = 'preparing',     // Đang chuẩn bị
+    CONSOLIDATED = 'consolidated',
+    DEPARTED = 'departed',
     IN_TRANSIT = 'in_transit',   // Đang vận chuyển
     DELIVERED = 'delivered',     // Đã giao hàng
     COMPLETED = 'completed',     // Hoàn thành
@@ -46,7 +52,9 @@ export enum TransactionType {
     IMPORT = 'import',           // Nhập kho
     EXPORT = 'export',           // Xuất kho
     WASTE = 'waste',             // Hao hụt
-    ADJUSTMENT = 'adjustment'    // Điều chỉnh
+    ADJUSTMENT = 'adjustment',   // Điều chỉnh
+    RESERVATION = 'reservation',
+    PRODUCTION_CONSUME = 'production_consume'
 }
 export enum ReceiptStatus {
     DRAFT = 'draft',             // Nháp (đang soạn)

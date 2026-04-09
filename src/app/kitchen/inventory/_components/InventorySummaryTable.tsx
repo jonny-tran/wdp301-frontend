@@ -26,10 +26,12 @@ function KitchenExpandBatches({
   productId,
   unit,
   onAdjust,
+  onWaste,
 }: {
   productId: number;
   unit: string;
   onAdjust: (batch: KitchenBatchRow) => void;
+  onWaste?: (batch: KitchenBatchRow) => void;
 }) {
   const { kitchenDetails } = useInventory();
   const q = kitchenDetails(productId);
@@ -40,6 +42,7 @@ function KitchenExpandBatches({
       isError={q.isError}
       unit={unit}
       onAdjust={onAdjust}
+      onWaste={onWaste}
     />
   );
 }
@@ -54,6 +57,7 @@ interface InventorySummaryTableProps {
     unit: string;
     batch: KitchenBatchRow;
   }) => void;
+  onReportWasteBatch?: (payload: { productId: number; productName: string; unit: string; batch: KitchenBatchRow }) => void;
   onAdjustProduct: (product: KitchSummary) => void;
   isLoading: boolean;
   isError: boolean;
@@ -64,6 +68,7 @@ export default function InventorySummaryTable({
   expandedProductIds,
   onToggleExpand,
   onAdjustBatch,
+  onReportWasteBatch,
   onAdjustProduct,
   isLoading,
   isError,
@@ -262,6 +267,17 @@ export default function InventorySummaryTable({
                         unit={item.unit}
                         onAdjust={(batch) =>
                           handleAdjustFromSubtable(item, batch)
+                        }
+                        onWaste={
+                          onReportWasteBatch
+                            ? (batch) =>
+                                onReportWasteBatch({
+                                  productId: item.productId,
+                                  productName: item.productName,
+                                  unit: item.unit,
+                                  batch,
+                                })
+                            : undefined
                         }
                       />
                     </TableCell>

@@ -170,6 +170,12 @@ export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
     [Role.SUPPLY_COORDINATOR]: [
         { name: "Tổng quan", href: "/supply", icon: HomeIcon },
         {
+            name: "Điều phối",
+            href: "/supply/coordination",
+            icon: ChartBarIcon,
+            requiredPermission: { resource: Resource.ORDER, action: P.ORDER_APPROVE },
+        },
+        {
             name: "Đơn hàng",
             href: "/supply/orders",
             icon: ClipboardDocumentListIcon,

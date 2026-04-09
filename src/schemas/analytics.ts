@@ -35,8 +35,16 @@ export type InventoryAgingQueryType = z.infer<typeof InventoryAgingQuerySchema>;
 export const InventoryWasteQuerySchema = z.object({
     fromDate: z.string().optional(),
     toDate: z.string().optional(),
+    warehouseId: z.coerce.number().optional(),
 });
 export type InventoryWasteQueryType = z.infer<typeof InventoryWasteQuerySchema>;
+
+export const InventoryWasteReportQuerySchema = z.object({
+    startDate: z.string().optional(),
+    endDate: z.string().optional(),
+    warehouseId: z.coerce.number().optional(),
+});
+export type InventoryWasteReportQueryType = z.infer<typeof InventoryWasteReportQuerySchema>;
 
 export const FinancialLossQuerySchema = z.object({
     from: z.string().optional(),

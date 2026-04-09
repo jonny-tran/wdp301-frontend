@@ -5,8 +5,9 @@ import { TrashIcon, CalendarIcon } from "@heroicons/react/24/outline";
 export interface WasteDetailItem {
   productName: string;
   wasteReason?: string;
-  quantity: number;
-  unit: string;
+  quantity?: number;
+  wastedQuantity?: number;
+  unit?: string;
 }
 
 export interface WasteReportData {
@@ -78,10 +79,10 @@ export default function WasteReportView({ data, isLoading }: { data: WasteReport
                 </div>
                 <div className="text-right">
                   <span className="text-lg font-bold text-red-500">
-                    -{d.quantity.toLocaleString()}
+                    -{Number(d.wastedQuantity ?? d.quantity ?? 0).toLocaleString()}
                   </span>
                   <span className="ml-1 text-xs font-medium text-slate-400">
-                    {d.unit}
+                    {d.unit || ""}
                   </span>
                 </div>
               </div>

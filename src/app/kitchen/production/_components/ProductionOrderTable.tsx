@@ -2,7 +2,7 @@
 
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
-import { Loader2, Play, SquareCheck } from "lucide-react";
+import { Loader2, Play, SquareCheck, XCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -12,11 +12,13 @@ import { cn } from "@/lib/utils";
 
 function badgeForStatus(status: ProductionOrderStatus) {
     const u = String(status).toUpperCase();
+    if (u === "DRAFT") return { label: "DRAFT", className: "bg-slate-200 text-slate-900 border-slate-400" };
+    if (u === "PENDING") return { label: "PENDING", className: "bg-violet-600 text-white border-transparent" };
     if (u === "COMPLETED") return { label: "COMPLETED", className: "bg-emerald-600 text-white border-transparent" };
     if (u === "IN_PROGRESS")
         return { label: "IN_PROGRESS", className: "bg-amber-500 text-zinc-950 border-transparent font-bold" };
     if (u === "CANCELLED") return { label: "CANCELLED", className: "bg-zinc-400 text-zinc-950 border-transparent" };
-    return { label: "PENDING", className: "bg-zinc-200 text-zinc-900 border-zinc-400" };
+    return { label: u || "UNKNOWN", className: "bg-zinc-200 text-zinc-900 border-zinc-400" };
 }
 
 export type ProductionOrderTableProps = {
@@ -24,7 +26,9 @@ export type ProductionOrderTableProps = {
     isLoading: boolean;
     mode: "active" | "history";
     startingId: string | null;
+    rejectingId: string | null;
     onStart: (id: string, productName: string) => void;
+    onReject: (order: ProductionOrder) => void;
     onCompleteClick: (order: ProductionOrder) => void;
     /** Bấm vào dòng (trừ nút Start/Complete) để mở chi tiết */
     onDetailClick?: (order: ProductionOrder) => void;
@@ -35,7 +39,9 @@ export default function ProductionOrderTable({
     isLoading,
     mode,
     startingId,
+    rejectingId,
     onStart,
+    onReject,
     onCompleteClick,
     onDetailClick,
 }: ProductionOrderTableProps) {
@@ -71,7 +77,8 @@ export default function ProductionOrderTable({
                     {orders.map((row) => {
                         const b = badgeForStatus(row.status);
                         const u = String(row.status).toUpperCase();
-                        const canStart = mode === "active" && u === "PENDING";
+                        const canStart = mode === "active" && (u === "PENDING" || u === "DRAFT");
+                        const canReject = mode === "active" && u === "PENDING";
                         const canComplete = mode === "active" && u === "IN_PROGRESS";
                         return (
                             <TableRow
@@ -112,6 +119,14 @@ export default function ProductionOrderTable({
                                                 </span>
                                             )}
                                     </div>
+                                    {row.referenceId && (
+                                        <div className="mt-1 text-xs font-medium text-violet-700">
+                                            Yêu cầu từ đơn hàng: {row.referenceId}
+                                        </div>
+                                    )}
+                                    {row.note?.trim() && (
+                                        <div className="mt-1 text-xs text-zinc-500">Ghi chú: {row.note}</div>
+                                    )}
                                 </TableCell>
                                 <TableCell>
                                     <Badge className={cn("px-3 py-1 text-xs font-bold uppercase", b.className)}>
@@ -137,6 +152,23 @@ export default function ProductionOrderTable({
                                                     <Play className="size-5" />
                                                 )}
                                                 Start Production
+                                            </Button>
+                                        )}
+                                        {canReject && (
+                                            <Button
+                                                type="button"
+                                                size="lg"
+                                                variant="outline"
+                                                className="h-12 min-w-[120px] gap-2 border-2 border-red-300 font-bold text-red-700 hover:bg-red-50"
+                                                onClick={() => onReject(row)}
+                                                disabled={rejectingId !== null}
+                                            >
+                                                {rejectingId === row.id ? (
+                                                    <Loader2 className="size-5 animate-spin" />
+                                                ) : (
+                                                    <XCircle className="size-5" />
+                                                )}
+                                                Từ chối
                                             </Button>
                                         )}
                                         {canComplete && (

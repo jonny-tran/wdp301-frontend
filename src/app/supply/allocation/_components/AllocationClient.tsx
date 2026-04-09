@@ -1,6 +1,6 @@
 "use client";
 
-import { SyntheticEvent, useMemo, useState } from "react";
+import { SyntheticEvent, useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useQueryClient } from "@tanstack/react-query";
@@ -33,6 +33,7 @@ import AllocationReviewModal from "./AllocationReviewModal";
 import ForceApproveAllocationModal from "./ForceApproveAllocationModal";
 import PendingOrdersGrid from "./PendingOrdersGrid";
 import RejectAllocationModal from "./RejectAllocationModal";
+import WaitingForKitchenOrdersSection from "./WaitingForKitchenOrdersSection";
 
 interface AllocationClientProps {
   searchParams: RawSearchParams;
@@ -49,7 +50,8 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
     [searchParams]
   );
 
-  const { orderList, reviewOrder, approveOrder, rejectOrder } = useOrder();
+  const { orderList, reviewOrder, orderDetail, approvalSuggestion, approveOrder, rejectOrder, requestProduction } =
+    useOrder();
   const { shipmentList } = useShipment();
 
   const pendingQuery = orderList({
@@ -78,6 +80,17 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
     page: 1,
     limit: 5,
     sortOrder: "DESC",
+    search: parsedQuery.search,
+    fromDate: parsedQuery.fromDate,
+    toDate: parsedQuery.toDate,
+    storeId: parsedQuery.storeId,
+  });
+
+  const waitingKitchenQuery = orderList({
+    page: 1,
+    limit: 20,
+    sortOrder: parsedQuery.sortOrder,
+    status: OrderStatus.WAITING_FOR_PRODUCTION,
     search: parsedQuery.search,
     fromDate: parsedQuery.fromDate,
     toDate: parsedQuery.toDate,
@@ -127,6 +140,8 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
   const [rejectReason, setRejectReason] = useState("");
   const [forceTargetId, setForceTargetId] = useState("");
   const [forceMessage, setForceMessage] = useState("");
+  const [approvedByProductId, setApprovedByProductId] = useState<Record<number, number>>({});
+  const [selectedProductionRequestProductIds, setSelectedProductionRequestProductIds] = useState<number[]>([]);
 
   const findPendingOrderNo = (orderId: string): number | undefined => {
     const index = pendingOrders.findIndex((order) => order.id === orderId);
@@ -145,6 +160,62 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
     items?: OrderReviewItem[];
   };
   const reviewItems = Array.isArray(reviewData.items) ? reviewData.items : [];
+
+  const detailQuery = orderDetail(reviewTargetId);
+  const suggestionQuery = approvalSuggestion(reviewTargetId, { enabled: !!reviewTargetId });
+
+  useEffect(() => {
+    setApprovedByProductId({});
+    setSelectedProductionRequestProductIds([]);
+  }, [reviewTargetId]);
+
+  useEffect(() => {
+    if (!reviewTargetId) return;
+    const items = detailQuery.data?.items;
+    if (!items?.length) return;
+    setApprovedByProductId((prev) => {
+      if (Object.keys(prev).length > 0) return prev;
+      const next: Record<number, number> = {};
+      items.forEach((it) => {
+        next[Number(it.productId)] = Number(it.quantityRequested ?? 0);
+      });
+      return next;
+    });
+  }, [reviewTargetId, detailQuery.data?.items]);
+
+  const allocationRows = useMemo(() => {
+    const items = detailQuery.data?.items ?? [];
+    const sug = suggestionQuery.data;
+    const sugLines = sug?.lines ?? [];
+    const sugMap = new Map(sugLines.map((l) => [l.productId, l]));
+    const revMap = new Map(reviewItems.map((r) => [r.productId, r]));
+    return items.map((it) => {
+      const pid = Number(it.productId);
+      const s = sugMap.get(pid);
+      return {
+        productId: pid,
+        productName: it.product?.name ?? `SP #${pid}`,
+        quantityRequested: Number(it.quantityRequested ?? 0),
+        review: revMap.get(pid),
+        atpAvailable: s?.atpAvailable,
+        safetyMinimumExpiryDate: s?.safetyMinimumExpiryDate ?? sug?.safetyMinimumExpiryDate ?? null,
+        suggestedApprove: s?.suggestedApprove,
+      };
+    });
+  }, [detailQuery.data?.items, suggestionQuery.data, reviewItems]);
+
+  const defaultProductionNote = useMemo(() => {
+    const parts: string[] = [];
+    for (const r of allocationRows) {
+      const atp = r.atpAvailable ?? r.review?.currentStock ?? 0;
+      if (atp < r.quantityRequested) {
+        const gap = r.quantityRequested - atp;
+        parts.push(`${r.productName}: thiếu ~${gap} (ATP ${atp})`);
+      }
+    }
+    if (parts.length === 0) return "Cần sản xuất thêm để đủ đơn.";
+    return `Cần sản xuất thêm để đủ đơn — ${parts.join("; ")}`;
+  }, [allocationRows]);
 
   const activityItems = useMemo(() => {
     const approvedActivity = approvedOrders.map((order, index) => ({
@@ -213,7 +284,12 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
     pendingQuery.refetch();
     approvedQuery.refetch();
     shipmentQuery.refetch();
-    if (reviewTargetId) reviewQuery.refetch();
+    waitingKitchenQuery.refetch();
+    if (reviewTargetId) {
+      reviewQuery.refetch();
+      detailQuery.refetch();
+      suggestionQuery.refetch();
+    }
   };
 
   const handlePageChange = (nextPage: number) => {
@@ -241,6 +317,44 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
     }
   };
 
+  const approveFromReviewModal = async () => {
+    if (!reviewTargetId) return;
+    const productionRequests = allocationRows
+      .filter((row) => selectedProductionRequestProductIds.includes(row.productId))
+      .map((row) => {
+        const atp = row.atpAvailable ?? row.review?.currentStock ?? 0;
+        return {
+          productId: row.productId,
+          quantity: Math.max(0, row.quantityRequested - atp),
+        };
+      })
+      .filter((line) => line.quantity > 0);
+    try {
+      await approveOrder.mutateAsync({
+        id: reviewTargetId,
+        data: productionRequests.length > 0 ? { productionRequests } : {},
+      });
+      setReviewTargetId("");
+    } catch (error) {
+      if (isForceApproveError(error)) {
+        setForceTargetId(reviewTargetId);
+        setForceMessage(getHttpErrorMessage(error));
+        return;
+      }
+      handleErrorApi({ error });
+    }
+  };
+
+  const requestKitchenFromReviewModal = async (note?: string) => {
+    if (!reviewTargetId) return;
+    try {
+      await requestProduction.mutateAsync({ id: reviewTargetId, note });
+      setReviewTargetId("");
+    } catch (error) {
+      handleErrorApi({ error });
+    }
+  };
+
   const submitReject = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!rejectTargetId || !rejectReason.trim()) return;
@@ -259,9 +373,14 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
     }
   };
 
-  const isMutating = approveOrder.isPending || rejectOrder.isPending;
+  const isMutating = approveOrder.isPending || rejectOrder.isPending || requestProduction.isPending;
   const isRefreshing =
-    pendingQuery.isFetching || approvedQuery.isFetching || shipmentQuery.isFetching || reviewQuery.isFetching;
+    pendingQuery.isFetching ||
+    approvedQuery.isFetching ||
+    shipmentQuery.isFetching ||
+    waitingKitchenQuery.isFetching ||
+    reviewQuery.isFetching ||
+    (reviewTargetId ? detailQuery.isFetching || suggestionQuery.isFetching : false);
 
   return (
     <div className="space-y-5">
@@ -290,6 +409,12 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
         <MiniKpi label="Đã duyệt" value={approvedOrders.length} tone="green" />
         <MiniKpi label="Giao hàng" value={shipments.length} tone="default" />
       </div>
+
+      <WaitingForKitchenOrdersSection
+        orders={waitingKitchenQuery.data?.items ?? []}
+        isLoading={waitingKitchenQuery.isLoading}
+        isError={waitingKitchenQuery.isError}
+      />
 
       <BaseFilter filters={filterConfig} />
 
@@ -370,13 +495,40 @@ export default function AllocationClient({ searchParams }: AllocationClientProps
       {/* Modals */}
       {reviewTargetId && (
         <AllocationReviewModal
+          orderId={reviewTargetId}
           orderNo={reviewOrderNo}
-          storeName={reviewData.storeName}
-          status={reviewData.status}
-          reviewItems={reviewItems}
-          isLoading={reviewQuery.isLoading}
-          isError={reviewQuery.isError}
+          storeName={detailQuery.data?.store?.name ?? reviewData.storeName}
+          status={detailQuery.data?.status ?? reviewData.status}
+          rows={allocationRows}
+          suggestion={suggestionQuery.data ?? null}
+          isLoading={detailQuery.isLoading}
+          isError={detailQuery.isError}
+          isSuggestionLoading={suggestionQuery.isLoading}
+          isSuggestionError={suggestionQuery.isError}
+          approvedByProductId={approvedByProductId}
+          onChangeApproved={(productId, value) =>
+            setApprovedByProductId((prev) => ({ ...prev, [productId]: value }))
+          }
+          onApplySuggestion={(productId) => {
+            const line = suggestionQuery.data?.lines.find((l) => l.productId === productId);
+            if (line && Number.isFinite(line.suggestedApprove)) {
+              setApprovedByProductId((prev) => ({ ...prev, [productId]: line.suggestedApprove }));
+            }
+          }}
+          onApprove={() => void approveFromReviewModal()}
           onClose={() => setReviewTargetId("")}
+          isApproving={approveOrder.isPending}
+          defaultProductionNote={defaultProductionNote}
+          showKitchenProductionRequest
+          onRequestKitchenProduce={(note) => void requestKitchenFromReviewModal(note)}
+          isRequestingProduction={requestProduction.isPending}
+          selectedProductionRequestProductIds={selectedProductionRequestProductIds}
+          onToggleProductionRequest={(productId, checked) =>
+            setSelectedProductionRequestProductIds((prev) => {
+              if (checked) return prev.includes(productId) ? prev : [...prev, productId];
+              return prev.filter((id) => id !== productId);
+            })
+          }
         />
       )}
 

@@ -32,6 +32,8 @@ import { cn } from "@/lib/utils";
 
 function badgeForStatus(status: ProductionOrderStatus) {
     const u = String(status).toUpperCase();
+    if (u === "DRAFT") return { label: "DRAFT", className: "bg-slate-200 text-slate-900 border-slate-400" };
+    if (u === "PENDING") return { label: "PENDING", className: "bg-violet-600 text-white border-transparent font-black" };
     if (u === "COMPLETED") return { label: "COMPLETED", className: "bg-emerald-500 text-zinc-950 border-transparent font-black" };
     if (u === "IN_PROGRESS")
         return { label: "IN_PROGRESS", className: "bg-amber-400 text-zinc-950 border-transparent font-black" };
@@ -198,6 +200,21 @@ export default function ProductionOrderDetailDialog({ open, onOpenChange, orderI
                                     </p>
                                 </div>
                             </div>
+
+                            {(o.referenceId || o.note) && (
+                                <div className="rounded-2xl border-2 border-violet-200 bg-violet-50/70 p-5 shadow-sm">
+                                    {o.referenceId && (
+                                        <p className="text-sm font-semibold text-violet-900">
+                                            Yêu cầu từ đơn hàng: <span className="font-mono">{o.referenceId}</span>
+                                        </p>
+                                    )}
+                                    {o.note?.trim() && (
+                                        <p className="mt-2 text-sm text-violet-900">
+                                            <span className="font-semibold">Ghi chú:</span> {o.note}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
 
                             {variance != null && variance < 0 && (
                                 <div className="rounded-2xl border-2 border-red-400 bg-red-50 p-5">

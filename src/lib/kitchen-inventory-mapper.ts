@@ -24,6 +24,9 @@ export function normalizeKitchenBatch(raw: unknown, index: number): KitchenDetai
             ? Number(warehouseRaw)
             : undefined;
 
+    const parentBatchIdRaw = b.parentBatchId ?? b.parent_batch_id ?? b.sourceBatchId ?? b.source_batch_id;
+    const parentBatchCodeRaw = b.parentBatchCode ?? b.parent_batch_code ?? b.sourceBatchCode ?? b.source_batch_code;
+
     return {
         batchId: Number.isFinite(batchId) ? batchId : index + 1,
         batchCode: String(b.batchCode ?? b.batch_code ?? ""),
@@ -32,6 +35,14 @@ export function normalizeKitchenBatch(raw: unknown, index: number): KitchenDetai
         reservedQuantity: reserved,
         expiryDate: String(b.expiryDate ?? b.expiry_date ?? ""),
         warehouseId: warehouseId !== undefined && Number.isFinite(warehouseId) ? warehouseId : undefined,
+        parentBatchId:
+            parentBatchIdRaw != null && parentBatchIdRaw !== "" && Number.isFinite(Number(parentBatchIdRaw))
+                ? Number(parentBatchIdRaw)
+                : undefined,
+        parentBatchCode:
+            parentBatchCodeRaw != null && String(parentBatchCodeRaw).trim() !== ""
+                ? String(parentBatchCodeRaw)
+                : undefined,
     };
 }
 
@@ -109,5 +120,11 @@ export function normalizeInventoryTransactionLogItem(raw: unknown): InventoryTra
         quantity: parseDecimalLike(r.quantity ?? r.adjustmentQuantity ?? r.adjustment_quantity),
         date: String(r.date ?? r.createdAt ?? r.created_at ?? r.timestamp ?? ""),
         note: r.note != null ? String(r.note) : r.reference != null ? String(r.reference) : null,
+        evidenceImage:
+            r.evidenceImage != null
+                ? String(r.evidenceImage)
+                : r.evidence_image != null
+                  ? String(r.evidence_image)
+                  : null,
     };
 }

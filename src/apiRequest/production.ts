@@ -6,6 +6,7 @@ import {
     parseProductionOrderDetailPayload,
 } from "@/lib/production-mapper";
 import {
+    CancelProductionOrderBodyType,
     CompleteProductionBodyType,
     CreateProductionOrderBodyType,
     CreateRecipeApiBody,
@@ -74,6 +75,9 @@ export const productionRequest = {
     getRecipeDetail: (id: string) => http.get<unknown>(ENDPOINT_CLIENT.PRODUCTION_RECIPE_DETAIL(id)),
 
     startOrder: (id: string) => http.post<ProductionOrder>(ENDPOINT_CLIENT.PRODUCTION_ORDER_START(id), {}),
+
+    cancelOrder: (id: string, body: CancelProductionOrderBodyType) =>
+        http.patch<unknown>(ENDPOINT_CLIENT.PRODUCTION_ORDER_CANCEL(id), body),
 
     completeOrder: (id: string, body: CompleteProductionBodyType) =>
         http.post<CompleteProductionResult>(ENDPOINT_CLIENT.PRODUCTION_ORDER_COMPLETE(id), body),

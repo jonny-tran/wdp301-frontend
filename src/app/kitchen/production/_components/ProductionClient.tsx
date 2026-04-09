@@ -23,12 +23,12 @@ import PickingListModal from "./PickingListModal";
 import ProductionCompleteSuccessModal from "./ProductionCompleteSuccessModal";
 import ProductionOrderDetailDialog from "./ProductionOrderDetailDialog";
 import ProductionOrderTable from "./ProductionOrderTable";
+import RejectProductionModal from "./RejectProductionModal";
 import RecipeDetail from "./RecipeDetail";
 import RecipeList from "./RecipeList";
-
 type MainTab = "orders" | "recipes" | "history";
 
-type OrderStatusFilter = "ALL" | "PENDING" | "IN_PROGRESS" | "COMPLETED";
+type OrderStatusFilter = "ALL" | "DRAFT" | "PENDING" | "IN_PROGRESS" | "COMPLETED";
 
 const PAGINATION = { page: 1, limit: 200, sortOrder: "DESC" as const };
 
@@ -54,6 +54,9 @@ export default function ProductionClient() {
     const [recipeFlowBusy, setRecipeFlowBusy] = useState(false);
     const [detailOpen, setDetailOpen] = useState(false);
     const [detailOrderId, setDetailOrderId] = useState<string | null>(null);
+    const [rejectOpen, setRejectOpen] = useState(false);
+    const [rejectOrder, setRejectOrder] = useState<ProductionOrder | null>(null);
+    const [rejectingId, setRejectingId] = useState<string | null>(null);
 
     const queryClient = useQueryClient();
     const {
@@ -62,6 +65,7 @@ export default function ProductionClient() {
         productionRecipeDetail,
         createProductionOrder,
         startProductionOrder,
+        cancelProductionOrder,
         completeProductionOrder,
     } = useProduction();
     const { kitchenSummary } = useInventory();
@@ -103,7 +107,14 @@ export default function ProductionClient() {
         applyDetailToOrderListCaches(orderId, detail);
     };
 
-    const ordersQuery = productionOrders(PAGINATION);
+    const orderStatusQueryParam =
+        orderStatusFilter === "ALL" ? undefined : orderStatusFilter.toLowerCase();
+    const ordersQuery = productionOrders(
+        {
+            ...PAGINATION,
+            ...(orderStatusQueryParam ? { status: orderStatusQueryParam } : {}),
+        },
+    );
     const recipesQuery = productionRecipes(PAGINATION, { enabled: mainTab === "recipes" });
     const recipeDetailQuery = productionRecipeDetail(selectedRecipeId, { enabled: mainTab === "recipes" && !!selectedRecipeId });
 
@@ -147,7 +158,7 @@ export default function ProductionClient() {
         if (orderStatusFilter === "ALL") {
             return allOrders.filter((o) => {
                 const u = normStatus(o.status);
-                return u === "PENDING" || u === "IN_PROGRESS" || u === "COMPLETED";
+                return u === "DRAFT" || u === "PENDING" || u === "IN_PROGRESS" || u === "COMPLETED";
             });
         }
         return allOrders.filter((o) => normStatus(o.status) === orderStatusFilter);
@@ -293,6 +304,24 @@ export default function ProductionClient() {
         );
     };
 
+    const handleRejectSubmit = async (id: string, reason: string) => {
+        setRejectingId(id);
+        try {
+            await cancelProductionOrder.mutateAsync({
+                id,
+                body: { reason },
+            });
+            await syncProductionOrderRowFromDetail(id);
+            setRejectOpen(false);
+            setRejectOrder(null);
+        } catch (e) {
+            const msg = e instanceof HttpError ? e.message : "Không thể từ chối lệnh";
+            toast.error(msg);
+        } finally {
+            setRejectingId(null);
+        }
+    };
+
     return (
         <div className="space-y-6 pb-10">
             {/* Page Header */}
@@ -332,7 +361,7 @@ export default function ProductionClient() {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 rounded-xl bg-zinc-100 p-1">
+            <div className="flex flex-wrap gap-1 rounded-xl bg-zinc-100 p-1">
                 {(
                     [
                         { id: "orders" as const, label: "Lệnh sản xuất", icon: Activity },
@@ -344,7 +373,7 @@ export default function ProductionClient() {
                         key={tab.id}
                         type="button"
                         onClick={() => setMainTab(tab.id)}
-                        className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all ${
+                        className={`flex min-w-[8rem] flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition-all ${
                             mainTab === tab.id
                                 ? "bg-white text-zinc-900 shadow-sm"
                                 : "text-zinc-500 hover:text-zinc-700"
@@ -363,6 +392,7 @@ export default function ProductionClient() {
                         {(
                             [
                                 { id: "ALL" as const, label: "Tất cả" },
+                                { id: "DRAFT" as const, label: "Nháp" },
                                 { id: "PENDING" as const, label: "Chờ xử lý" },
                                 { id: "IN_PROGRESS" as const, label: "Đang sản xuất" },
                                 { id: "COMPLETED" as const, label: "Hoàn tất" },
@@ -390,7 +420,12 @@ export default function ProductionClient() {
                         isLoading={ordersQuery.isLoading}
                         mode="active"
                         startingId={startingId}
+                        rejectingId={rejectingId}
                         onStart={handleStart}
+                        onReject={(o) => {
+                            setRejectOrder(o);
+                            setRejectOpen(true);
+                        }}
                         onCompleteClick={(o) => {
                             setCompleteOrder(o);
                             setCompleteOpen(true);
@@ -413,7 +448,9 @@ export default function ProductionClient() {
                         isLoading={ordersQuery.isLoading}
                         mode="history"
                         startingId={null}
+                        rejectingId={null}
                         onStart={() => {}}
+                        onReject={() => {}}
                         onCompleteClick={() => {}}
                         onDetailClick={(o) => {
                             setDetailOrderId(o.id);
@@ -484,6 +521,17 @@ export default function ProductionClient() {
                     if (!o) setDetailOrderId(null);
                 }}
                 orderId={detailOrderId}
+            />
+
+            <RejectProductionModal
+                open={rejectOpen}
+                order={rejectOrder}
+                isSubmitting={cancelProductionOrder.isPending}
+                onOpenChange={(o) => {
+                    setRejectOpen(o);
+                    if (!o) setRejectOrder(null);
+                }}
+                onSubmit={handleRejectSubmit}
             />
         </div>
     );

@@ -1,6 +1,6 @@
 # ORD-OPTIMIZE — Module Order (SP26SWP07)
 
-Tài liệu rút gọn: nghiệp vụ, API, tham số, phân trang, và các ràng buộc để không cần đọc lại toàn bộ mã nguồn.
+Tài liệu này là hợp đồng API cho Frontend, đã đồng bộ các thay đổi mới: role kitchen cho endpoint đọc đơn, coordination batch approve chạy atomic, reservation queue, consolidated shipment.
 
 ## Phạm vi
 
@@ -13,7 +13,12 @@ Tài liệu rút gọn: nghiệp vụ, API, tham số, phân trang, và các rà
 
 ## Enum trạng thái đơn (`OrderStatus`)
 
-`pending` → `approved` | `rejected` | `cancelled` → các trạng thái vận hành (`picking`, `delivering`, …) → `completed` | `claimed`.
+`pending` → `coordinating` → `approved` | `rejected` | `cancelled` → các trạng thái vận hành (`picking`, `delivering`, …) → `completed` | `claimed`.
+
+### Trạng thái `coordinating` (Coordination Hub)
+
+- **Mục đích**: khóa các đơn của ngày giao hàng đang được điều phối (hỏi bếp / phân bổ) để tránh Store tự ý sửa/hủy trong lúc “ra quyết định”.
+- **Nguồn tạo**: API `POST /orders/coordination/inquiry` (xem mục Coordination Hub).
 
 ## Base URL
 
@@ -21,7 +26,7 @@ Tất cả route dưới prefix global (ví dụ `/api`) — xem `main.ts` / `FR
 
 | Method | Path | Role | Mô tả |
 |--------|------|------|--------|
-| GET | `/orders` | Manager, Coordinator, Admin | Danh sách có filter/pagination (`GetOrdersDto`) |
+| GET | `/orders` | Manager, Coordinator, Admin, Central Kitchen Staff | Danh sách có filter/pagination (`GetOrdersDto`) |
 | POST | `/orders` | Franchise Staff, Admin | Tạo đơn (`CreateOrderDto`) |
 | GET | `/orders/catalog` | Franchise Staff, Admin | Catalog đặt hàng: **chỉ** `finished_good` + `resell_product`; có **phân trang** (`GetCatalogDto` / `PaginationParamsDto`: `page`, `limit`, …); response `items` + `meta` |
 | GET | `/orders/my-store` | Franchise Staff, Admin | Đơn cửa hàng (gán `storeId` từ JWT) |
@@ -31,9 +36,12 @@ Tất cả route dưới prefix global (ví dụ `/api`) — xem `main.ts` / `FR
 | PATCH | `/orders/coordinator/:id/approve` | Coordinator, Admin | Duyệt (`ApproveOrderDto`) |
 | PATCH | `/orders/coordinator/:id/reject` | Coordinator, Admin | Từ chối |
 | PATCH | `/orders/coordinator/:id/force-cancel` | Coordinator, Manager, Admin | Hủy bắt buộc + reserve + `restock_tasks` |
-| GET | `/orders/:id` | Coordinator, Franchise, Manager, Admin | Chi tiết |
+| GET | `/orders/:id` | Coordinator, Franchise, Manager, Admin, Central Kitchen Staff | Chi tiết |
 | GET | `/orders/analytics/fulfillment-rate` | Manager, Admin | Fill rate |
 | GET | `/orders/analytics/performance/lead-time` | Manager, Admin | SLA |
+| GET | `/orders/coordination/summary` | Coordinator, Admin | Coordination Hub: tổng cầu & shortage theo ngày giao |
+| POST | `/orders/coordination/inquiry` | Coordinator, Admin | Coordination Hub: khóa đơn (pending->coordinating) + tạo lệnh sản xuất `pending` để “hỏi bếp” |
+| PATCH | `/orders/coordination/batch-approve` | Coordinator, Admin | Coordination Hub: duyệt hàng loạt theo Allocation, chạy 1 transaction cho cả batch |
 
 ## Pagination (`GetOrdersDto` / chung)
 
@@ -72,7 +80,69 @@ Kế thừa `PaginationParamsDto`: `page`, `limit`, `sortBy`, `sortOrder`. Respo
 - `PRODUCTION_CONFIRMATION_REQUIRED` — thiếu `production_confirm`; đơn được gắn `requires_production_confirm`.
 - `PRICE_CONFIRMATION_REQUIRED` — thiếu `price_acknowledged`; đơn được gắn `pending_price_confirm`.
 
-**Shipment:** gọi `ShipmentService.createShipmentForOrder` với `consolidation_group_id` và tải trọng tối đa từ config `VEHICLE_MAX_WEIGHT_KG` (cảnh báo `overload_warning`).
+**Shipment:** gọi `ShipmentService.createShipmentForOrder` với `consolidation_group_id` và tải trọng từ `VEHICLE_MAX_WEIGHT_KG` (cảnh báo `overload_warning`).
+
+---
+
+## Coordination Hub (NEW) — chủ động điều phối cung/cầu
+
+### GET `/orders/coordination/summary` — `CoordinationSummaryQueryDto`
+
+**Query:** `deliveryDate=YYYY-MM-DD`
+
+**Output (data):**
+
+- `deliveryDate`
+- `centralWarehouseId`
+- `items[]`: `{ productId, totalDemand, atpAvailable, shortage }`
+
+**Ghi chú:** `totalDemand` chỉ tính các đơn đang `pending` (chưa khóa điều phối).
+
+### POST `/orders/coordination/inquiry` — `CoordinationInquiryDto`
+
+**Mục đích:** “Hỏi bếp” trước khi duyệt hàng loạt.
+
+**Body:**
+
+- `deliveryDate` (YYYY-MM-DD)
+- `lines?[]` (optional): `{ productId, quantity }`
+  - Nếu **không gửi** `lines`, BE tự tính `shortage` từ tổng cầu (pending) và ATP kho trung tâm.
+- `note?` (optional): ghi chú điều phối gửi bếp (tối đa 500 ký tự).
+
+**Tác động DB (đã cập nhật):**
+
+- `orders` (ngày giao): `pending` → `coordinating` (khóa đơn).
+- Tạo `production_orders` trạng thái `pending` với:
+  - `reference_id = COORDINATION:YYYY-MM-DD`
+  - `note` = “Inquiry năng lực bếp …”
+- Với các đơn đang `coordinating`, hệ thống áp dụng **reservation queue**:
+  - release reservation cũ (nếu có)
+  - lock lại theo cơ chế `isReservation = true`
+  - mục tiêu: giữ chỗ ATP trong lúc chờ bếp phản hồi, chưa trừ physical.
+
+**Không** duyệt đơn và **không** tạo shipment.
+
+### PATCH `/orders/coordination/batch-approve` — `CoordinationBatchApproveDto`
+
+**Mục đích:** duyệt hàng loạt sau khi đã có quyết định phân bổ (Allocation) từ Coordination Hub.
+
+**Body:**
+
+- `deliveryDate` (YYYY-MM-DD)
+- `orderApprovals[]`:
+  - `orderId`
+  - `items[]`: `{ orderItemId, quantityApproved }`
+
+**Nghiệp vụ/chuẩn kho (đã refactor):**
+
+- Chạy **một transaction duy nhất** cho toàn bộ batch approvals:
+  - validate payload
+  - release reservation queue cũ
+  - lock stock theo allocation thực tế
+  - tạo shipment gộp theo nhóm route + warehouse + `consolidation_group_id`
+  - cập nhật `orders.shipment_id`, `orders.status = approved`
+- `quantityApproved` FE gửi **không được vượt** `quantityRequested` gốc.
+- Nếu có lỗi 1 order trong batch, rollback toàn bộ batch.
 
 ## Database (Drizzle) — cột / bảng mới
 
@@ -80,7 +150,7 @@ Kế thừa `PaginationParamsDto`: `page`, `limit`, `sortBy`, `sortOrder`. Respo
 - `stores`: `max_storage_capacity`, `transit_time_hours`
 - `order_items`: `unit_snapshot`, `price_snapshot`, `packaging_info_snapshot`
 - `orders`: `consolidation_group_id`, `requires_production_confirm`, `pending_price_confirm`
-- `shipments`: `consolidation_group_id`, `total_weight_kg`, `total_volume_m3`, `overload_warning`, `delivered_at`
+- `shipments`: `consolidation_group_id`, `total_weight_kg`, `total_volume_m3`, `overload_warning`, `delivered_at`, `shipping_address_snapshot`, `contact_phone_snapshot`
 - `shipment_orders` (shipment_id, order_id): gộp nhiều đơn một chuyến
 - `restock_tasks`: nhiệm vụ hoàn kho sau force cancel
 
@@ -95,3 +165,7 @@ Kế thừa `PaginationParamsDto`: `page`, `limit`, `sortBy`, `sortOrder`. Respo
 
 - Response wrapper camelCase (Interceptor) — field DB snake_case được map khi serialize.
 - Đơn cũ không có `price_snapshot`: bước duyệt **bỏ qua** so sánh lệch giá (điều kiện `priceSnapshot == null`).
+- Role `central_kitchen_staff` hiện đã có quyền đọc:
+  - `GET /orders`
+  - `GET /orders/:id`
+  để phục vụ màn hình bếp chờ sản xuất (`waiting_for_production`) và đọc chi tiết đơn.

@@ -40,6 +40,12 @@ export function formatAmount(value?: string | number | null) {
 export function getStatusBadgeClass(status?: string) {
     const normalized = (status || "").toLowerCase();
 
+    if (normalized.includes("coordinating")) {
+        return "bg-violet-100 text-violet-800";
+    }
+    if (normalized.includes("waiting_for_production")) {
+        return "bg-sky-100 text-sky-800";
+    }
     if (normalized.includes("pending") || normalized.includes("draft") || normalized.includes("preparing")) {
         return "bg-amber-100 text-amber-700";
     }
@@ -60,6 +66,8 @@ export function formatStatusLabel(status?: string) {
     if (!status) return "-";
     const statusMap: Record<string, string> = {
         pending: "Đang chờ",
+        coordinating: "Đang điều phối",
+        waiting_for_production: "Chờ bếp sản xuất",
         approved: "Đã duyệt",
         rejected: "Đã từ chối",
         cancelled: "Đã hủy",

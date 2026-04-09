@@ -23,3 +23,15 @@ export const KitchenStockAdjustFormSchema = z.object({
 });
 
 export type KitchenStockAdjustFormType = z.infer<typeof KitchenStockAdjustFormSchema>;
+
+export const InventoryWasteBodySchema = z.object({
+    batchId: z.coerce.number().int().positive("Thiếu batchId hợp lệ"),
+    quantity: z.coerce.number().positive("Số lượng hủy phải lớn hơn 0"),
+    reason: z.enum(["EXPIRED", "DAMAGED"], {
+        message: "Lý do hủy chỉ chấp nhận EXPIRED hoặc DAMAGED",
+    }),
+    note: z.string().optional(),
+    evidenceImage: z.string().url("Ảnh chứng minh không hợp lệ").optional(),
+});
+
+export type InventoryWasteBodyType = z.infer<typeof InventoryWasteBodySchema>;

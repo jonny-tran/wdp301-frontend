@@ -65,6 +65,9 @@ export type KitchenBatchRow = {
     reservedQuantity: number;
     expiryDate: string;
     warehouseId?: number;
+    /** Gia phả lô từ luồng sản xuất — nếu API trả */
+    parentBatchId?: number;
+    parentBatchCode?: string;
 };
 
 export type KitchenDetail = {
@@ -96,6 +99,7 @@ export type InventoryTransactionLogItem = {
     quantity: number;
     date: string;
     note: string | null;
+    evidenceImage?: string | null;
 };
 
 
@@ -112,10 +116,18 @@ export type QueryInventory = BaseRequestPagination & {
 
 export type QueryInventoryTransaction = BaseRequestPagination & {
     sortBy?: string;
-    type?: TransactionType
+    type?: TransactionType | string
     fromDate?: string;
     toDate?: string;
 }
+
+export type InventoryWasteBody = {
+    batchId: number;
+    quantity: number;
+    reason: "EXPIRED" | "DAMAGED";
+    note?: string;
+    evidenceImage?: string;
+};
 
 export type QueryInventorySummary = BaseRequestPagination & {
     warehouseId?: number;
@@ -150,6 +162,51 @@ export type InventoryWasteReport = {
         reason: string;
     }[];
     wasteRate: number;
+};
+
+export type WasteSummaryQuery = {
+    fromDate?: string;
+    toDate?: string;
+    warehouseId?: number;
+};
+
+export type WasteReportQuery = {
+    startDate?: string;
+    endDate?: string;
+    warehouseId?: number;
+};
+
+export type InventoryWasteSummary = {
+    kpi?: {
+        totalLossAmount?: number;
+        importRevenueInPeriod?: number;
+        wastePercentage?: number;
+        period?: string;
+    };
+    topCostlyProducts?: {
+        productId: number;
+        productName: string;
+        totalWasteQuantity?: number;
+        totalLossAmount?: number;
+    }[];
+    details?: unknown[];
+};
+
+export type InventoryWasteReportDetail = {
+    kpi?: {
+        totalWasteQuantity?: number;
+        totalLossAmount?: number;
+    };
+    data?: {
+        transactionId?: number;
+        batchCode?: string;
+        productName?: string;
+        wastedQuantity?: number;
+        lossAmount?: number;
+        wasteReason?: string;
+        reasonNote?: string;
+        createdAt?: string;
+    }[];
 };
 
 export type FinancialLossImpact = {

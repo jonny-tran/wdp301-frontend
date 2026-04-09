@@ -1,5 +1,19 @@
 import { formatDateTime, formatStatusLabel } from "@/app/supply/_components/format";
-import { OrderReview, OrderReviewItem } from "@/types/order";
+import { getOrderLineSnapshotUnitPrice } from "@/lib/order-display";
+import type { OrderCollaborationEvent, OrderDetailItem, OrderReview, OrderReviewItem } from "@/types/order";
+
+function collaborationTone(kind: OrderCollaborationEvent["kind"]): string {
+    switch (kind) {
+        case "request_production":
+            return "border-amber-200 bg-amber-50/90 text-amber-950";
+        case "kitchen_accept":
+            return "border-emerald-200 bg-emerald-50/90 text-emerald-950";
+        case "kitchen_reject":
+            return "border-red-200 bg-red-50/90 text-red-950";
+        default:
+            return "border-zinc-200 bg-zinc-50 text-zinc-800";
+    }
+}
 
 interface OrderDetailModalProps {
     orderNo?: number;
@@ -30,6 +44,23 @@ export default function OrderDetailModal({
 
     const status = detailData?.status;
 
+    const collaborationLog: OrderCollaborationEvent[] = Array.isArray(detailData?.collaborationLog)
+        ? detailData.collaborationLog
+        : [];
+
+    const productionConfirmed = Boolean(
+        detailData?.isProductionConfirmed ?? detailData?.is_production_confirmed,
+    );
+
+    const noteText = typeof detailData?.note === "string" ? detailData.note.trim() : "";
+    const noteLooksLikeKitchenReject =
+        noteText.length > 0 &&
+        /từ chối|tu choi|reject|không thể|khong the|hết nguyên|het nguyen|máy hỏng|may hong/i.test(noteText);
+
+    const showSnapshotUnitPrice =
+        typeof status === "string" &&
+        ["approved", "completed", "picking", "delivering"].includes(String(status).toLowerCase());
+
     const statusColor =
         status === "approved"
             ? "bg-green-100 text-green-700"
@@ -59,11 +90,16 @@ export default function OrderDetailModal({
                         <h3 className="text-lg font-bold text-gray-900">
                             Đơn hàng {orderNo ? `#${orderNo}` : ""}
                         </h3>
-                        <span
-                            className={`mt-1 inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${statusColor}`}
-                        >
-                            {formatStatusLabel(status)}
-                        </span>
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                            <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-semibold ${statusColor}`}>
+                                {formatStatusLabel(status)}
+                            </span>
+                            {productionConfirmed && (
+                                <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold text-emerald-800">
+                                    Bếp đã xác nhận sản xuất
+                                </span>
+                            )}
+                        </div>
                     </div>
                     <button
                         onClick={onClose}
@@ -134,6 +170,30 @@ export default function OrderDetailModal({
                                         )}
                                     </div>
                                 </div>
+
+                                {collaborationLog.length > 0 && (
+                                    <div className="rounded-xl border border-sky-200 bg-sky-50/60 p-4">
+                                        <h4 className="mb-3 text-xs font-semibold uppercase text-sky-800">
+                                            Phối hợp Điều phối — Bếp
+                                        </h4>
+                                        <ul className="space-y-2.5">
+                                            {collaborationLog.map((ev, idx) => (
+                                                <li
+                                                    key={`${ev.occurredAt}-${ev.kind}-${idx}`}
+                                                    className={`rounded-lg border px-3 py-2 text-xs ${collaborationTone(ev.kind)}`}
+                                                >
+                                                    <p className="font-semibold leading-snug">{ev.title}</p>
+                                                    {ev.detail && (
+                                                        <p className="mt-1 whitespace-pre-wrap opacity-90">{ev.detail}</p>
+                                                    )}
+                                                    <p className="mt-1 text-[10px] font-medium opacity-70">
+                                                        {formatDateTime(ev.occurredAt)}
+                                                    </p>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
 
                                 {/* REVIEW SUMMARY — Stock availability for Coordinator */}
                                 {totalReviewItems > 0 && (
@@ -227,6 +287,9 @@ export default function OrderDetailModal({
                                             const productName = item.product?.name ?? reviewItem?.productName ?? "—";
                                             const requestedQty = Number(item.quantityRequested ?? reviewItem?.requestedQty ?? 0);
                                             const currentStock = reviewItem?.currentStock ?? 0;
+                                            const snapshotUnitPrice = showSnapshotUnitPrice
+                                                ? getOrderLineSnapshotUnitPrice(item as OrderDetailItem)
+                                                : null;
                                             const shortage = reviewItem && !reviewItem.canFulfill
                                                 ? Math.max(0, requestedQty - currentStock)
                                                 : 0;
@@ -256,6 +319,11 @@ export default function OrderDetailModal({
                                                             <p className="text-xs text-gray-500">
                                                                 SKU: {item.product?.sku ?? "—"}
                                                             </p>
+                                                            {snapshotUnitPrice != null && (
+                                                                <p className="text-xs font-semibold text-emerald-700">
+                                                                    Giá đơn vị (snapshot): {snapshotUnitPrice}
+                                                                </p>
+                                                            )}
                                                         </div>
 
                                                         {/* Quantity + Stock Info */}
@@ -323,10 +391,19 @@ export default function OrderDetailModal({
                                     </div>
                                 </div>
 
-                                {/* REJECT NOTE */}
-                                {detailData.note && (
-                                    <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-                                        <span className="font-semibold">Lý do từ chối:</span> {detailData.note}
+                                {/* Ghi chú đơn (yêu cầu SC, từ chối bếp, v.v.) */}
+                                {noteText && (
+                                    <div
+                                        className={`rounded-xl border p-4 text-sm ${
+                                            noteLooksLikeKitchenReject
+                                                ? "border-red-200 bg-red-50 text-red-800"
+                                                : "border-amber-200 bg-amber-50/80 text-amber-950"
+                                        }`}
+                                    >
+                                        <span className="font-semibold">
+                                            {noteLooksLikeKitchenReject ? "Bếp / phản hồi:" : "Ghi chú đơn hàng:"}
+                                        </span>{" "}
+                                        {noteText}
                                     </div>
                                 )}
                             </div>

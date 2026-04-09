@@ -38,18 +38,19 @@ export type InventoryDisplayItem = InventoryRowItem & {
 };
 
 interface ResponseWrapper<T> {
-  data?: {
+    data?: {
+        items?: T[];
+        meta?: unknown;
+        buckets?: AgingBuckets;
+        kpi?: WasteKpi;
+        details?: WasteDetail[];
+        data?: WasteDetail[];
+    };
     items?: T[];
     meta?: unknown;
     buckets?: AgingBuckets;
     kpi?: WasteKpi;
     details?: WasteDetail[];
-  };
-  items?: T[];
-  meta?: unknown;
-  buckets?: AgingBuckets;
-  kpi?: WasteKpi;
-  details?: WasteDetail[];
 }
 
 interface AgingBuckets {
@@ -161,16 +162,17 @@ export default function InventoryClient({
     item: null,
   });
 
-  // ── 2. Data Fetching via hooks ──
-  const {
-    inventorySummary,
-    lowStock,
-    inventoryAgingReport,
-    inventoryWasteReport,
-    inventoryAnalyticsSummary,
-    financialLossImpact,
-    kitchenDetails,
-  } = useInventory();
+    // ── 2. Data Fetching via hooks ──
+    const {
+        inventorySummary,
+        lowStock,
+        inventoryAgingReport,
+        inventoryWasteReport,
+        inventoryWasteDetailReport,
+        inventoryAnalyticsSummary,
+        financialLossImpact,
+        kitchenDetails,
+    } = useInventory();
 
   const summaryQuery = inventorySummary({
     page: parsedQuery.page,
@@ -183,11 +185,15 @@ export default function InventoryClient({
 
   const lowStockQuery = lowStock(parsedQuery.warehouseId);
 
-  const agingQuery = inventoryAgingReport({ daysThreshold: 30 });
-  const wasteQuery = inventoryWasteReport({
-    fromDate: "2026-01-01",
-    toDate: "2026-12-31",
-  });
+    const agingQuery = inventoryAgingReport({ daysThreshold: 30 });
+    const wasteSummaryQuery = inventoryWasteReport({
+        fromDate: "2026-01-01",
+        toDate: "2026-12-31",
+    });
+    const wasteQuery = inventoryWasteDetailReport({
+        startDate: "2026-01-01",
+        endDate: "2026-12-31",
+    });
 
   const { data: rawStats } = inventoryAnalyticsSummary();
   const { data: rawLoss } = financialLossImpact({});
@@ -264,13 +270,24 @@ export default function InventoryClient({
     };
   }, [agingQuery.data]);
 
-  const wasteData = useMemo(() => {
-    const wasteRaw = wasteQuery.data as ResponseWrapper<unknown> | undefined;
-    const data = wasteRaw?.data || wasteRaw;
-    const kpi = data?.kpi || { totalWastedQuantity: 0, period: "N/A" };
-    const details = Array.isArray(data?.details) ? data.details : [];
-    return { kpi, details };
-  }, [wasteQuery.data]);
+    const wasteData = useMemo(() => {
+        const summaryRaw = wasteSummaryQuery.data as ResponseWrapper<unknown> | undefined;
+        const reportRaw = wasteQuery.data as ResponseWrapper<unknown> | undefined;
+        const summaryData = summaryRaw?.data || summaryRaw;
+        const reportData = reportRaw?.data || reportRaw;
+
+        const kpi = {
+            totalWastedQuantity:
+                Number((reportData?.kpi as { totalWasteQuantity?: number } | undefined)?.totalWasteQuantity ?? 0),
+            period: String((summaryData?.kpi as { period?: string } | undefined)?.period ?? "N/A"),
+        };
+        const details = Array.isArray(reportData?.details)
+            ? reportData.details
+            : Array.isArray(reportRaw?.data?.data)
+              ? reportRaw.data.data
+              : [];
+        return { kpi, details };
+    }, [wasteQuery.data, wasteSummaryQuery.data]);
 
   // ── 4. Handlers ──
   const handlePageChange = (nextPage: number) => {
@@ -344,27 +361,27 @@ export default function InventoryClient({
               }
             />
 
-            {/* Pagination */}
-            {!isTableLoading && meta.totalPages > 1 && (
-              <div className="border-t border-slate-100 px-6 py-4 bg-slate-50/50">
-                <BasePagination
-                  currentPage={meta.currentPage}
-                  totalPages={meta.totalPages}
-                  onPageChange={handlePageChange}
-                  totalItems={meta.totalItems}
-                  itemsPerPage={meta.itemsPerPage}
-                />
-              </div>
-            )}
-          </>
-        )}
-        {activeTab === "aging" && (
-          <AgingTable data={agingData} isLoading={agingQuery.isLoading} />
-        )}
-        {activeTab === "waste" && (
-          <WasteReportView data={wasteData} isLoading={wasteQuery.isLoading} />
-        )}
-      </section>
+                        {/* Pagination */}
+                        {!isTableLoading && meta.totalPages > 1 && (
+                            <div className="border-t border-slate-100 px-6 py-4 bg-slate-50/50">
+                                <BasePagination
+                                    currentPage={meta.currentPage}
+                                    totalPages={meta.totalPages}
+                                    onPageChange={handlePageChange}
+                                    totalItems={meta.totalItems}
+                                    itemsPerPage={meta.itemsPerPage}
+                                />
+                            </div>
+                        )}
+                    </>
+                )}
+                {activeTab === "aging" && (
+                    <AgingTable data={agingData} isLoading={agingQuery.isLoading} />
+                )}
+                {activeTab === "waste" && (
+                    <WasteReportView data={wasteData} isLoading={wasteQuery.isLoading || wasteSummaryQuery.isLoading} />
+                )}
+            </section>
 
       {/* Adjust Stock Modal */}
       <AdjustStockModal

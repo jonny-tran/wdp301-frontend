@@ -1,8 +1,8 @@
 import http from "@/lib/http";
-import { FinancialLossQueryType, InventoryAgingQueryType, InventoryWasteQueryType } from "@/schemas/analytics";
-import { InventoryAdjustBodyType } from "@/schemas/inventory";
+import { FinancialLossQueryType, InventoryAgingQueryType, InventoryWasteQueryType, InventoryWasteReportQueryType } from "@/schemas/analytics";
+import { InventoryAdjustBodyType, InventoryWasteBodyType } from "@/schemas/inventory";
 import { BaseResponsePagination } from "@/types/base";
-import { FinancialLossImpact, InventoryAgingReport, InventoryAnalyticsSummary, InventoryStoreItem, InventorySummaryItem, InventoryTransaction, InventoryWasteReport, KitchenDetail, KitchSummary, LowStockItem, QueryInventory, QueryInventorySummary, QueryInventoryTransaction, QueryKitchen } from "@/types/inventory";
+import { FinancialLossImpact, InventoryAgingReport, InventoryAnalyticsSummary, InventoryStoreItem, InventorySummaryItem, InventoryTransaction, InventoryWasteReportDetail, InventoryWasteSummary, KitchenDetail, KitchSummary, LowStockItem, QueryInventory, QueryInventorySummary, QueryInventoryTransaction, QueryKitchen } from "@/types/inventory";
 import { ENDPOINT_CLIENT } from "@/utils/endponit";
 
 export const inventoryRequest = {
@@ -26,6 +26,9 @@ export const inventoryRequest = {
     // POST /inventory/adjust
     adjustInventory: (data: InventoryAdjustBodyType) => http.post<InventoryTransaction>(ENDPOINT_CLIENT.INVENTORY_ADJUST, data),
 
+    // POST /inventory/waste
+    reportWaste: (data: InventoryWasteBodyType) => http.post<unknown>(ENDPOINT_CLIENT.INVENTORY_WASTE_CREATE, data),
+
 
     // GET /inventory/kitchen/summary
     getKitchenSummary: (query: QueryKitchen) => http.get<BaseResponsePagination<KitchSummary>>(ENDPOINT_CLIENT.INVENTORY_KITCHEN_SUMMARY, { query }),
@@ -39,8 +42,11 @@ export const inventoryRequest = {
     getInventoryAgingReport: (params: InventoryAgingQueryType) =>
         http.get<InventoryAgingReport>(ENDPOINT_CLIENT.INVENTORY_AGING, { query: params }),
 
-    getInventoryWasteReport: (params: InventoryWasteQueryType) =>
-        http.get<InventoryWasteReport>(ENDPOINT_CLIENT.INVENTORY_WASTE, { query: params }),
+    getInventoryWasteSummary: (params: InventoryWasteQueryType) =>
+        http.get<InventoryWasteSummary>(ENDPOINT_CLIENT.INVENTORY_WASTE, { query: params }),
+
+    getInventoryWasteReport: (params: InventoryWasteReportQueryType) =>
+        http.get<InventoryWasteReportDetail>(ENDPOINT_CLIENT.INVENTORY_WASTE_REPORT, { query: params }),
 
     getFinancialLossImpact: (params: FinancialLossQueryType) =>
         http.get<FinancialLossImpact>(ENDPOINT_CLIENT.FINANCIAL_LOSS, { query: params }),

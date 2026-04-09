@@ -85,3 +85,47 @@ export type QueryPickingTask = BaseRequestPagination & {
     search?: string;
     sortBy?: string;
 };
+
+/** Xe phục vụ gom manifest — payload theo kg */
+export type VehicleListItem = {
+    id: string;
+    plateNumber?: string;
+    name?: string;
+    payloadCapacity: number;
+    payloadVolumeM3?: number;
+};
+
+export type ConsolidateManifestResult = {
+    manifestId?: string;
+    message?: string;
+    overloadWarning?: boolean;
+};
+
+export type ManifestPickingListItem = {
+    manifestItemId: string;
+    productId?: number;
+    productName: string;
+    batchCode: string;
+    requiredQty: number;
+    pickedQty?: number;
+    unit?: string;
+    qrCode?: string;
+    actualBatchId?: number | null;
+};
+
+export type ManifestPickingList = {
+    manifestId: string;
+    status?: string;
+    items: ManifestPickingListItem[];
+};
+
+export type ManifestVerifyItemBody = {
+    manifestItemId: string;
+    batchCode: string;
+};
+
+export type ManifestDepartResult = {
+    manifestId?: string;
+    status?: string;
+    message?: string;
+};

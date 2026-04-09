@@ -24,12 +24,22 @@ export const ENDPOINT_CLIENT = {
     CREATE_ORDER: '/orders',
     MY_STORE_ORDER: '/orders/my-store',
     ORDER_REVIEW: (id: string) => `/orders/coordinator/${id}/review`,
+    ORDER_APPROVAL_SUGGESTION: (id: string) => `/orders/coordinator/${id}/approval-suggestion`,
     APPROVE_ORDER: (id: string) => `/orders/coordinator/${id}/approve`,
+    /** SC — yêu cầu bếp sản xuất thêm (đơn → waiting_for_production) */
+    ORDER_REQUEST_PRODUCTION: (id: string) => `/orders/coordinator/${id}/request-production`,
     REJECT_ORDER: (id: string) => `/orders/coordinator/${id}/reject`,
     CANCEL_ORDER: (id: string) => `/orders/franchise/${id}/cancel`,
     ORDER_DETAIL: (id: string) => `/orders/${id}`,
+    /** Bếp — phản hồi yêu cầu sản xuất (accept | reject) */
+    ORDER_KITCHEN_PRODUCTION_RESPONSE: (id: string) => `/orders/kitchen/${id}/production-response`,
     ORDER_FILL_RATE: '/orders/analytics/fulfillment-rate',
     ORDER_SLA_LEAD_TIME: '/orders/analytics/performance/lead-time',
+
+    // Coordination Hub (ORD-OPTIMIZE)
+    ORDER_COORDINATION_SUMMARY: '/orders/coordination/summary',
+    ORDER_COORDINATION_INQUIRY: '/orders/coordination/inquiry',
+    ORDER_COORDINATION_BATCH_APPROVE: '/orders/coordination/batch-approve',
 
     // Claims
     CLAIMS: '/claims',
@@ -62,6 +72,8 @@ export const ENDPOINT_CLIENT = {
     INVENTORY_ANALYTICS_SUMMARY: '/inventory/analytics/summary',
     INVENTORY_AGING: '/inventory/analytics/aging',
     INVENTORY_WASTE: '/inventory/analytics/waste',
+    INVENTORY_WASTE_REPORT: '/inventory/analytics/waste-report',
+    INVENTORY_WASTE_CREATE: '/inventory/waste',
     FINANCIAL_LOSS: '/inventory/analytics/financial/loss-impact',
 
     // Products
@@ -99,6 +111,13 @@ export const ENDPOINT_CLIENT = {
     WAREHOUSE_SHIPMENT_LABEL: (id: string) => `/warehouse/shipments/${id}/label`,
     WAREHOUSE_SCAN_CHECK: '/warehouse/scan-check',
     WAREHOUSE_REPORT_ISSUE: '/warehouse/batch/report-issue',
+    /** Gom đơn cùng route + kiểm tải trọng xe (SC / Manager / Admin) */
+    WAREHOUSE_MANIFEST_CONSOLIDATE: '/warehouse/manifest/consolidate',
+    WAREHOUSE_MANIFEST_PICKING_LIST: (id: string) => `/warehouse/manifests/${id}/picking-list`,
+    WAREHOUSE_MANIFEST_VERIFY_ITEM: (id: string) => `/warehouse/manifests/${id}/verify-item`,
+    WAREHOUSE_MANIFEST_DEPART: (id: string) => `/warehouse/manifests/${id}/depart`,
+    /** Danh sách xe phục vụ consolidate */
+    WAREHOUSE_VEHICLES: '/vehicles',
 
     // Inbound
     INBOUND_RECEIPTS: '/inbound/receipts',
@@ -130,4 +149,5 @@ export const ENDPOINT_CLIENT = {
     PRODUCTION_ORDER_DETAIL: (id: string) => `/production/orders/${id}`,
     PRODUCTION_ORDER_START: (id: string) => `/production/orders/${id}/start`,
     PRODUCTION_ORDER_COMPLETE: (id: string) => `/production/orders/${id}/complete`,
+    PRODUCTION_ORDER_CANCEL: (id: string) => `/production/orders/${id}/cancel`,
 }

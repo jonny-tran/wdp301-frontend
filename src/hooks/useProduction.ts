@@ -3,6 +3,8 @@
 import { productionRequest } from "@/apiRequest/production";
 import { handleErrorApi } from "@/lib/errors";
 import {
+    CancelProductionOrderBodySchema,
+    CancelProductionOrderBodyType,
     CompleteProductionBodyType,
     CreateProductionOrderBodyType,
     CreateRecipeApiBody,
@@ -128,6 +130,22 @@ export function useProduction() {
         },
     });
 
+    const cancelProductionOrder = useMutation({
+        mutationFn: async ({ id, body }: { id: string; body: CancelProductionOrderBodyType }) => {
+            const parsed = CancelProductionOrderBodySchema.parse(body);
+            const res = await productionRequest.cancelOrder(id, parsed);
+            return res.data;
+        },
+        onSuccess: () => {
+            toast.success("Đã từ chối lệnh sản xuất");
+            void queryClient.invalidateQueries({ queryKey: KEY.production });
+            void queryClient.invalidateQueries({ queryKey: KEY.inventory });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
+
     const createRecipe = useMutation({
         mutationFn: async (body: CreateRecipeApiBody) => {
             const res = await productionRequest.createRecipe(body);
@@ -177,6 +195,7 @@ export function useProduction() {
         productionRecipeDetail,
         createProductionOrder,
         startProductionOrder,
+        cancelProductionOrder,
         completeProductionOrder,
         createRecipe,
         updateRecipe,
