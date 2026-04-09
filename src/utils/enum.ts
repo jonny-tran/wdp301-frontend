@@ -35,6 +35,8 @@ export enum OrderStatus {
 
 export enum ShipmentStatus {
     PREPARING = 'preparing',     // Đang chuẩn bị
+    CONSOLIDATED = 'consolidated',
+    DEPARTED = 'departed',
     IN_TRANSIT = 'in_transit',   // Đang vận chuyển
     DELIVERED = 'delivered',     // Đã giao hàng
     COMPLETED = 'completed',     // Hoàn thành
@@ -50,7 +52,9 @@ export enum TransactionType {
     IMPORT = 'import',           // Nhập kho
     EXPORT = 'export',           // Xuất kho
     WASTE = 'waste',             // Hao hụt
-    ADJUSTMENT = 'adjustment'    // Điều chỉnh
+    ADJUSTMENT = 'adjustment',   // Điều chỉnh
+    RESERVATION = 'reservation',
+    PRODUCTION_CONSUME = 'production_consume'
 }
 export enum ReceiptStatus {
     DRAFT = 'draft',             // Nháp (đang soạn)

@@ -3,12 +3,16 @@ import {
     CancelPickingTaskBodyType,
     ConsolidateManifestBodyType,
     FinalizeBulkShipmentBodyType,
+    ManifestVerifyItemBodyType,
     ReportIssueBodyType,
 } from "@/schemas/warehouse";
 import { BaseResponsePagination } from "@/types/base";
 import {
     ConsolidateManifestResult,
     IssueReport,
+    ManifestDepartResult,
+    ManifestPickingList,
+    ManifestPickingListItem,
     PickingTaskDetail,
     PickingTaskListItem,
     QueryPickingTask,
@@ -145,8 +149,8 @@ export const warehouseRequest = {
 
     parseShipmentLabel: (raw: unknown): ShipmentLabel => unwrapData(raw) as ShipmentLabel,
 
-    /** GET /warehouse/vehicles — đối chiếu Swagger nếu 404 */
-    getVehicles: () => http.get<unknown>(ENDPOINT_CLIENT.WAREHOUSE_VEHICLES),
+    /** GET /vehicles?status=available */
+    getVehicles: () => http.get<unknown>(ENDPOINT_CLIENT.WAREHOUSE_VEHICLES, { query: { status: "available" } }),
 
     parseVehiclesList: (raw: unknown): VehicleListItem[] => {
         const root = unwrapData<unknown>(raw);
@@ -160,6 +164,7 @@ export const warehouseRequest = {
             const r = row as Record<string, unknown>;
             const idRaw = r.id ?? r.vehicleId ?? r.vehicle_id;
             const cap = Number(r.payloadCapacity ?? r.payload_capacity ?? r.maxPayloadKg ?? r.capacity ?? 0);
+            const capVol = Number(r.payloadVolumeM3 ?? r.payload_volume_m3 ?? r.maxPayloadVolumeM3 ?? r.capacityVolumeM3 ?? 0);
             return {
                 id: idRaw != null ? String(idRaw) : "",
                 plateNumber:
@@ -172,6 +177,7 @@ export const warehouseRequest = {
                             : undefined,
                 name: r.name != null ? String(r.name) : undefined,
                 payloadCapacity: Number.isFinite(cap) ? cap : 0,
+                payloadVolumeM3: Number.isFinite(capVol) && capVol > 0 ? capVol : undefined,
             };
         }).filter((v) => v.id !== "");
     },
@@ -189,6 +195,66 @@ export const warehouseRequest = {
                     : o.manifest_id != null
                       ? String(o.manifest_id)
                       : undefined,
+            message: o.message != null ? String(o.message) : undefined,
+            overloadWarning:
+                o.overloadWarning != null
+                    ? Boolean(o.overloadWarning)
+                    : o.overload_warning != null
+                      ? Boolean(o.overload_warning)
+                      : undefined,
+        };
+    },
+
+    getManifestPickingList: (manifestId: string) =>
+        http.get<unknown>(ENDPOINT_CLIENT.WAREHOUSE_MANIFEST_PICKING_LIST(manifestId)),
+
+    verifyManifestItem: (manifestId: string, body: ManifestVerifyItemBodyType) =>
+        http.patch<unknown>(ENDPOINT_CLIENT.WAREHOUSE_MANIFEST_VERIFY_ITEM(manifestId), body),
+
+    departManifest: (manifestId: string) =>
+        http.post<unknown>(ENDPOINT_CLIENT.WAREHOUSE_MANIFEST_DEPART(manifestId), {}),
+
+    parseManifestPickingList: (raw: unknown, manifestId: string): ManifestPickingList => {
+        const root = unwrapData<Record<string, unknown>>(raw);
+        const rows = (root.items ?? root.data ?? root.lines) as unknown;
+        const items: ManifestPickingListItem[] = Array.isArray(rows)
+            ? rows.map((it, idx) => {
+                  const r = it as Record<string, unknown>;
+                  return {
+                      manifestItemId: String(r.manifestItemId ?? r.id ?? idx),
+                      productId: r.productId != null ? Number(r.productId) : undefined,
+                      productName: String(r.productName ?? r.product_name ?? "—"),
+                      batchCode: String(r.batchCode ?? r.batch_code ?? "—"),
+                      requiredQty: Number(r.requiredQty ?? r.required_qty ?? r.quantity ?? 0),
+                      pickedQty: r.pickedQty != null ? Number(r.pickedQty) : r.picked_qty != null ? Number(r.picked_qty) : undefined,
+                      unit: r.unit != null ? String(r.unit) : undefined,
+                      qrCode: r.qrCode != null ? String(r.qrCode) : r.qr_code != null ? String(r.qr_code) : undefined,
+                      actualBatchId:
+                          r.actualBatchId != null
+                              ? Number(r.actualBatchId)
+                              : r.actual_batch_id != null
+                                ? Number(r.actual_batch_id)
+                                : null,
+                  };
+              })
+            : [];
+        return {
+            manifestId: String(root.manifestId ?? root.id ?? manifestId),
+            status: root.status != null ? String(root.status) : undefined,
+            items,
+        };
+    },
+
+    parseManifestDepartResult: (raw: unknown): ManifestDepartResult => {
+        const o = unwrapData<Record<string, unknown>>(raw);
+        return {
+            manifestId:
+                o.manifestId != null
+                    ? String(o.manifestId)
+                    : o.manifest_id != null
+                      ? String(o.manifest_id)
+                      : undefined,
+            status: o.status != null ? String(o.status) : undefined,
             message: o.message != null ? String(o.message) : undefined,
         };
     },

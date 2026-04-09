@@ -24,16 +24,14 @@ import BatchDetailTable from "./BatchDetailTable";
 
 function KitchenExpandBatches({
   productId,
-  productName,
   unit,
   onAdjust,
-  onSalvageBatch,
+  onWaste,
 }: {
   productId: number;
-  productName: string;
   unit: string;
   onAdjust: (batch: KitchenBatchRow) => void;
-  onSalvageBatch?: (ctx: { productId: number; productName: string; batch: KitchenBatchRow }) => void;
+  onWaste?: (batch: KitchenBatchRow) => void;
 }) {
   const { kitchenDetails } = useInventory();
   const q = kitchenDetails(productId);
@@ -44,9 +42,7 @@ function KitchenExpandBatches({
       isError={q.isError}
       unit={unit}
       onAdjust={onAdjust}
-      onSalvage={
-        onSalvageBatch ? (batch) => onSalvageBatch({ productId, productName, batch }) : undefined
-      }
+      onWaste={onWaste}
     />
   );
 }
@@ -61,7 +57,7 @@ interface InventorySummaryTableProps {
     unit: string;
     batch: KitchenBatchRow;
   }) => void;
-  onSalvageBatch?: (payload: { productId: number; productName: string; batch: KitchenBatchRow }) => void;
+  onReportWasteBatch?: (payload: { productId: number; productName: string; unit: string; batch: KitchenBatchRow }) => void;
   onAdjustProduct: (product: KitchSummary) => void;
   isLoading: boolean;
   isError: boolean;
@@ -72,7 +68,7 @@ export default function InventorySummaryTable({
   expandedProductIds,
   onToggleExpand,
   onAdjustBatch,
-  onSalvageBatch,
+  onReportWasteBatch,
   onAdjustProduct,
   isLoading,
   isError,
@@ -268,12 +264,21 @@ export default function InventorySummaryTable({
                     <TableCell colSpan={colSpan} className="p-0">
                       <KitchenExpandBatches
                         productId={item.productId}
-                        productName={item.productName}
                         unit={item.unit}
                         onAdjust={(batch) =>
                           handleAdjustFromSubtable(item, batch)
                         }
-                        onSalvageBatch={onSalvageBatch}
+                        onWaste={
+                          onReportWasteBatch
+                            ? (batch) =>
+                                onReportWasteBatch({
+                                  productId: item.productId,
+                                  productName: item.productName,
+                                  unit: item.unit,
+                                  batch,
+                                })
+                            : undefined
+                        }
                       />
                     </TableCell>
                   </TableRow>

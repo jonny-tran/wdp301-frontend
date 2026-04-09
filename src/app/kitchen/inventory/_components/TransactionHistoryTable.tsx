@@ -3,7 +3,6 @@
 import { FileText } from "lucide-react";
 import { BasePagination } from "@/components/layout/BasePagination";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { InventoryTransactionLogItem } from "@/types/inventory";
 import type { PaginationMeta } from "@/app/kitchen/_components/query";
 
@@ -59,40 +58,29 @@ export default function TransactionHistoryTable({
 
     return (
         <div className="space-y-4">
-            <Table>
-                <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                        <TableHead>Thời gian</TableHead>
-                        <TableHead>Loại</TableHead>
-                        <TableHead>Sản phẩm</TableHead>
-                        <TableHead>Mã lô</TableHead>
-                        <TableHead className="text-right">Số lượng</TableHead>
-                        <TableHead>Ghi chú / tham chiếu</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {items.map((row) => (
-                        <TableRow key={row.transactionId}>
-                            <TableCell className="whitespace-nowrap text-xs text-slate-600">
-                                {formatWhen(row.date)}
-                            </TableCell>
-                            <TableCell>
-                                <Badge variant="outline" className="font-mono text-[10px] uppercase">
-                                    {row.type || "—"}
-                                </Badge>
-                            </TableCell>
-                            <TableCell className="max-w-[200px] truncate font-medium">{row.productName || "—"}</TableCell>
-                            <TableCell className="font-mono text-xs">{row.batchCode || "—"}</TableCell>
-                            <TableCell
-                                className={`text-right tabular-nums font-semibold ${row.quantity < 0 ? "text-red-600" : "text-emerald-700"}`}
-                            >
+            <div className="space-y-3">
+                {items.map((row) => (
+                    <div key={row.transactionId} className="rounded-xl border border-slate-200 bg-white p-3">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="text-xs text-slate-600">{formatWhen(row.date)}</p>
+                            <Badge variant="outline" className="font-mono text-[10px] uppercase">
+                                {row.type || "—"}
+                            </Badge>
+                        </div>
+                        <div className="mt-2 text-sm font-semibold text-slate-900">{row.productName || "—"}</div>
+                        <div className="mt-1 text-xs text-slate-600">
+                            Lô: <span className="font-mono">{row.batchCode || "—"}</span>
+                        </div>
+                        <div className="mt-1 text-xs">
+                            Số lượng:{" "}
+                            <span className={`font-bold tabular-nums ${row.quantity < 0 ? "text-red-600" : "text-emerald-700"}`}>
                                 {row.quantity > 0 ? `+${row.quantity}` : row.quantity}
-                            </TableCell>
-                            <TableCell className="max-w-[280px] truncate text-xs text-slate-600">{row.note || "—"}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+                            </span>
+                        </div>
+                        <p className="mt-1 text-xs text-slate-600">{row.note || "—"}</p>
+                    </div>
+                ))}
+            </div>
 
             <div className="border-t border-slate-100 pt-4">
                 <BasePagination

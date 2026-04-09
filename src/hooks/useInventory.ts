@@ -1,12 +1,13 @@
 'use client'
 import { inventoryRequest } from "@/apiRequest/inventory";
+import { handleErrorApi } from "@/lib/errors";
 import {
     normalizeInventoryTransactionLogItem,
     normalizeKitchenDetailFromApi,
     normalizeKitchSummary,
 } from "@/lib/kitchen-inventory-mapper";
-import { FinancialLossQueryType, InventoryAgingQueryType, InventoryWasteQueryType } from "@/schemas/analytics";
-import { InventoryAdjustBodyType } from "@/schemas/inventory";
+import { FinancialLossQueryType, InventoryAgingQueryType, InventoryWasteQueryType, InventoryWasteReportQueryType } from "@/schemas/analytics";
+import { InventoryAdjustBodyType, InventoryWasteBodySchema, InventoryWasteBodyType } from "@/schemas/inventory";
 import { QueryInventory, QueryInventorySummary, QueryInventoryTransaction, QueryKitchen } from "@/types/inventory";
 import { KEY, QUERY_KEY } from "@/utils/constant";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -24,6 +25,21 @@ export const useInventory = () => {
             queryClient.invalidateQueries({ queryKey: KEY.inventory })
         },
     })
+
+    const reportWaste = useMutation({
+        mutationFn: async (data: InventoryWasteBodyType) => {
+            const parsed = InventoryWasteBodySchema.parse(data);
+            const res = await inventoryRequest.reportWaste(parsed);
+            return res.data;
+        },
+        onSuccess: () => {
+            toast.success("Đã ghi nhận báo hủy lô");
+            queryClient.invalidateQueries({ queryKey: KEY.inventory });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
 
     const inventoryStore = (query: QueryInventory) => {
         return useQuery({
@@ -128,6 +144,16 @@ export const useInventory = () => {
         return useQuery({
             queryKey: QUERY_KEY.analytics.inventoryWaste(query),
             queryFn: async () => {
+                const res = await inventoryRequest.getInventoryWasteSummary(query)
+                return res.data
+            }
+        })
+    }
+
+    const inventoryWasteDetailReport = (query: InventoryWasteReportQueryType) => {
+        return useQuery({
+            queryKey: QUERY_KEY.analytics.inventoryWasteDetail(query),
+            queryFn: async () => {
                 const res = await inventoryRequest.getInventoryWasteReport(query)
                 return res.data
             }
@@ -146,6 +172,7 @@ export const useInventory = () => {
 
     return {
         adjustInventory,
+        reportWaste,
         inventoryStore,
         inventoryTransaction,
         inventoryTransactions,
@@ -156,6 +183,7 @@ export const useInventory = () => {
         inventoryAnalyticsSummary,
         inventoryAgingReport,
         inventoryWasteReport,
+        inventoryWasteDetailReport,
         financialLossImpact
     }
 }

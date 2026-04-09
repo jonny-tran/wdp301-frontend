@@ -1,7 +1,7 @@
 "use client";
 
 import { endOfDay, isWithinInterval, startOfDay } from "date-fns";
-import { Activity, BookOpen, History, Inbox, Package, Percent, Scale } from "lucide-react";
+import { Activity, BookOpen, History, Package, Percent, Scale } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -26,9 +26,7 @@ import ProductionOrderTable from "./ProductionOrderTable";
 import RejectProductionModal from "./RejectProductionModal";
 import RecipeDetail from "./RecipeDetail";
 import RecipeList from "./RecipeList";
-import SupplyKitchenRequestsPanel from "./SupplyKitchenRequestsPanel";
-
-type MainTab = "orders" | "recipes" | "history" | "supply_requests";
+type MainTab = "orders" | "recipes" | "history";
 
 type OrderStatusFilter = "ALL" | "DRAFT" | "PENDING" | "IN_PROGRESS" | "COMPLETED";
 
@@ -367,7 +365,6 @@ export default function ProductionClient() {
                 {(
                     [
                         { id: "orders" as const, label: "Lệnh sản xuất", icon: Activity },
-                        { id: "supply_requests" as const, label: "Yêu cầu Điều phối", icon: Inbox },
                         { id: "recipes" as const, label: "Công thức", icon: BookOpen },
                         { id: "history" as const, label: "Lịch sử", icon: History },
                     ] as const
@@ -387,8 +384,6 @@ export default function ProductionClient() {
                     </button>
                 ))}
             </div>
-
-            {mainTab === "supply_requests" && <SupplyKitchenRequestsPanel />}
 
             {mainTab === "orders" && (
                 <div className="space-y-4">

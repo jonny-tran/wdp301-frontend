@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
 import { CoordinationBatchApproveSchema, CoordinationInquirySchema } from "@/schemas/coordination";
+import type { CoordinationSummaryItem } from "@/types/coordination";
 import { toast } from "sonner";
 import { handleErrorApi } from "@/lib/errors";
 
@@ -58,7 +59,11 @@ export default function CoordinationHubClient() {
             ...(coordinatingQuery.data?.items ?? []),
             ...(waitingQuery.data?.items ?? []),
         ] as Order[];
-        return all.filter((o) => String(o.deliveryDate ?? "").slice(0, 10) === String(deliveryDate));
+        const byId = new Map<string, Order>();
+        all.forEach((o) => {
+            if (o?.id) byId.set(o.id, o);
+        });
+        return [...byId.values()].filter((o) => String(o.deliveryDate ?? "").slice(0, 10) === String(deliveryDate));
     }, [pendingQuery.data?.items, coordinatingQuery.data?.items, waitingQuery.data?.items, deliveryDate]);
 
     const summaryQuery = useQuery({
@@ -194,7 +199,7 @@ export default function CoordinationHubClient() {
                             </tr>
                         </thead>
                         <tbody>
-                            {(summaryQuery.data?.items ?? []).map((row: any) => {
+                            {(summaryQuery.data?.items ?? []).map((row: CoordinationSummaryItem) => {
                                 const shortage = Number(row.shortage ?? 0);
                                 const isShort = shortage > 0;
                                 return (
@@ -384,22 +389,28 @@ export default function CoordinationHubClient() {
                                                     return res.data as unknown as OrderDetail;
                                                 }),
                                             );
-                                            const orderApprovals = details.map((d: any) => {
+                                            const orderApprovals = details.map((d) => {
                                                 const orderId = String(d.id);
-                                                const items = (Array.isArray(d.items) ? d.items : []).map((it: any) => {
+                                                const items = (Array.isArray(d.items) ? d.items : []).map((it) => {
                                                     const requested = Number(it.quantityRequested ?? 0);
                                                     const approved = Math.min(
                                                         requested,
                                                         Math.floor((requested * allocationPercentage) / 100),
                                                     );
                                                     return {
-                                                        orderItemId: String(it.id),
+                                                        orderItemId: Number(it.id),
                                                         quantityApproved: approved,
                                                     };
                                                 });
                                                 return { orderId, items };
                                             });
-                                            batchApproveMutation.mutate({ deliveryDate, orderApprovals });
+                                            batchApproveMutation.mutate({
+                                                deliveryDate,
+                                                orderApprovals,
+                                                force_approve: true,
+                                                price_acknowledged: true,
+                                                production_confirm: true,
+                                            });
                                         } catch (error) {
                                             handleErrorApi({ error });
                                         }
@@ -424,13 +435,13 @@ export default function CoordinationHubClient() {
                         productName: inquiryTarget.productName,
                         quantity: inquiryTarget.shortageQuantity,
                     }}
-                        isPending={inquiryMutation.isPending}
+                    isPending={inquiryMutation.isPending}
                     onClose={() => setInquiryTarget(null)}
-                        onSubmit={(payload) =>
-                            inquiryMutation.mutate(payload, {
-                                onSuccess: () => setInquiryTarget(null),
-                            })
-                        }
+                    onSubmit={(payload) =>
+                        inquiryMutation.mutate(payload, {
+                            onSuccess: () => setInquiryTarget(null),
+                        })
+                    }
                 />
             )}
         </div>

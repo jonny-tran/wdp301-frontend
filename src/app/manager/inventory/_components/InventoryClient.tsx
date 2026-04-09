@@ -33,7 +33,14 @@ export type InventoryDisplayItem = InventoryRowItem & {
 };
 
 interface ResponseWrapper<T> {
-    data?: { items?: T[]; meta?: unknown; buckets?: AgingBuckets; kpi?: WasteKpi; details?: WasteDetail[] };
+    data?: {
+        items?: T[];
+        meta?: unknown;
+        buckets?: AgingBuckets;
+        kpi?: WasteKpi;
+        details?: WasteDetail[];
+        data?: WasteDetail[];
+    };
     items?: T[];
     meta?: unknown;
     buckets?: AgingBuckets;
@@ -134,6 +141,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
         lowStock,
         inventoryAgingReport,
         inventoryWasteReport,
+        inventoryWasteDetailReport,
         inventoryAnalyticsSummary,
         financialLossImpact,
         kitchenDetails,
@@ -149,9 +157,13 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
     const lowStockQuery = lowStock(parsedQuery.warehouseId);
 
     const agingQuery = inventoryAgingReport({ daysThreshold: 30 });
-    const wasteQuery = inventoryWasteReport({
+    const wasteSummaryQuery = inventoryWasteReport({
         fromDate: "2026-01-01",
         toDate: "2026-12-31",
+    });
+    const wasteQuery = inventoryWasteDetailReport({
+        startDate: "2026-01-01",
+        endDate: "2026-12-31",
     });
 
     const { data: rawStats } = inventoryAnalyticsSummary();
@@ -211,12 +223,23 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
     }, [agingQuery.data]);
 
     const wasteData = useMemo(() => {
-        const wasteRaw = wasteQuery.data as ResponseWrapper<unknown> | undefined;
-        const data = wasteRaw?.data || wasteRaw;
-        const kpi = data?.kpi || { totalWastedQuantity: 0, period: "N/A" };
-        const details = Array.isArray(data?.details) ? data.details : [];
+        const summaryRaw = wasteSummaryQuery.data as ResponseWrapper<unknown> | undefined;
+        const reportRaw = wasteQuery.data as ResponseWrapper<unknown> | undefined;
+        const summaryData = summaryRaw?.data || summaryRaw;
+        const reportData = reportRaw?.data || reportRaw;
+
+        const kpi = {
+            totalWastedQuantity:
+                Number((reportData?.kpi as { totalWasteQuantity?: number } | undefined)?.totalWasteQuantity ?? 0),
+            period: String((summaryData?.kpi as { period?: string } | undefined)?.period ?? "N/A"),
+        };
+        const details = Array.isArray(reportData?.details)
+            ? reportData.details
+            : Array.isArray(reportRaw?.data?.data)
+              ? reportRaw.data.data
+              : [];
         return { kpi, details };
-    }, [wasteQuery.data]);
+    }, [wasteQuery.data, wasteSummaryQuery.data]);
 
     // ── 4. Handlers ──
     const handlePageChange = (nextPage: number) => {
@@ -302,7 +325,7 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                     <AgingTable data={agingData} isLoading={agingQuery.isLoading} />
                 )}
                 {activeTab === "waste" && (
-                    <WasteReportView data={wasteData} isLoading={wasteQuery.isLoading} />
+                    <WasteReportView data={wasteData} isLoading={wasteQuery.isLoading || wasteSummaryQuery.isLoading} />
                 )}
             </section>
 

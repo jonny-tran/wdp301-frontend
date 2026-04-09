@@ -26,7 +26,7 @@ export type CoordinationInquiryResult = {
     productionOrderId?: string;
 };
 
-export type CoordinationBatchApproveItem = { orderItemId: string; quantityApproved: number };
+export type CoordinationBatchApproveItem = { orderItemId: number; quantityApproved: number };
 
 export type CoordinationBatchApproveOrder = {
     orderId: string;
@@ -36,6 +36,9 @@ export type CoordinationBatchApproveOrder = {
 export type CoordinationBatchApproveBody = {
     deliveryDate: string;
     orderApprovals: CoordinationBatchApproveOrder[];
+    force_approve?: boolean;
+    price_acknowledged?: boolean;
+    production_confirm?: boolean;
 };
 
 export type CoordinationBatchApproveResult = {

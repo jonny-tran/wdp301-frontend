@@ -139,6 +139,9 @@ export type Product = {
     /** Khối lượng một đơn vị (kg) — phục vụ tính tải manifest */
     weightKg?: number | null;
     weight_kg?: number | null;
+    /** Thể tích một đơn vị (m3) — phục vụ tính tải manifest */
+    volumeM3?: number | null;
+    volume_m3?: number | null;
 }
 
 export type Store = {

@@ -183,6 +183,7 @@ export const QUERY_KEY = {
         shipmentLabel: (id: string) => [...KEY.warehouse, 'shipment-label', id] as const,
         scanCheckBatch: (batchCode: string) => [...KEY.warehouse, 'scan-check-batch', batchCode] as const,
         vehicles: () => [...KEY.warehouse, 'vehicles'] as const,
+        manifestPickingList: (id: string) => [...KEY.warehouse, 'manifest-picking-list', id] as const,
     },
 
     // ======================
@@ -194,6 +195,8 @@ export const QUERY_KEY = {
         storeDemandPattern: (params: StoreDemandPatternQueryType) => [...KEY.analytics, 'store-demand-pattern', params] as const,
         inventoryAging: (params: InventoryAgingQueryType) => [...KEY.analytics, 'inventory-aging', params] as const,
         inventoryWaste: (params: InventoryWasteQueryType) => [...KEY.analytics, 'inventory-waste', params] as const,
+        inventoryWasteDetail: (params: { startDate?: string; endDate?: string; warehouseId?: number }) =>
+            [...KEY.analytics, 'inventory-waste-detail', params] as const,
         financialLoss: (params: FinancialLossQueryType) => [...KEY.analytics, 'financial-loss', params] as const,
         claimSummary: (params: ClaimAnalyticsQueryType) => [...KEY.analytics, 'claim-summary', params] as const,
     },

@@ -120,5 +120,11 @@ export function normalizeInventoryTransactionLogItem(raw: unknown): InventoryTra
         quantity: parseDecimalLike(r.quantity ?? r.adjustmentQuantity ?? r.adjustment_quantity),
         date: String(r.date ?? r.createdAt ?? r.created_at ?? r.timestamp ?? ""),
         note: r.note != null ? String(r.note) : r.reference != null ? String(r.reference) : null,
+        evidenceImage:
+            r.evidenceImage != null
+                ? String(r.evidenceImage)
+                : r.evidence_image != null
+                  ? String(r.evidence_image)
+                  : null,
     };
 }

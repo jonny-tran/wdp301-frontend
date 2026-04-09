@@ -24,11 +24,14 @@ export const CoordinationBatchApproveSchema = z.object({
             orderId: z.string().min(1),
             items: z.array(
                 z.object({
-                    orderItemId: z.union([z.string(), z.number()]).transform(String),
+                    orderItemId: z.coerce.number().int().positive(),
                     quantityApproved: z.number().nonnegative(),
                 }),
             ),
         }),
     ),
+    force_approve: z.boolean().optional(),
+    price_acknowledged: z.boolean().optional(),
+    production_confirm: z.boolean().optional(),
 });
 

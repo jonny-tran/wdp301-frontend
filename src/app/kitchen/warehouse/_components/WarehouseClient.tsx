@@ -8,9 +8,11 @@ import {
 } from "@/app/kitchen/_components/query";
 import BaseFilter, { FilterConfig } from "@/components/layout/BaseFilter";
 import { BasePagination } from "@/components/layout/BasePagination";
+import Can from "@/components/shared/Can";
 import { useWarehouse } from "@/hooks/useWarehouse";
+import { P } from "@/lib/authz";
 import { handleErrorApi } from "@/lib/errors";
-import { KEY } from "@/utils/constant";
+import { KEY, Resource } from "@/utils/constant";
 import { ArrowPathIcon } from "@heroicons/react/24/outline";
 import { useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -128,7 +130,9 @@ export default function WarehouseClient({
 
       <BaseFilter filters={filterConfig} />
 
-      <ManifestConsolidatePanel />
+      <Can I={P.DELIVERY_SCHEDULE} on={Resource.DELIVERY}>
+        <ManifestConsolidatePanel />
+      </Can>
 
       <div className="rounded-3xl border border-gray-100 bg-white shadow-sm">
         <WarehouseTasksTable

@@ -6,8 +6,9 @@ import BaseFilter, { type FilterConfig } from "@/components/layout/BaseFilter";
 import { BasePagination } from "@/components/layout/BasePagination";
 import { useInventory } from "@/hooks/useInventory";
 import type { RawSearchParams } from "@/app/kitchen/_components/query";
-import type { KitchenBatchRow, KitchSummary } from "@/types/inventory";
+import type { KitchSummary } from "@/types/inventory";
 import { normalizeInventoryAgingReportFromApi } from "@/lib/kitchen-inventory-mapper";
+import { TransactionType } from "@/utils/enum";
 import {
     createPaginationSearchParams,
     normalizeKitchenInventoryMeta,
@@ -15,22 +16,15 @@ import {
 } from "./inventoryQuery";
 import InventoryStats from "./InventoryStats";
 import InventorySummaryTable from "./InventorySummaryTable";
-import SalvageBatchModal from "./SalvageBatchModal";
 import StockAdjustmentModal from "./StockAdjustmentModal";
+import TransactionHistoryTable from "./TransactionHistoryTable";
+import WasteReportModal from "./WasteReportModal";
 
 type AdjustContext = {
     productId: number;
     productName: string;
     unit: string;
     initialBatchId?: number | null;
-};
-
-type SalvageContext = {
-    batchId: number;
-    batchCode: string;
-    productId: number;
-    productName: string;
-    maxConsume: number;
 };
 
 interface InventoryClientProps {
@@ -46,11 +40,19 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
 
     const [adjustOpen, setAdjustOpen] = useState(false);
     const [adjustCtx, setAdjustCtx] = useState<AdjustContext | null>(null);
-    const [salvageCtx, setSalvageCtx] = useState<SalvageContext | null>(null);
+    const [auditTypeFilter, setAuditTypeFilter] = useState<"all" | "reservation" | "production_consume" | "waste">("all");
+    const [auditPage, setAuditPage] = useState(1);
+    const [wasteCtx, setWasteCtx] = useState<{
+        batchId: number;
+        batchCode: string;
+        productName: string;
+        unit: string;
+        physicalQuantity: number;
+    } | null>(null);
 
     const parsedQuery = useMemo(() => parseKitchenInventoryQuery(searchParams, { page: 1, limit: 10, sortOrder: "DESC" }), [searchParams]);
 
-    const { kitchenSummary, inventoryAgingReport } = useInventory();
+    const { kitchenSummary, inventoryAgingReport, inventoryTransactions } = useInventory();
 
     const listQuery = kitchenSummary({
         page: parsedQuery.page,
@@ -67,6 +69,15 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
     });
 
     const agingQuery = inventoryAgingReport({ daysThreshold: 7 });
+    const auditQuery = inventoryTransactions(
+        {
+            page: auditPage,
+            limit: 8,
+            sortOrder: "DESC",
+            ...(auditTypeFilter === "all" ? {} : { type: auditTypeFilter as TransactionType }),
+        },
+        { enabled: true },
+    );
 
     const summaryItems = listQuery.data?.items ?? [];
     const meta = useMemo(
@@ -217,15 +228,15 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                         onAdjustProduct={(p: KitchSummary) =>
                             openAdjust({ productId: p.productId, productName: p.productName, unit: p.unit })
                         }
-                        onSalvageBatch={({ productId, productName, batch }: { productId: number; productName: string; batch: KitchenBatchRow }) => {
-                            setSalvageCtx({
+                        onReportWasteBatch={({ productName, unit, batch }) =>
+                            setWasteCtx({
                                 batchId: batch.batchId,
                                 batchCode: batch.batchCode || `ID ${batch.batchId}`,
-                                productId,
                                 productName,
-                                maxConsume: Math.max(0, batch.availableQuantity),
-                            });
-                        }}
+                                unit,
+                                physicalQuantity: Number(batch.totalQuantity ?? 0),
+                            })
+                        }
                         isLoading={listQuery.isLoading}
                         isError={listQuery.isError}
                     />
@@ -237,6 +248,46 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                             onPageChange={handlePageChange}
                             totalItems={meta.totalItems}
                             itemsPerPage={meta.itemsPerPage}
+                        />
+                    </div>
+                </div>
+
+                <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-100 px-6 py-4">
+                        <h2 className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                            Audit log timeline
+                        </h2>
+                        <div className="flex items-center gap-2">
+                            <label className="text-xs text-zinc-600">Loại giao dịch</label>
+                            <select
+                                value={auditTypeFilter}
+                                onChange={(e) => {
+                                    setAuditTypeFilter(e.target.value as typeof auditTypeFilter);
+                                    setAuditPage(1);
+                                }}
+                                className="h-9 rounded-md border border-zinc-300 bg-white px-2 text-sm"
+                            >
+                                <option value="all">Tất cả</option>
+                                <option value="reservation">reservation</option>
+                                <option value="production_consume">production_consume</option>
+                                <option value="waste">waste</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="px-6 py-4">
+                        <TransactionHistoryTable
+                            items={auditQuery.data?.items ?? []}
+                            meta={
+                                normalizeKitchenInventoryMeta(
+                                    auditQuery.data?.meta,
+                                    auditPage,
+                                    8,
+                                    (auditQuery.data?.items ?? []).length,
+                                )
+                            }
+                            isLoading={auditQuery.isLoading}
+                            isError={auditQuery.isError}
+                            onPageChange={setAuditPage}
                         />
                     </div>
                 </div>
@@ -253,18 +304,17 @@ export default function InventoryClient({ searchParams }: InventoryClientProps) 
                     unit={adjustCtx?.unit ?? ""}
                     initialBatchId={adjustCtx?.initialBatchId}
                 />
-
-                {salvageCtx && (
-                    <SalvageBatchModal
+                {wasteCtx && (
+                    <WasteReportModal
                         open
                         onOpenChange={(o) => {
-                            if (!o) setSalvageCtx(null);
+                            if (!o) setWasteCtx(null);
                         }}
-                        batchId={salvageCtx.batchId}
-                        batchCode={salvageCtx.batchCode}
-                        productId={salvageCtx.productId}
-                        productName={salvageCtx.productName}
-                        maxConsume={salvageCtx.maxConsume}
+                        batchId={wasteCtx.batchId}
+                        batchCode={wasteCtx.batchCode}
+                        productName={wasteCtx.productName}
+                        unit={wasteCtx.unit}
+                        physicalQuantity={wasteCtx.physicalQuantity}
                     />
                 )}
             </div>

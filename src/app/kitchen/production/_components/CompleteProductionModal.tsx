@@ -22,7 +22,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { PRODUCTION_WASTE_PRESETS } from "@/schemas/production";
 import type { CompleteProductionBodyType } from "@/schemas/production";
 import { createCompleteProductionFormSchema } from "@/schemas/production";
 import type { ProductionOrder } from "@/types/production";
@@ -48,12 +47,12 @@ export default function CompleteProductionModal({
 
     const form = useForm<CompleteProductionBodyType>({
         resolver: zodResolver(schema) as import("react-hook-form").Resolver<CompleteProductionBodyType>,
-        defaultValues: { actualQuantity: target || undefined, wasteReason: "" },
+        defaultValues: { actualQuantity: target || undefined, surplusNote: "" },
     });
 
     const actual = form.watch("actualQuantity");
-    const shortfall =
-        typeof actual === "number" && Number.isFinite(actual) && target > 0 && actual < target - 1e-9;
+    const shortfall = typeof actual === "number" && Number.isFinite(actual) && target > 0 && actual < target - 1e-9;
+    const surplus = typeof actual === "number" && Number.isFinite(actual) && target > 0 && actual > target + 1e-9;
 
     // Computed wastage
     const wastageAmount = typeof actual === "number" && Number.isFinite(actual) && target > 0
@@ -70,23 +69,23 @@ export default function CompleteProductionModal({
         if (open && order) {
             form.reset({
                 actualQuantity: order.targetQuantity,
-                wasteReason: "",
+                surplusNote: "",
             });
         }
     }, [open, order, form]);
 
     useEffect(() => {
-        if (!shortfall) {
-            form.setValue("wasteReason", "");
+        if (!surplus) {
+            form.setValue("surplusNote", "");
         }
-    }, [shortfall, form]);
+    }, [surplus, form]);
 
     if (!order) return null;
 
     const handleConfirm = form.handleSubmit((values) => {
         onSubmit(order.id, {
             actualQuantity: values.actualQuantity,
-            wasteReason: values.wasteReason?.trim() || undefined,
+            surplusNote: values.surplusNote?.trim() || undefined,
         });
     });
 
@@ -164,33 +163,37 @@ export default function CompleteProductionModal({
                                 <div>
                                     <p className="font-semibold">Sản lượng thấp hơn kế hoạch</p>
                                     <p className="mt-0.5 text-xs text-amber-800">
-                                        Thiếu <span className="font-bold">{Math.round(wastageAmount * 100) / 100} {order.unit}</span> so với BOM chuẩn. Vui lòng chọn lý do hao hụt bên dưới.
+                                        Thiếu <span className="font-bold">{Math.round(wastageAmount * 100) / 100} {order.unit}</span> so với BOM chuẩn.
                                     </p>
                                 </div>
                             </div>
                         )}
 
-                        {shortfall && (
+                        {surplus && (
                             <FormField
                                 control={form.control}
-                                name="wasteReason"
+                                name="surplusNote"
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="text-sm font-bold text-amber-900">
-                                            Lý do hao hụt <span className="text-red-600">*</span>
+                                            Ghi chú sản lượng dư <span className="text-red-600">*</span>
                                         </FormLabel>
-                                        <Select value={field.value} onValueChange={field.onChange}>
+                                        <Select value={field.value || ""} onValueChange={field.onChange}>
                                             <FormControl>
                                                 <SelectTrigger className="h-14 w-full border-2 border-zinc-800 bg-white text-base font-semibold">
-                                                    <SelectValue placeholder="Chọn…" />
+                                                    <SelectValue placeholder="Chọn ghi chú dư..." />
                                                 </SelectTrigger>
                                             </FormControl>
                                             <SelectContent className="border-2 border-zinc-800">
-                                                {PRODUCTION_WASTE_PRESETS.map((o) => (
-                                                    <SelectItem key={o.value} value={o.value} className="py-3 text-base">
-                                                        {o.label}
-                                                    </SelectItem>
-                                                ))}
+                                                <SelectItem value="Output higher than plan due to process optimization" className="py-3 text-base">
+                                                    Quy trình tối ưu nên sản lượng cao hơn kế hoạch
+                                                </SelectItem>
+                                                <SelectItem value="Raw material variation increased output" className="py-3 text-base">
+                                                    Biến thiên nguyên liệu làm tăng sản lượng đầu ra
+                                                </SelectItem>
+                                                <SelectItem value="Manual adjustment after quality check" className="py-3 text-base">
+                                                    Điều chỉnh thủ công sau kiểm tra chất lượng
+                                                </SelectItem>
                                             </SelectContent>
                                         </Select>
                                         <FormMessage />

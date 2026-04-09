@@ -76,10 +76,10 @@ interface BatchDetailTableProps {
     isError: boolean;
     unit: string;
     onAdjust: (batch: KitchenBatchRow) => void;
-    onSalvage?: (batch: KitchenBatchRow) => void;
+    onWaste?: (batch: KitchenBatchRow) => void;
 }
 
-export default function BatchDetailTable({ batches, isLoading, isError, unit, onAdjust, onSalvage }: BatchDetailTableProps) {
+export default function BatchDetailTable({ batches, isLoading, isError, unit, onAdjust, onWaste }: BatchDetailTableProps) {
     if (isLoading) {
         return (
             <div className="flex items-center gap-2 py-8 pl-14 text-sm text-zinc-500">
@@ -213,15 +213,15 @@ export default function BatchDetailTable({ batches, isLoading, isError, unit, on
                                 {/* Action */}
                                 <TableCell className="text-right">
                                     <div className="flex flex-wrap justify-end gap-1">
-                                        {onSalvage && nearExpiry && !expired && (
+                                        {onWaste && (
                                             <Button
                                                 type="button"
                                                 variant="secondary"
                                                 size="sm"
-                                                className="h-7 border-amber-300 bg-amber-50 text-[10px] text-amber-900 hover:bg-amber-100"
-                                                onClick={() => onSalvage(batch)}
+                                                className="h-7 border-red-200 bg-red-50 text-[10px] text-red-700 hover:bg-red-100"
+                                                onClick={() => onWaste(batch)}
                                             >
-                                                Salvage
+                                                Báo hủy
                                             </Button>
                                         )}
                                         <Button

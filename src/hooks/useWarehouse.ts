@@ -7,6 +7,8 @@ import {
     ConsolidateManifestBody,
     ConsolidateManifestBodyType,
     FinalizeBulkShipmentBodyType,
+    ManifestVerifyItemBody,
+    ManifestVerifyItemBodyType,
     ReportIssueBodyType,
 } from "@/schemas/warehouse";
 import { QueryPickingTask } from "@/types/warehouse";
@@ -151,6 +153,46 @@ export const useWarehouse = () => {
         },
     });
 
+    const manifestPickingList = (manifestId: string, options?: { enabled?: boolean }) =>
+        useQuery({
+            queryKey: QUERY_KEY.warehouse.manifestPickingList(manifestId),
+            queryFn: async () => {
+                const res = await warehouseRequest.getManifestPickingList(manifestId);
+                return warehouseRequest.parseManifestPickingList(res.data, manifestId);
+            },
+            enabled: !!manifestId && options?.enabled !== false,
+        });
+
+    const verifyManifestItem = useMutation({
+        mutationFn: async ({ manifestId, body }: { manifestId: string; body: ManifestVerifyItemBodyType }) => {
+            const parsed = ManifestVerifyItemBody.parse(body);
+            const res = await warehouseRequest.verifyManifestItem(manifestId, parsed);
+            return res.data;
+        },
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: KEY.warehouse });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
+
+    const departManifest = useMutation({
+        mutationFn: async (manifestId: string) => {
+            const res = await warehouseRequest.departManifest(manifestId);
+            return warehouseRequest.parseManifestDepartResult(res.data);
+        },
+        onSuccess: (data) => {
+            toast.success(data.message ?? "Đã xuất kho manifest");
+            void queryClient.invalidateQueries({ queryKey: KEY.warehouse });
+            void queryClient.invalidateQueries({ queryKey: KEY.orders });
+            void queryClient.invalidateQueries({ queryKey: KEY.shipments });
+        },
+        onError: (error) => {
+            handleErrorApi({ error });
+        },
+    });
+
     return {
         getPickingTaskList,
         getPickingTaskDetail,
@@ -163,5 +205,8 @@ export const useWarehouse = () => {
         scanCheckBatch,
         vehicleList,
         consolidateManifest,
+        manifestPickingList,
+        verifyManifestItem,
+        departManifest,
     };
 };

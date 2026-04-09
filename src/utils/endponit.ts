@@ -72,6 +72,8 @@ export const ENDPOINT_CLIENT = {
     INVENTORY_ANALYTICS_SUMMARY: '/inventory/analytics/summary',
     INVENTORY_AGING: '/inventory/analytics/aging',
     INVENTORY_WASTE: '/inventory/analytics/waste',
+    INVENTORY_WASTE_REPORT: '/inventory/analytics/waste-report',
+    INVENTORY_WASTE_CREATE: '/inventory/waste',
     FINANCIAL_LOSS: '/inventory/analytics/financial/loss-impact',
 
     // Products
@@ -111,8 +113,11 @@ export const ENDPOINT_CLIENT = {
     WAREHOUSE_REPORT_ISSUE: '/warehouse/batch/report-issue',
     /** Gom đơn cùng route + kiểm tải trọng xe (SC / Manager / Admin) */
     WAREHOUSE_MANIFEST_CONSOLIDATE: '/warehouse/manifest/consolidate',
-    /** Danh sách xe phục vụ consolidate — đối chiếu Swagger nếu path khác */
-    WAREHOUSE_VEHICLES: '/warehouse/vehicles',
+    WAREHOUSE_MANIFEST_PICKING_LIST: (id: string) => `/warehouse/manifests/${id}/picking-list`,
+    WAREHOUSE_MANIFEST_VERIFY_ITEM: (id: string) => `/warehouse/manifests/${id}/verify-item`,
+    WAREHOUSE_MANIFEST_DEPART: (id: string) => `/warehouse/manifests/${id}/depart`,
+    /** Danh sách xe phục vụ consolidate */
+    WAREHOUSE_VEHICLES: '/vehicles',
 
     // Inbound
     INBOUND_RECEIPTS: '/inbound/receipts',
@@ -145,6 +150,4 @@ export const ENDPOINT_CLIENT = {
     PRODUCTION_ORDER_START: (id: string) => `/production/orders/${id}/start`,
     PRODUCTION_ORDER_COMPLETE: (id: string) => `/production/orders/${id}/complete`,
     PRODUCTION_ORDER_CANCEL: (id: string) => `/production/orders/${id}/cancel`,
-    PRODUCTION_SALVAGE: '/production/salvage',
-    PRODUCTION_SALVAGE_COMPLETE: (id: string) => `/production/salvage/${id}/complete`,
 }
