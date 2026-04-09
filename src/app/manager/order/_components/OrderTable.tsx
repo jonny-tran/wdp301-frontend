@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { Badge } from "@/components/ui/badge";
@@ -52,9 +53,6 @@ function TableSkeleton() {
               <Skeleton className="h-3 w-16" />
             </div>
           </TableCell>
-          <TableCell className="text-right">
-            <Skeleton className="h-5 w-24 ml-auto" />
-          </TableCell>
           <TableCell>
             <Skeleton className="h-4 w-28" />
           </TableCell>
@@ -103,16 +101,14 @@ export default function OrderTable({
     <Table>
       <TableHeader>
         <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
-          <TableHead className="pl-6 text-xs font-semibold text-slate-500 w-[30%]">
+          <TableHead className="pl-6 text-xs font-semibold text-slate-500 w-[40%]">
             Mã Đơn / Cửa Hàng
           </TableHead>
-          <TableHead className="text-right text-xs font-semibold text-slate-500 w-[20%]">
-            Tổng Tiền
-          </TableHead>
-          <TableHead className="text-xs font-semibold text-slate-500 w-[20%]">
+          {/* Cột Tổng Tiền đã được xóa tại đây */}
+          <TableHead className="text-xs font-semibold text-slate-500 w-[25%]">
             Dự Kiến Giao
           </TableHead>
-          <TableHead className="text-xs font-semibold text-slate-500 w-[15%]">
+          <TableHead className="text-xs font-semibold text-slate-500 w-[20%]">
             Trạng Thái
           </TableHead>
           <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[15%]">
@@ -139,11 +135,7 @@ export default function OrderTable({
                   </p>
                 </div>
               </TableCell>
-              <TableCell className="text-right">
-                <span className="font-semibold text-blue-600">
-                  {order.formattedAmount}
-                </span>
-              </TableCell>
+              {/* TableCell hiển thị số tiền đã được xóa */}
               <TableCell>
                 <div className="flex flex-col">
                   <span className="text-sm font-medium text-slate-700">
@@ -163,14 +155,15 @@ export default function OrderTable({
                 </Badge>
               </TableCell>
               <TableCell className="text-right pr-6">
-                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex justify-end gap-1 transition-all duration-200">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                    className="h-8 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100"
                     onClick={() => onView?.(order)}
                   >
-                    <Eye className="h-4 w-4" />
+                    {/* Giữ phong cách "lì" với Icon View chuẩn hệ thống */}
+                    <Eye className="h-4 w-4 stroke-[2.5px]" />
                   </Button>
                 </div>
               </TableCell>

@@ -3,13 +3,9 @@
 import BaseLayout from "@/components/layout/BaseLayout";
 
 export default function ManagerLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    return (
-        <BaseLayout title="Manager Portal">
-            {children}
-        </BaseLayout>
-    );
+  return <BaseLayout title="Cổng thông tin Manager">{children}</BaseLayout>;
 }

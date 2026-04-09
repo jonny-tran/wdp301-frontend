@@ -14,6 +14,8 @@ import {
     ExclamationTriangleIcon,
     BeakerIcon,
     QueueListIcon,
+    BuildingOffice2Icon,
+    GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 import { Role } from "@/utils/enum";
 import { Resource } from "@/utils/constant";
@@ -29,84 +31,104 @@ export interface ProtectedNavItem extends NavItem {
 
 export const ROLE_NAVIGATION: Record<string, ProtectedNavItem[]> = {
     [Role.ADMIN]: [
-        
+        { name: "Tổng quan", href: "/admin/dashboard", icon: HomeIcon },
         {
-            name: "User",
+            name: "Người dùng",
             href: "/admin/auth",
             icon: UserGroupIcon,
             requiredPermission: { resource: Resource.USER, action: P.USER_READ_LIST }
         },
         {
-            name: "Shipment",
+            name: "Vận chuyển",
             href: "/admin/shipment",
             icon: TruckIcon,
             requiredPermission: { resource: Resource.STORE, action: P.STORE_READ_LIST }
         },
         {
-            name: "Claim",
+            name: "Hậu Cần",
+            href: "/manager/logistics",
+            icon: GlobeAltIcon, 
+        },
+        {
+            name: "Khiếu nại",
             href: "/admin/claim",
             icon: ClipboardDocumentCheckIcon,
             requiredPermission: { resource: Resource.REPORT, action: P.REPORT_AGGREGATED }
         },
         {
-            name: "Config",
+            name: "Cấu hình",
             href: "/admin/config",
             icon: AdjustmentsHorizontalIcon,
             requiredPermission: { resource: Resource.SYSTEM, action: P.SYSTEM_CONFIGURE_PARAMS }
         },
     ],
     [Role.MANAGER]: [
-       
+        { name: "Tổng quan", href: "/manager/dashboard", icon: HomeIcon },
         {
-            name: "Products",
+            name: "Sản phẩm",
             href: "/manager/products",
             icon: CubeIcon,
             requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_LIST }
         },
         {
-            name: "Recipes",
+            name: "Công thức",
             href: "/manager/production/recipes",
             icon: BeakerIcon,
             requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_LIST }
         },
         {
-            name: "Production",
+            name: "Sản xuất",
             href: "/manager/production/orders",
             icon: QueueListIcon,
             requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_LIST }
         },
         {
-            name: "Batch",
+            name: "Lô Hàng",
             href: "/manager/batch",
             icon: InboxStackIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_DETAILS }
         },
         {
-            name: "Inventory",
+            name: "Hàng tồn kho",
             href: "/manager/inventory",
             icon: InboxStackIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_KITCHEN_SUMMARY }
         },
         {
-            name: "Order",
+            name: "Đơn hàng",
             href: "/manager/order",
             icon: ClipboardDocumentListIcon,
             requiredPermission: { resource: Resource.REPORT, action: P.REPORT_FULFILLMENT_RATE }
         },
         {
-            name: "Shipment",
+            name: "Vận chuyển",
             href: "/manager/shipment",
             icon: TruckIcon,
             requiredPermission: { resource: Resource.REPORT, action: P.REPORT_LEAD_TIME }
         },
         {
-            name: "Base Units",
+            name: "Hậu Cần",
+            href: "/manager/logistics",
+            icon: GlobeAltIcon, 
+        },
+        {
+            name: "Nhà cung cấp",
+            href: "/manager/supplier",
+            icon: BuildingOffice2Icon,
+        },
+        {
+            name: "Đơn vị tính",
             href: "/manager/baseUnits",
             icon: ArchiveBoxIcon,
             requiredPermission: { resource: Resource.PRODUCT, action: P.PRODUCT_READ_CATEGORIES }
         },
         {
-            name: "Store",
+            name: "Khiếu nại",
+            href: "/manager/claim",
+            icon: ClipboardDocumentCheckIcon,
+        },
+        {
+            name: "Cửa hàng",
             href: "/manager/store",
             icon: BuildingStorefrontIcon,
             requiredPermission: { resource: Resource.INVENTORY, action: P.INVENTORY_READ_STORE_STOCK }

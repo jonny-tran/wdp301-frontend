@@ -51,7 +51,12 @@ function TableSkeleton() {
   );
 }
 
-export default function BaseUnitTable({ data, isLoading, onEdit, onDelete }: Props) {
+export default function BaseUnitTable({
+  data,
+  isLoading,
+  onEdit,
+  onDelete,
+}: Props) {
   // Empty state
   if (!isLoading && (!data || data.length === 0)) {
     return (
@@ -120,7 +125,7 @@ export default function BaseUnitTable({ data, isLoading, onEdit, onDelete }: Pro
                 </Badge>
               </TableCell>
               <TableCell className="text-right pr-6">
-                <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex justify-end gap-1 transition-all duration-200">
                   <Button
                     variant="ghost"
                     size="icon"

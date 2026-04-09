@@ -37,14 +37,18 @@ function TableSkeleton() {
               </div>
             </div>
           </TableCell>
-          <TableCell className="text-center"><Skeleton className="h-6 w-12 mx-auto" /></TableCell>
+          <TableCell className="text-center">
+            <Skeleton className="h-6 w-12 mx-auto" />
+          </TableCell>
           <TableCell>
             <div className="space-y-1.5">
               <Skeleton className="h-4 w-24" />
               <Skeleton className="h-3 w-16" />
             </div>
           </TableCell>
-          <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+          <TableCell>
+            <Skeleton className="h-5 w-20" />
+          </TableCell>
           <TableCell className="text-right pr-6">
             <Skeleton className="h-8 w-8 rounded-md inline-block" />
           </TableCell>
@@ -63,7 +67,9 @@ export default function BatchTable({
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <p className="text-sm font-medium text-red-500">Lỗi truy xuất dữ liệu lô hàng</p>
+        <p className="text-sm font-medium text-red-500">
+          Lỗi truy xuất dữ liệu lô hàng
+        </p>
       </div>
     );
   }
@@ -74,7 +80,9 @@ export default function BatchTable({
         <div className="rounded-full bg-slate-100 p-4 mb-4">
           <InboxIcon className="h-8 w-8 text-slate-400" />
         </div>
-        <p className="text-sm font-medium text-slate-500">Chưa có lô hàng nào</p>
+        <p className="text-sm font-medium text-slate-500">
+          Chưa có lô hàng nào
+        </p>
       </div>
     );
   }
@@ -83,11 +91,21 @@ export default function BatchTable({
     <Table>
       <TableHeader>
         <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
-          <TableHead className="pl-6 text-xs font-semibold text-slate-500 w-[35%]">Mã Lô & Hình ảnh</TableHead>
-          <TableHead className="text-center text-xs font-semibold text-slate-500 w-[15%]">Số lượng</TableHead>
-          <TableHead className="text-xs font-semibold text-slate-500 w-[20%]">Ngày hết hạn</TableHead>
-          <TableHead className="text-xs font-semibold text-slate-500 w-[15%]">Trạng thái</TableHead>
-          <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[15%]">Thao tác</TableHead>
+          <TableHead className="pl-6 text-xs font-semibold text-slate-500 w-[35%]">
+            Mã Lô & Hình ảnh
+          </TableHead>
+          <TableHead className="text-center text-xs font-semibold text-slate-500 w-[15%]">
+            Số lượng
+          </TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[20%]">
+            Ngày hết hạn
+          </TableHead>
+          <TableHead className="text-xs font-semibold text-slate-500 w-[15%]">
+            Trạng thái
+          </TableHead>
+          <TableHead className="text-right pr-6 text-xs font-semibold text-slate-500 w-[15%]">
+            Thao tác
+          </TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -116,8 +134,12 @@ export default function BatchTable({
                     )}
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-900">{item.batchCode}</p>
-                    <p className="text-xs text-slate-500">Product ID: #{item.productId}</p>
+                    <p className="font-semibold text-slate-900">
+                      {item.batchCode}
+                    </p>
+                    <p className="text-xs text-slate-500">
+                      Product ID: #{item.productId}
+                    </p>
                   </div>
                 </div>
               </TableCell>
@@ -129,7 +151,9 @@ export default function BatchTable({
               <TableCell>
                 <div>
                   <p className="font-medium text-slate-700">
-                    {item.expiryDate ? format(new Date(item.expiryDate), "dd/MM/yyyy") : "Vô thời hạn"}
+                    {item.expiryDate
+                      ? format(new Date(item.expiryDate), "dd/MM/yyyy")
+                      : "Vô thời hạn"}
                   </p>
                   <p className="text-xs text-slate-400">Hạn dùng (EXP)</p>
                 </div>
@@ -141,24 +165,25 @@ export default function BatchTable({
                     item.status === "AVAILABLE" || item.status === "available"
                       ? "bg-green-50 text-green-700 border-green-200"
                       : item.status === "PENDING" || item.status === "pending"
-                      ? "bg-amber-50 text-amber-700 border-amber-200"
-                      : item.status === "EXPIRED" || item.status === "expired"
-                      ? "bg-red-50 text-red-700 border-red-200"
-                      : "bg-slate-50 text-slate-500 border-slate-200"
+                        ? "bg-amber-50 text-amber-700 border-amber-200"
+                        : item.status === "EXPIRED" || item.status === "expired"
+                          ? "bg-red-50 text-red-700 border-red-200"
+                          : "bg-slate-50 text-slate-500 border-slate-200"
                   }
                 >
                   {(item.status || "UNKNOWN").toUpperCase()}
                 </Badge>
               </TableCell>
               <TableCell className="text-right pr-6">
-                <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex justify-end gap-1 transition-all">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+                    className="h-8 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
                     onClick={() => onEdit(item)}
+                    title="Chỉnh sửa lô hàng"
                   >
-                    <Pencil className="h-4 w-4" />
+                    <Pencil className="h-4 w-4 stroke-[2.8px]" />
                   </Button>
                 </div>
               </TableCell>
