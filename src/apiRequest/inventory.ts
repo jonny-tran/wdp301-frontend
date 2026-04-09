@@ -39,11 +39,23 @@ export const inventoryRequest = {
     getInventoryAnalyticsSummary: () =>
         http.get<InventoryAnalyticsSummary>(ENDPOINT_CLIENT.INVENTORY_ANALYTICS_SUMMARY),
 
-    getInventoryAgingReport: (params: InventoryAgingQueryType) =>
-        http.get<InventoryAgingReport>(ENDPOINT_CLIENT.INVENTORY_AGING, { query: params }),
+    getInventoryAgingReport: async (params: InventoryAgingQueryType) => {
+        try {
+            return await http.get<InventoryAgingReport>(ENDPOINT_CLIENT.INVENTORY_AGING, { query: params });
+        } catch {
+            // Fallback cho một số bản BE cũ dùng /analytics/inventory/aging
+            return http.get<InventoryAgingReport>("/analytics/inventory/aging", { query: params });
+        }
+    },
 
-    getInventoryWasteSummary: (params: InventoryWasteQueryType) =>
-        http.get<InventoryWasteSummary>(ENDPOINT_CLIENT.INVENTORY_WASTE, { query: params }),
+    getInventoryWasteSummary: async (params: InventoryWasteQueryType) => {
+        try {
+            return await http.get<InventoryWasteSummary>(ENDPOINT_CLIENT.INVENTORY_WASTE_SUMMARY, { query: params });
+        } catch {
+            // Fallback cho môi trường BE cũ còn dùng /inventory/analytics/waste
+            return http.get<InventoryWasteSummary>(ENDPOINT_CLIENT.INVENTORY_WASTE, { query: params });
+        }
+    },
 
     getInventoryWasteReport: (params: InventoryWasteReportQueryType) =>
         http.get<InventoryWasteReportDetail>(ENDPOINT_CLIENT.INVENTORY_WASTE_REPORT, { query: params }),

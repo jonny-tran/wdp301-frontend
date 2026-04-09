@@ -71,6 +71,7 @@ export const ENDPOINT_CLIENT = {
     INVENTORY_KITCHEN_DETAILS: '/inventory/kitchen/details',
     INVENTORY_ANALYTICS_SUMMARY: '/inventory/analytics/summary',
     INVENTORY_AGING: '/inventory/analytics/aging',
+    INVENTORY_WASTE_SUMMARY: '/inventory/analytics/waste-summary',
     INVENTORY_WASTE: '/inventory/analytics/waste',
     INVENTORY_WASTE_REPORT: '/inventory/analytics/waste-report',
     INVENTORY_WASTE_CREATE: '/inventory/waste',

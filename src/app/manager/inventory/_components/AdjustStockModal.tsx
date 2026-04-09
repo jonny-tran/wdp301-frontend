@@ -46,10 +46,9 @@ export default function AdjustStockModal({ item, isOpen, onClose }: AdjustStockM
   const form = useForm<InventoryAdjustBodyType>({
     resolver: zodResolver(InventoryAdjustBody) as any,
     defaultValues: {
-      warehouseId: 0,
       batchId: 0,
-      adjustmentQuantity: 0,
-      reason: "WASTE",
+      actualQuantity: 0,
+      reasonCode: "DAMAGE",
       note: "",
     },
   });
@@ -57,10 +56,9 @@ export default function AdjustStockModal({ item, isOpen, onClose }: AdjustStockM
   useEffect(() => {
     if (isOpen && item) {
       form.reset({
-        warehouseId: Number(item.warehouseId) || 0,
         batchId: 0,
-        adjustmentQuantity: 0,
-        reason: "WASTE",
+        actualQuantity: 0,
+        reasonCode: "DAMAGE",
         note: "",
       });
     }
@@ -68,10 +66,7 @@ export default function AdjustStockModal({ item, isOpen, onClose }: AdjustStockM
 
   const onSubmit = async (data: InventoryAdjustBodyType) => {
     try {
-      await adjustInventory.mutateAsync({
-        ...data,
-        adjustmentQuantity: Number(data.adjustmentQuantity),
-      });
+      await adjustInventory.mutateAsync(data);
       onClose();
     } catch (error) {
       handleErrorApi({ error, setError: form.setError });
@@ -95,10 +90,10 @@ export default function AdjustStockModal({ item, isOpen, onClose }: AdjustStockM
             
             <FormField
               control={form.control}
-              name="adjustmentQuantity"
+              name="actualQuantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Số lượng điều chỉnh (+/-)</FormLabel>
+                  <FormLabel>Số lượng thực tế</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -114,7 +109,7 @@ export default function AdjustStockModal({ item, isOpen, onClose }: AdjustStockM
 
             <FormField
               control={form.control}
-              name="reason"
+              name="reasonCode"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Lý do điều chỉnh</FormLabel>
@@ -125,9 +120,11 @@ export default function AdjustStockModal({ item, isOpen, onClose }: AdjustStockM
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="Stock Count">Kiểm kho định kỳ</SelectItem>
-                      <SelectItem value="Damage">Hư hỏng / Lỗi</SelectItem>
-                      <SelectItem value="Expired">Hết hạn sử dụng</SelectItem>
+                      <SelectItem value="DAMAGE">Hư hỏng (DAMAGE)</SelectItem>
+                      <SelectItem value="WASTE">Hao hụt / hủy (WASTE)</SelectItem>
+                      <SelectItem value="PRODUCTION_WASTE">Hao hụt sản xuất (PRODUCTION_WASTE)</SelectItem>
+                      <SelectItem value="INPUT_ERROR">Sai số nhập liệu (INPUT_ERROR)</SelectItem>
+                      <SelectItem value="EXPIRED">Hết hạn (EXPIRED)</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

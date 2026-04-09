@@ -57,6 +57,25 @@ export function BasePagination({
     return arr
   })()
 
+  if (totalPages <= 1) {
+    return (
+      <div className="mt-6 flex items-center justify-between border-t border-gray-100 pt-5">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-600">
+          {totalItems ? (
+            <>
+              Showing <span className="text-slate-900">{start}-{end}</span> of{" "}
+              <span className="text-slate-900">{totalItems}</span>
+            </>
+          ) : (
+            <>
+              Page <span className="text-slate-900">1</span> / 1
+            </>
+          )}
+        </p>
+      </div>
+    )
+  }
+
   return (
     <div className="flex items-center justify-between mt-6 border-t border-gray-100 pt-5">
       <p className="text-[11px] font-bold uppercase tracking-widest text-slate-600">
@@ -95,7 +114,7 @@ export function BasePagination({
                   className={cn(
                     'h-9 w-9 rounded-lg border text-sm font-bold transition-all flex items-center justify-center',
                     p === page
-                      ? 'bg-slate-900 border-slate-900 text-white shadow-lg shadow-slate-900/20 scale-105'
+                      ? 'bg-slate-900 border-slate-900 !text-white shadow-lg shadow-slate-900/20 scale-105'
                       : 'border-slate-300 bg-white text-slate-600 hover:text-slate-900 hover:border-slate-600'
                   )}
                 >

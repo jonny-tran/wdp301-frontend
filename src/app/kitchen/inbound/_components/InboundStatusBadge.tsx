@@ -14,7 +14,7 @@ export default function InboundStatusBadge({ status, className }: InboundStatusB
     const isCompleted = u === ReceiptStatus.COMPLETED || u === "completed";
     const isCancelled = u === ReceiptStatus.CANCELLED || u === "cancelled";
 
-    const label = isDraft ? "DRAFT" : isCompleted ? "COMPLETED" : isCancelled ? "CANCELLED" : String(status).toUpperCase();
+    const label = isDraft ? "Nháp" : isCompleted ? "Hoàn tất" : isCancelled ? "Đã hủy" : String(status).toUpperCase();
 
     return (
         <span

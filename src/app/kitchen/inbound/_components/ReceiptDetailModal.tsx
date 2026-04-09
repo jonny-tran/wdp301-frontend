@@ -385,7 +385,7 @@ export default function ReceiptDetailModal({
                     )}
 
                     <div className="mb-2 rounded-lg border border-amber-200 bg-amber-50/80 px-4 py-3 text-xs font-medium text-amber-950">
-                        <strong>Batch-centric:</strong> Dòng nháp mới chưa có mã lô nội bộ cho đến khi chốt phiếu. NSX/HSD
+                        <strong>Theo lô:</strong> Dòng nháp mới chưa có mã lô nội bộ cho đến khi chốt phiếu. NSX/HSD
                         dùng để sinh lô <code className="rounded bg-white px-1">BAT-YYYYMMDD-SKU-XXXX</code> và FEFO.
                     </div>
 

@@ -24,7 +24,6 @@ import {
 import { useProduction } from "@/hooks/useProduction";
 import {
     isOrderCompletedStatus,
-    resolveInventoryTxQuantityLabel,
     resolveReservationIngredientName,
 } from "@/lib/production-mapper";
 import type { ProductionOrderDetail, ProductionOrderStatus } from "@/types/production";
@@ -126,7 +125,7 @@ export default function ProductionOrderDetailDialog({ open, onOpenChange, orderI
                             Chi tiết lệnh sản xuất
                         </DialogTitle>
                         <DialogDescription className="text-sm font-medium text-zinc-300">
-                            FEFO, lô thành phẩm, gia phả lô và nhật ký kho — đầy đủ nội dung, không cắt chữ.
+                            FEFO, lô thành phẩm và gia phả lô — đầy đủ nội dung, không cắt chữ.
                         </DialogDescription>
                     </DialogHeader>
                 </div>
@@ -327,50 +326,6 @@ export default function ProductionOrderDetailDialog({ open, onOpenChange, orderI
                                 </section>
                             )}
 
-                            {o.inventoryTransactions.length > 0 && (
-                                <section className="space-y-3">
-                                    <SectionTitle>Nhật ký kho</SectionTitle>
-                                    <div className="overflow-x-auto rounded-2xl border-2 border-zinc-200 bg-white shadow-sm">
-                                        <Table className="min-w-[720px] table-fixed">
-                                            <TableHeader>
-                                                <TableRow className="bg-zinc-100">
-                                                    <TableHead className="w-[22%] text-xs font-bold">Loại</TableHead>
-                                                    <TableHead className="w-[12%] text-xs font-bold">SL</TableHead>
-                                                    <TableHead className="w-[46%] text-xs font-bold">Ghi chú</TableHead>
-                                                    <TableHead className="w-[20%] text-xs font-bold">Thời điểm</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {o.inventoryTransactions.map((t, i) => {
-                                                    const noteLine = [t.wasteReason?.trim(), t.note?.trim()]
-                                                        .filter(Boolean)
-                                                        .join(" — ");
-                                                    return (
-                                                        <TableRow key={t.id ?? i}>
-                                                            <TableCell className="align-top font-mono text-xs leading-relaxed break-words text-zinc-800">
-                                                                {t.type ?? "—"}
-                                                            </TableCell>
-                                                            <TableCell className="align-top text-sm font-black tabular-nums text-zinc-900">
-                                                                {resolveInventoryTxQuantityLabel(t)}
-                                                            </TableCell>
-                                                            <TableCell className="align-top text-sm leading-relaxed text-zinc-800 break-words whitespace-normal">
-                                                                {noteLine || "—"}
-                                                            </TableCell>
-                                                            <TableCell className="align-top whitespace-normal text-xs leading-relaxed text-zinc-500">
-                                                                {t.createdAt
-                                                                    ? format(new Date(t.createdAt), "dd/MM/yyyy HH:mm", {
-                                                                          locale: vi,
-                                                                      })
-                                                                    : "—"}
-                                                            </TableCell>
-                                                        </TableRow>
-                                                    );
-                                                })}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-                                </section>
-                            )}
                         </div>
                     )}
                 </div>

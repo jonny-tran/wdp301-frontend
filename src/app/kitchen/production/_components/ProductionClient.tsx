@@ -1,7 +1,7 @@
 "use client";
 
 import { endOfDay, isWithinInterval, startOfDay } from "date-fns";
-import { Activity, BookOpen, History, Package, Percent, Scale } from "lucide-react";
+import { Activity, BookOpen, History, Package, Percent } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -196,10 +196,6 @@ export default function ProductionClient() {
         return m;
     }, [kitchenStockQuery.data?.items]);
 
-    const totalScheduledVolume = useMemo(() => {
-        return activeOrders.reduce((sum, o) => sum + o.targetQuantity, 0);
-    }, [activeOrders]);
-
     const pendingIngredientsCount = useMemo(() => {
         const rows = kitchenStockQuery.data?.items ?? [];
         return rows.filter((r) => r.isLowStock || r.availableQuantity <= 0).length;
@@ -215,13 +211,6 @@ export default function ProductionClient() {
     }, [historyOrders]);
 
     const kpiCards = [
-        {
-            key: "vol",
-            title: "Tổng khối lượng kế hoạch (hôm nay)",
-            value: `${Math.round(totalScheduledVolume * 100) / 100}`,
-            sub: "Tổng mục tiêu các lệnh active trong ngày",
-            icon: Scale,
-        },
         {
             key: "pending",
             title: "SKU nguyên liệu cảnh báo",
@@ -342,7 +331,7 @@ export default function ProductionClient() {
             </div>
 
             {/* KPI Cards */}
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2">
                 {kpiCards.map((k) => (
                     <div
                         key={k.key}
@@ -413,7 +402,7 @@ export default function ProductionClient() {
                         ))}
                     </div>
                     <p className="text-sm text-zinc-500">
-                        Bấm vào dòng lệnh để xem chi tiết (FEFO, lô TP, nhật ký kho).
+                        Bấm vào dòng lệnh để xem chi tiết (FEFO, lô thành phẩm, gia phả lô).
                     </p>
                     <ProductionOrderTable
                         orders={filteredOrdersForTable}

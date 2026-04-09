@@ -123,10 +123,8 @@ export type QueryInventoryTransaction = BaseRequestPagination & {
 
 export type InventoryWasteBody = {
     batchId: number;
-    quantity: number;
     reason: "EXPIRED" | "DAMAGED";
     note?: string;
-    evidenceImage?: string;
 };
 
 export type QueryInventorySummary = BaseRequestPagination & {

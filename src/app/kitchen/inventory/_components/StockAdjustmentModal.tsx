@@ -62,9 +62,8 @@ export default function StockAdjustmentModal({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         resolver: zodResolver(KitchenStockAdjustFormSchema) as any,
         defaultValues: {
-            direction: "subtract",
-            quantity: 1,
-            reason: "WASTE",
+            actualQuantity: 0,
+            reasonCode: "DAMAGE",
             note: "",
         },
     });
@@ -78,28 +77,25 @@ export default function StockAdjustmentModal({
         const b = pick ?? first;
         if (b) {
             setValue("batchId", b.batchId);
-            if (b.warehouseId != null) setValue("warehouseId", b.warehouseId);
+            setValue("actualQuantity", Number(b.totalQuantity ?? 0));
         }
     }, [open, batches, initialBatchId, setValue]);
 
     useEffect(() => {
         if (!open) {
             reset({
-                direction: "subtract",
-                quantity: 1,
-                reason: "WASTE",
+                actualQuantity: 0,
+                reasonCode: "DAMAGE",
                 note: "",
             });
         }
     }, [open, reset]);
 
     const onSubmit = (data: KitchenStockAdjustFormType) => {
-        const qty = data.direction === "add" ? data.quantity : -data.quantity;
         const payload: InventoryAdjustBodyType = {
-            warehouseId: data.warehouseId,
             batchId: data.batchId,
-            adjustmentQuantity: qty,
-            reason: data.reason,
+            actualQuantity: data.actualQuantity,
+            reasonCode: data.reasonCode,
             note: data.note?.trim() ? data.note.trim() : undefined,
         };
         adjustInventory.mutate(payload, {
@@ -116,7 +112,7 @@ export default function StockAdjustmentModal({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md" showCloseButton>
+            <DialogContent className="sm:max-w-md border-zinc-200 bg-white text-zinc-900" showCloseButton>
                 <DialogHeader>
                     <DialogTitle>Điều chỉnh tồn kho</DialogTitle>
                     <DialogDescription>
@@ -152,61 +148,42 @@ export default function StockAdjustmentModal({
                     </div>
 
                     <div className="space-y-2">
-                        <Label htmlFor="warehouseId">ID kho (warehouse)</Label>
+                        <Label htmlFor="actualQuantity">Số lượng thực tế của lô</Label>
                         <Input
-                            id="warehouseId"
+                            id="actualQuantity"
                             type="number"
-                            inputMode="numeric"
-                            placeholder="Bắt buộc theo API điều chỉnh"
-                            {...register("warehouseId", { valueAsNumber: true })}
+                            min={0}
+                            step="0.01"
+                            {...register("actualQuantity", { valueAsNumber: true })}
                         />
-                        {selectedBatch?.warehouseId != null && (
-                            <p className="text-[11px] text-slate-500">Gợi ý từ lô: {selectedBatch.warehouseId}</p>
+                        {selectedBatch && (
+                            <p className="text-[11px] text-zinc-500">
+                                Hiện tại lô đang có: {selectedBatch.totalQuantity} {unit}
+                            </p>
                         )}
-                        {errors.warehouseId && <p className="text-xs text-red-600">{errors.warehouseId.message}</p>}
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-2">
-                            <Label>Loại</Label>
-                            <Select
-                                value={watch("direction")}
-                                onValueChange={(v) => setValue("direction", v as "add" | "subtract")}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="add">Cộng (+)</SelectItem>
-                                    <SelectItem value="subtract">Trừ (−)</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="qty">Số lượng</Label>
-                            <Input id="qty" type="number" min={1} step={1} {...register("quantity", { valueAsNumber: true })} />
-                            {errors.quantity && <p className="text-xs text-red-600">{errors.quantity.message}</p>}
-                        </div>
+                        {errors.actualQuantity && <p className="text-xs text-red-600">{errors.actualQuantity.message}</p>}
                     </div>
 
                     <div className="space-y-2">
                         <Label>Lý do (bắt buộc)</Label>
                         <Select
-                            value={watch("reason")}
+                            value={watch("reasonCode")}
                             onValueChange={(v) =>
-                                setValue("reason", v as KitchenStockAdjustFormType["reason"], { shouldValidate: true })
+                                setValue("reasonCode", v as KitchenStockAdjustFormType["reasonCode"], { shouldValidate: true })
                             }
                         >
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="WASTE">Hao hụt / hủy (Waste)</SelectItem>
-                                <SelectItem value="PRODUCTION_LOSS">Hao hụt sản xuất (Production loss)</SelectItem>
-                                <SelectItem value="INPUT_ERROR">Nhập sai số liệu (Input error)</SelectItem>
+                                <SelectItem value="DAMAGE">Hư hỏng (DAMAGE)</SelectItem>
+                                <SelectItem value="WASTE">Hao hụt / hủy (WASTE)</SelectItem>
+                                <SelectItem value="PRODUCTION_WASTE">Hao hụt sản xuất (PRODUCTION_WASTE)</SelectItem>
+                                <SelectItem value="INPUT_ERROR">Sai số nhập liệu (INPUT_ERROR)</SelectItem>
+                                <SelectItem value="EXPIRED">Hết hạn (EXPIRED)</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.reason && <p className="text-xs text-red-600">{errors.reason.message}</p>}
+                        {errors.reasonCode && <p className="text-xs text-red-600">{errors.reasonCode.message}</p>}
                     </div>
 
                     <div className="space-y-2">
