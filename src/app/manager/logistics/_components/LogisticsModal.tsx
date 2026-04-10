@@ -38,7 +38,7 @@ interface Props {
   onClose: () => void;
   onSubmit: (data: any) => void;
   isPending: boolean;
-  editingData?: any; // Bổ sung editingData vào Props
+  editingData?: any;
 }
 
 export default function LogisticsModal({
@@ -47,12 +47,11 @@ export default function LogisticsModal({
   onClose,
   onSubmit,
   isPending,
-  editingData, // Nhận dữ liệu chỉnh sửa
+  editingData,
 }: Props) {
   const schema = type === "vehicles" ? VehicleSchema : RouteSchema;
 
-  // Gộp lại thành 1 khai báo duy nhất để tránh lỗi "Duplicate identifier 'form'"
-  const form = useForm<any>({
+  const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
       licensePlate: "",
@@ -66,11 +65,22 @@ export default function LogisticsModal({
     },
   });
 
-  // Đồng bộ dữ liệu khi mở Modal hoặc thay đổi Tab
+  // Sync dữ liệu và xử lý map key từ API (snake_case) sang Form (camelCase)
   useEffect(() => {
     if (isOpen) {
-      form.reset(
-        editingData || {
+      if (editingData) {
+        form.reset({
+          ...editingData,
+          // Đảm bảo lấy đúng giá trị thời gian dù API trả về key nào
+          estimatedHours: Number(
+            editingData.estimatedHours || editingData.estimated_hours || 0,
+          ),
+          payloadCapacity: Number(editingData.payloadCapacity || 0),
+          distanceKm: Number(editingData.distanceKm || 0),
+          baseTransportCost: Number(editingData.baseTransportCost || 0),
+        });
+      } else {
+        form.reset({
           licensePlate: "",
           payloadCapacity: 0,
           fuelRatePerKm: "0.18",
@@ -79,10 +89,29 @@ export default function LogisticsModal({
           distanceKm: 0,
           estimatedHours: 0,
           baseTransportCost: 0,
-        },
-      );
+        });
+      }
     }
-  }, [isOpen, editingData, form, type]);
+  }, [isOpen, editingData, form]);
+
+  // Hàm handleLocalSubmit để "đóng gói" dữ liệu chuẩn xác trước khi đẩy ra ngoài
+  const handleLocalSubmit = (values: any) => {
+    if (type === "routes") {
+      const payload = {
+        routeName: values.routeName,
+        distanceKm: Number(values.distanceKm),
+        // Chuyển về snake_case nếu Backend yêu cầu, hoặc giữ camelCase theo kết quả 201 vừa rồi
+        estimatedHours: Number(values.estimatedHours),
+        baseTransportCost: Number(values.baseTransportCost),
+      };
+      onSubmit(payload);
+    } else {
+      onSubmit({
+        ...values,
+        payloadCapacity: Number(values.payloadCapacity),
+      });
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -96,16 +125,25 @@ export default function LogisticsModal({
             )}
           </div>
           <DialogTitle className="text-2xl font-black uppercase italic tracking-wider text-slate-900 mt-4">
-            {type === "vehicles" ? "Khai báo Xe tải" : "Thêm Lộ trình"}
+            {type === "vehicles"
+              ? editingData
+                ? "Cập nhật Xe"
+                : "Khai báo Xe"
+              : editingData
+                ? "Sửa Lộ trình"
+                : "Thêm Lộ trình"}
           </DialogTitle>
           <DialogDescription className="text-[10px] font-bold uppercase tracking-widest text-slate-400 italic">
-            Cập nhật thông tin vào hệ thống vận hành Hậu Cần
+            VFC Logistics Management System
           </DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[65vh] overflow-y-auto pr-2 scrollbar-hide py-4">
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              onSubmit={form.handleSubmit(handleLocalSubmit)}
+              className="space-y-6"
+            >
               {type === "vehicles" ? (
                 <>
                   <FormField
@@ -119,7 +157,7 @@ export default function LogisticsModal({
                         <FormControl>
                           <Input
                             placeholder="51H-123.45"
-                            className="rounded-full bg-slate-50 border-slate-100 h-12 px-6 font-black italic"
+                            className="rounded-full bg-slate-50 border-slate-100 h-12 px-6 font-black italic text-slate-900"
                             {...field}
                           />
                         </FormControl>
@@ -128,7 +166,6 @@ export default function LogisticsModal({
                     )}
                   />
                   <div className="grid grid-cols-2 gap-4">
-                    {/* Ví dụ cho ô Tải trọng */}
                     <FormField
                       control={form.control}
                       name="payloadCapacity"
@@ -140,17 +177,14 @@ export default function LogisticsModal({
                           <FormControl>
                             <Input
                               type="number"
-                              min={0} // Ngăn chặn nút bấm giảm xuống dưới 0
-                              className="rounded-full bg-slate-50 border-slate-100 h-12 px-6 font-black italic"
+                              className="rounded-full bg-slate-50 border-slate-100 h-12 px-6 font-black italic text-slate-900"
                               {...field}
-                              onChange={(e) => {
-                                const val = Number(e.target.value);
-                                // Nếu người dùng cố tình nhập số âm từ bàn phím, ép về 0 hoặc giữ nguyên số dương
-                                field.onChange(val < 0 ? 0 : val);
-                              }}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
                             />
                           </FormControl>
-                          <FormMessage className="text-[10px] font-bold italic ml-4 text-red-500" />
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -165,7 +199,7 @@ export default function LogisticsModal({
                           <FormControl>
                             <Input
                               placeholder="0.18"
-                              className="rounded-full bg-slate-50 border-slate-100 h-12 px-6 font-black italic"
+                              className="rounded-full bg-slate-50 border-slate-100 h-12 px-6 font-black italic text-slate-900"
                               {...field}
                             />
                           </FormControl>
@@ -186,15 +220,16 @@ export default function LogisticsModal({
                         </FormLabel>
                         <FormControl>
                           <Input
-                            placeholder="Hub → Quận 1..."
-                            className="rounded-full h-12 px-6 bg-slate-50 border-slate-100 font-black italic"
+                            placeholder="Ví dụ: Hub -> Quận 1"
+                            className="rounded-full h-12 px-6 bg-slate-50 border-slate-100 font-black italic text-slate-900"
                             {...field}
                           />
                         </FormControl>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
                       name="distanceKm"
@@ -207,13 +242,37 @@ export default function LogisticsModal({
                             <Input
                               type="number"
                               step="0.1"
-                              className="rounded-full h-12 px-6 bg-slate-50 border-slate-100 font-black italic"
+                              className="rounded-full h-12 px-6 bg-slate-50 border-slate-100 font-black italic text-slate-900"
                               {...field}
                               onChange={(e) =>
                                 field.onChange(Number(e.target.value))
                               }
                             />
                           </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="estimatedHours"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-[10px] font-black uppercase italic text-slate-400 ml-2">
+                            Thời gian (H)
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.1"
+                              placeholder="2.5"
+                              className="rounded-full h-12 px-6 bg-slate-50 border-slate-100 font-black italic text-slate-900"
+                              {...field}
+                              onChange={(e) =>
+                                field.onChange(Number(e.target.value))
+                              }
+                            />
+                          </FormControl>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -228,7 +287,7 @@ export default function LogisticsModal({
                           <FormControl>
                             <Input
                               type="number"
-                              className="rounded-full h-12 px-6 bg-slate-50 border-slate-100 font-black italic"
+                              className="rounded-full h-12 px-6 bg-slate-50 border-slate-100 font-black italic text-slate-900"
                               {...field}
                               onChange={(e) =>
                                 field.onChange(Number(e.target.value))
@@ -242,7 +301,6 @@ export default function LogisticsModal({
                 </>
               )}
 
-              {/* Phần Trạng thái dùng chung cho cả 2 Tab hoặc đặt ở cuối xe tải */}
               {type === "vehicles" && (
                 <FormField
                   control={form.control}
@@ -257,7 +315,7 @@ export default function LogisticsModal({
                         value={field.value}
                       >
                         <FormControl>
-                          <SelectTrigger className="rounded-full bg-slate-50 border-slate-100 h-14 px-8 shadow-sm focus:ring-0 w-full! group">
+                          <SelectTrigger className="rounded-full bg-slate-50 border-slate-100 h-14 px-8 shadow-sm">
                             <div
                               className={cn(
                                 "font-black italic text-xl tracking-tighter lowercase first-letter:uppercase text-left w-full transition-colors",
@@ -273,19 +331,18 @@ export default function LogisticsModal({
                         <SelectContent className="rounded-[2.5rem] border-none bg-[#1A1A1A] text-white p-2 shadow-2xl z-[150]">
                           <SelectItem
                             value="available"
-                            className="rounded-2xl font-black italic uppercase py-4 px-6 focus:bg-white/10 focus:text-white transition-all cursor-pointer"
+                            className="rounded-2xl font-black italic uppercase py-4 px-6 focus:bg-white/10"
                           >
                             SẴN SÀNG
                           </SelectItem>
                           <SelectItem
                             value="maintenance"
-                            className="rounded-2xl font-black italic uppercase py-4 px-6 focus:bg-white/10 focus:text-white transition-all cursor-pointer text-red-400 focus:text-red-300"
+                            className="rounded-2xl font-black italic uppercase py-4 px-6 focus:bg-white/10 text-red-400"
                           >
                             BẢO TRÌ
                           </SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormMessage />
                     </FormItem>
                   )}
                 />
@@ -309,7 +366,7 @@ export default function LogisticsModal({
                   {isPending && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   )}
-                  {editingData ? "Cập nhật dữ liệu" : "Kích hoạt dữ liệu"}
+                  {editingData ? "CẬP NHẬT DỮ LIỆU" : "KÍCH HOẠT DỮ LIỆU"}
                 </Button>
               </DialogFooter>
             </form>

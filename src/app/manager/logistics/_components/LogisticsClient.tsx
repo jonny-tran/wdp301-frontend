@@ -42,7 +42,7 @@ export default function LogisticsClient() {
     useCreateVehicle,
     useCreateRoute,
     useDeleteVehicle,
-    useDeleteRoute, 
+    useDeleteRoute,
   } = useLogistics();
 
   const { data: vehicles, isLoading: loadingVehicles } = useGetVehicles();
@@ -194,7 +194,7 @@ export default function LogisticsClient() {
       >
         <AlertDialogContent className="rounded-[2.5rem] border-none p-10 shadow-2xl">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-2xl font-black uppercase italic text-slate-900">
+            <AlertDialogTitle className="text-2xl font-red uppercase italic text-red-700">
               Xác nhận xóa
             </AlertDialogTitle>
             <AlertDialogDescription className="font-bold italic text-slate-400">
