@@ -19,10 +19,13 @@ import { useInbound } from "@/hooks/useInbound";
 import { useProduct } from "@/hooks/useProduct";
 import {
     acceptedQty,
+    coalesceReceiptLineProductLabel,
     getReceiptId,
     isDraftLinePendingBatch,
     receiptItems,
+    receiptLineApiProductName,
     receiptLineDeleteId,
+    receiptLineProductId,
 } from "@/lib/inbound-receipt-utils";
 import { ReceiptStatus } from "@/utils/enum";
 import { useState, useEffect, useCallback, useMemo } from "react";
@@ -35,6 +38,7 @@ import { AddReceiptItemBody, AddReceiptItemBodyType } from "@/schemas/inbound";
 import { handleErrorApi } from "@/lib/errors";
 import { requiresStatedExpiryForInbound } from "@/lib/inbound-product-rules";
 import { cn } from "@/lib/utils";
+import { unwrapProductListRows } from "@/lib/unwrap-product-list";
 import type { Product } from "@/types/product";
 import type { Receipt, ReceiptItem } from "@/types/inbound";
 
@@ -66,7 +70,10 @@ export default function ReceiptDetailModal({
     const details = detailQuery.data as Receipt | undefined;
 
     const { productList } = useProduct();
-    const productsQuery = productList({ page: 1, limit: 300, sortOrder: "ASC" });
+    const productsQuery = productList(
+        { page: 1, limit: 1000, sortOrder: "ASC" },
+        { enabled: isOpen },
+    );
 
     const [isAddingItem, setIsAddingItem] = useState(false);
     const {
@@ -211,7 +218,10 @@ export default function ReceiptDetailModal({
         }
     }, []);
 
-    const products: Product[] = (productsQuery.data as { items?: Product[] } | undefined)?.items ?? [];
+    const products: Product[] = useMemo(
+        () => unwrapProductListRows(productsQuery.data),
+        [productsQuery.data],
+    );
     const productById = useMemo(() => {
         const m = new Map<number, Product>();
         for (const p of products) {
@@ -269,11 +279,16 @@ export default function ReceiptDetailModal({
             if (acc <= 0) continue;
             const k = String(receiptLineDeleteId(it) ?? "");
             const ed = lineEdits[k];
+            const pid = receiptLineProductId(it);
             const prod =
-                productById.get(it.productId) ??
+                (pid !== undefined ? productById.get(pid) : undefined) ??
                 (it.productType ? ({ type: it.productType } as Product) : undefined);
             if (requiresStatedExpiryForInbound(prod) && !String(ed?.statedExpiry ?? "").trim()) {
-                toast.error(`"${it.productName}": bắt buộc HSD khai báo (hàng đóng gói / NCC).`);
+                const displayName = coalesceReceiptLineProductLabel(
+                    receiptLineApiProductName(it),
+                    prod?.name,
+                );
+                toast.error(`"${displayName}": bắt buộc HSD khai báo (hàng đóng gói / NCC).`);
                 return false;
             }
         }
@@ -544,7 +559,13 @@ export default function ReceiptDetailModal({
                             {items.map((item, index) => {
                                 const lineKey = String(receiptLineDeleteId(item) ?? index);
                                 const batchId = item.batchId ?? undefined;
-                                const productName = item.productName || "—";
+                                const pidNum = receiptLineProductId(item);
+                                const fromCatalog =
+                                    pidNum !== undefined ? productById.get(pidNum) : undefined;
+                                const productName = coalesceReceiptLineProductLabel(
+                                    receiptLineApiProductName(item),
+                                    fromCatalog?.name,
+                                );
                                 const batchCode = item.batchCode ?? (batchId ? `ID ${batchId}` : "Chưa có lô (sau chốt)");
                                 const expiry = item.statedExpiryDate ?? item.expiryDate ?? null;
                                 const unit = item.unit ?? "";
@@ -562,7 +583,7 @@ export default function ReceiptDetailModal({
                                     statedExpiry: item.statedExpiryDate ? String(item.statedExpiryDate).slice(0, 10) : "",
                                 };
                                 const needExpiry = requiresStatedExpiryForInbound(
-                                    productById.get(item.productId) ??
+                                    fromCatalog ??
                                         (item.productType ? ({ type: item.productType } as Product) : undefined),
                                 );
                                 const displayAccepted = acceptedFromEdits(item);

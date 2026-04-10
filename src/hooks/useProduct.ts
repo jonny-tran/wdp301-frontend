@@ -71,13 +71,14 @@ export const useProduct = () => {
 
   })
 
-  const productList = (query: QueryProduct) => {
+  const productList = (query: QueryProduct, options?: { enabled?: boolean }) => {
     return useQuery({
       queryKey: QUERY_KEY.products.list(query),
       queryFn: async () => {
         const res = await productRequest.getProducts(query)
         return res.data
-      }
+      },
+      enabled: options?.enabled ?? true,
     })
   }
 

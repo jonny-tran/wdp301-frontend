@@ -8,8 +8,13 @@ export type ReceiptItem = {
     receiptItemId?: number | string;
     batchId?: number | null;
     batchCode?: string | null;
-    productId: number;
-    productName: string;
+    productId?: number;
+    /** Một số API trả snake_case */
+    product_id?: number | string;
+    productName?: string | null;
+    product_name?: string | null;
+    /** Một số API trả object lồng thay cho productId phẳng */
+    product?: { id?: number | string | null; name?: string | null };
     /** Loại sản phẩm (nếu API trả) — dùng khi không có trong cache danh mục */
     productType?: string | null;
     /** Tổng SL hiển thị (legacy hoặc mirror) */

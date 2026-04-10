@@ -1,7 +1,17 @@
-import { InboxArrowDownIcon, TrashIcon, TruckIcon, CalendarDaysIcon } from "@heroicons/react/24/outline";
+import { InboxArrowDownIcon, TrashIcon, TruckIcon, CalendarDaysIcon, CubeIcon } from "@heroicons/react/24/outline";
 import InboundStatusBadge from "./InboundStatusBadge";
 import { ReceiptStatus } from "@/utils/enum";
-import { Receipt } from "@/types/inbound";
+import type { Receipt, ReceiptItem } from "@/types/inbound";
+import { useMemo } from "react";
+import { useProduct } from "@/hooks/useProduct";
+import { unwrapProductListRows } from "@/lib/unwrap-product-list";
+import {
+    coalesceReceiptLineProductLabel,
+    receiptItems,
+    receiptLineApiProductName,
+    receiptLineProductId,
+} from "@/lib/inbound-receipt-utils";
+import type { Product } from "@/types/product";
 
 interface InboundDraftBoardProps {
     drafts: Receipt[];
@@ -11,6 +21,17 @@ interface InboundDraftBoardProps {
     onDelete?: (receiptId: string) => void;
 }
 
+function formatDraftLineSummary(item: ReceiptItem, productById: Map<number, Product>): string {
+    const pid = receiptLineProductId(item);
+    const fromCat = pid !== undefined ? productById.get(pid) : undefined;
+    const name = coalesceReceiptLineProductLabel(receiptLineApiProductName(item), fromCat?.name);
+    const qty = item.expectedQuantity ?? item.quantityAccepted ?? item.quantity;
+    if (qty != null && Number.isFinite(Number(qty))) {
+        return `${name} · ${qty}`;
+    }
+    return name;
+}
+
 export default function InboundDraftBoard({
     drafts,
     isLoading,
@@ -18,6 +39,20 @@ export default function InboundDraftBoard({
     onSelect,
     onDelete,
 }: InboundDraftBoardProps) {
+    const { productList } = useProduct();
+    const productsQuery = productList(
+        { page: 1, limit: 1000, sortOrder: "ASC" },
+        { enabled: drafts.length > 0 },
+    );
+    const productById = useMemo(() => {
+        const rows = unwrapProductListRows(productsQuery.data);
+        const m = new Map<number, Product>();
+        for (const p of rows) {
+            if (p?.id != null) m.set(p.id, p);
+        }
+        return m;
+    }, [productsQuery.data]);
+
     return (
         <div className="rounded-2xl border border-zinc-200 bg-white shadow-sm">
             {/* Header */}
@@ -64,6 +99,15 @@ export default function InboundDraftBoard({
                             const id = String(receipt.receiptId ?? receipt.id ?? index);
                             const code = receipt.receiptCode ?? `REC-${index + 1}`;
                             const supplierName = receipt.supplierName ?? receipt.supplier?.name ?? "Không rõ NCC";
+                            const lineItems = receiptItems(receipt);
+                            const linePreview =
+                                lineItems.length > 0
+                                    ? lineItems
+                                          .slice(0, 3)
+                                          .map((it) => formatDraftLineSummary(it, productById))
+                                          .join(" · ")
+                                    : null;
+                            const moreLines = lineItems.length > 3 ? ` (+${lineItems.length - 3})` : "";
 
                             return (
                                 <div
@@ -93,6 +137,15 @@ export default function InboundDraftBoard({
                                                 </>
                                             )}
                                         </div>
+                                        {linePreview && (
+                                            <div className="mt-2 flex items-start gap-1.5 text-zinc-600">
+                                                <CubeIcon className="mt-0.5 h-3.5 w-3.5 shrink-0 text-zinc-400" />
+                                                <span className="line-clamp-2 text-xs font-medium leading-snug">
+                                                    {linePreview}
+                                                    {moreLines}
+                                                </span>
+                                            </div>
+                                        )}
                                     </div>
 
                                     {/* Right: Delete button */}
